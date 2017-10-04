@@ -1,0 +1,48 @@
+Package: fwspp
+Type: Package
+Title: Querying Biodiversity Databases on USFWS Properties
+Version: 0.1.0
+Author: person("Adam", "Smith", email = "adam_d_smith@fws.gov", role = c("aut",
+    "cre"))
+Maintainer: Adam D. Smith <adam_d_smith@fws.gov>
+Description: Functions to query multiple biodiversity databases (e.g., GBIF, BISON, 
+  iDigBio, VertNet, Berkeley Ecoengine, AntWeb) based on the current ownership or 
+  approved acquisition boundary of US Fish & Wildlife Service (USFWS) properties, including
+  National Wildlife Refuges, Waterfowl Production Areas, National Fish Hatcheries, and 
+  others. The output of these queries is intended for easy incorporation into the FWSpecies 
+  database.  This package benefits immensely from the outstanding work of the rOpenSci 
+  community (https://ropensci.org).
+License: CC0
+Depends:
+    R (>= 3.4.0)
+Imports:
+    curl (>= 2.0),
+    dplyr (>= 0.7.3),
+    ecoengine (>= 1.11),
+    geosphere (>= 1.5-5),
+    httr (>= 1.3.1),
+    jsonlite (>= 1.5),
+    pbapply (>= 1.3-3),
+    raster (>= 2.5.8),
+    rgbif (>= 0.9.8),
+    ridigbio (>= 0.3.5),
+    rlang (>= 0.1.2),
+    rvertnet (>= 0.6),
+    R.utils (>= 2.5),
+    sf (>= 0.5-4),
+    solrium (>= 0.4.0),
+    stats,
+    utils
+Remotes:
+    adamdsmith/itistools
+Copyright: This software is in the public domain because it contains materials
+    that originally came from the United States Fish & Wildlife Service, an agency
+    of the United States Department of Interior. For more information, see the
+    official US DOI copyright policy at https://www.doi.gov/copyright. Note that
+    the use of the USFWS logo is restricted to official publications: https://
+    www.fws.gov/help/policies.html
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/adamdsmith/nwrspp
+BugReports: https://github.com/adamdsmith/nwrspp/issues
+RoxygenNote: 6.0.1

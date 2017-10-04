@@ -1,0 +1,183 @@
+# Functions to extract occurrence records from each biodiversity database
+
+# All get_* functions will return errors and continue rather than break
+# the overall request.  This allows the request of occurrence records to
+# to proceed to additional properties
+
+#' @noRd
+get_GBIF <- function(poly, timeout, limit = 200000) {
+
+  message("Querying the Global Biodiversity Information Facility (GBIF)...")
+
+  ch_geom <- poly %>% sf::st_convex_hull() %>%
+    sf::st_geometry() %>% sf::st_as_text()
+
+  try_gbif <- try_verb_n(rgbif::occ_search)
+  # We want to capture media, if available, so can't use 'spocc' call to GBIF
+  n <- Sys.time()
+  gbif_recs <- try_gbif(limit = limit,
+                        geometry = ch_geom,
+                        curlopts = list(ssl_verifypeer = 0L, timeout = timeout))
+  elapsed <- Sys.time() - n
+  message("  GBIF elapsed time: ", round(as.numeric(elapsed), 2), " ", attr(elapsed, "units"))
+
+  if (is_error(gbif_recs)) {
+    warning("GBIF query failed.")
+    return(gbif_recs)
+  }
+
+  q_recs <- gbif_recs$meta$count
+  if (q_recs >= 200000)
+    message(wrap_message(
+      paste("The GBIF query reached its hard limit of 200,000 records.",
+            "Continuing with the first 200,000 records, but you may wish",
+            "to specify a smaller `area_cutoff` argument for this property.")))
+
+  gbif_recs
+}
+
+#' @noRd
+get_BISON <- function(lat_range, lon_range, timeout) {
+
+  message("Querying Biodiversity Information Serving Our Nation (BISON)...")
+
+  ## `BISON search with geometry in `spocc` package omits desired metadata (i.e., media info)
+  ## Two queries, one to get # records and second to retrieve them, is faster...
+
+  for (i in 1:3) { # Try up to 3 times to set up SOLR connection
+    con <- try(solrium::solr_connect("https://bison.usgs.gov/solr/occurrences/select/",
+                                     verbose = FALSE),
+               silent = TRUE)
+    if (!is_error(con) || i == 3) break
+    Sys.sleep(stats::runif(1, 5, 10))
+  }
+
+  if (is_error(con)) {
+    warning("BISON query failed.")
+    return(con)
+  }
+
+  try_solr <- try_verb_n(solrium::solr_search)
+  q_recs <- try_solr(
+    fq = list(paste0("decimalLatitude:[",
+                     paste(lat_range, collapse = " TO "), "]"),
+              paste0("decimalLongitude:[",
+                     paste(lon_range, collapse = " TO "), "]")),
+    rows = 1, parsetype = "list", callopts = httr::timeout(30))
+
+  q_recs <- attr(q_recs, "numFound")
+  if (q_recs == 0) return(NULL)
+
+  # Splitting very large requests
+  starts <- seq(from = 0, by = 175000, length = ceiling(q_recs/175000))
+
+  bison_recs <- lapply(starts, function(start) {
+    try_solr(
+      fq = list(paste0("decimalLatitude:[",
+                       paste(lat_range, collapse = " TO "), "]"),
+                paste0("decimalLongitude:[",
+                       paste(lon_range, collapse = " TO "), "]")),
+      start = start, rows = 175000, callopts = httr::timeout(timeout))
+  })
+
+  errs <- sapply(bison_recs, is_error)
+  if (any(errs)) {
+    warning("BISON query failed.")
+    return(bison_recs[[which(errs)[1]]])
+  }
+
+  bison_recs <- bind_rows(bison_recs)
+
+  bison_recs
+
+}
+
+#' @noRd
+get_iDigBio <- function(lat_range, lon_range, timeout) {
+
+  message("Querying Integrated Digitized Biocollections (iDigBio)...")
+
+  rq <- list(geopoint = list(type = "geo_bounding_box",
+                             top_left = list(
+                               lat = lat_range[2], lon = lon_range[1]),
+                             bottom_right = list(
+                               lat = lat_range[1], lon = lon_range[2])))
+
+  try_idb <- try_verb_n(ridigbio::idig_search)
+  idb_recs <- try_idb(type = "records", mq = FALSE, rq = rq, fields = "all",
+                      max_items = 100000, limit = 0, offset = 0, sort = FALSE,
+                      httr::config(timeout = timeout))
+  if (is_error(idb_recs)) warning("iDigBio query failed.")
+  idb_recs
+}
+
+#' @noRd
+get_VertNet <- function(center, radius, timeout, limit = 200000) {
+
+  message("Querying VertNet...")
+
+  # `spocc` doesn't currently allow geographic searches with VertNet while `rvertnet` does
+  try_vn <- try_verb_n(rvertnet::spatialsearch)
+  vn_recs <- try_vn(center[2], center[1], radius, limit, messages = FALSE,
+                    callopts = list(ssl_verifypeer = 0L, timeout = timeout),
+                    only_dwc = FALSE)
+  if (is_error(vn_recs)) warning("VertNet query failed.")
+  vn_recs
+}
+
+#' @noRd
+get_EcoEngine <- function(lat_range, lon_range, timeout) {
+
+  message("Querying the Berkeley Ecoinformatics Engine...")
+
+  # Could use `spocc` but why start now...
+  bbox <- paste(c(lon_range[1], lat_range[1],
+                  lon_range[2], lat_range[2]),
+                collapse = ",")
+  try_ee <- try_verb_n(ecoengine::ee_observations)
+  ee_recs <- try_ee(page_size = 10000, bbox = bbox,
+                    georeferenced = TRUE, quiet = TRUE,
+                    foptions = httr::timeout(timeout))
+
+  # Distinguish error from no data
+  if (is_error(ee_recs))
+    if (grepl("count not greater than 0", ee_recs$message))
+      return(NULL)
+
+  ee_recs
+
+}
+
+#' @noRd
+get_AntWeb <- function(lat_range, lon_range, timeout) {
+
+  message("Querying AntWeb...")
+
+  # The `spocc` package has a relevant non-exported function (spocc:::aw_data2)
+  # that can query AntWeb with geometry, but it tosses any links to documenting images
+  # This function borrows (steals) heavily from that function but saves the links
+  bbox <- paste(c(lat_range[2], lon_range[2], lat_range[1], lon_range[1]), collapse = ",")
+  base_url <- "http://www.antweb.org/api/v2/"
+  try_GET <- try_verb_n(httr::GET)
+  res <- try_GET(base_url, query = list(bbox = bbox, limit = 2000),
+                 httr::timeout(timeout))
+  if (is_error(res) || httr::http_error(res)) {
+    warning("AntWeb query failed.")
+    return(res)
+  }
+  res <- jsonlite::fromJSON(httr::content(res, "text", encoding = "UTF-8"), FALSE)
+
+  if (res$count == 0) return(NULL)
+  if (res$count > 2000) message("Only first 2000 matching AntWeb records returned.")
+
+  aw_recs <- lapply(res$specimens, function(x) {
+    has_image <- "images" %in% names(x)
+    if (has_image) x$images <- NULL
+    aw_recs <- data.frame(t(unlist(x)), stringsAsFactors=FALSE)
+    aw_recs$evidence <- paste0("https://www.antweb.org/specimen/", aw_recs$catalogNumber)
+    aw_recs
+  })
+  aw_recs <- bind_rows(aw_recs)
+  aw_recs
+}
+
