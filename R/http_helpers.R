@@ -37,3 +37,9 @@ try_capture_stack <- function(quoted_code, env) {
     error = identity
   )
 }
+
+gbif_count <- function(geometry, timeout) {
+  rgbif:::gbif_GET("https://api.gbif.org/v1/occurrence/search",
+                   list(geometry = geometry),
+                   curlopts = list(ssl_verifypeer = 0L, timeout = timeout))
+}
