@@ -1,27 +1,27 @@
-retrieve_occ <- function(refs, ref, buffer, scrub, itis, grbio,
+retrieve_occ <- function(props, prop, buffer, scrub, itis, grbio,
                          plot, timeout, area_cutoff) {
 
-  org_name <- ref
+  org_name <- prop
   short_org <- Cap(org_name) %>% shorten_orgnames()
-  ref <- refs[refs$ORGNAME == ref, ]
+  prop <- props[props$ORGNAME == prop, ]
 
   # Consider buffer
-  if (buffer) ref <- buffer_ref(ref, buffer)
+  if (buffer) prop <- buffer_prop(prop, buffer)
 
   # Consider splitting property to facilitate queries
-  ref <- split_ref(ref, area_cutoff)
+  prop <- split_prop(prop, area_cutoff)
 
-  n_polys <- nrow(ref)
+  n_polys <- nrow(prop)
 
   msg <- c("\nProcessing", short_org)
   if (n_polys > 0)
     msg <- c(msg, "in", n_polys, "parts...")
   message(paste(msg, collapse = " "))
-  if (plot) plot(ref, col = "#d9d9d9", main = short_org)
+  if (plot) plot(prop, col = "#d9d9d9", main = short_org)
 
   occ_recs <- vector(length = n_polys, mode = "list")
   for (i in seq_len(n_polys)) {
-    poly <- ref[i, ]
+    poly <- prop[i, ]
     if (plot) {
       Sys.sleep(0.1)
       plot(poly, col = "#74c476", add = TRUE)

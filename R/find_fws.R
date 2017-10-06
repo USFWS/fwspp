@@ -1,6 +1,6 @@
 #' Find USFWS properties available for query.
 #'
-#' @param refuge character string scalar or vector (i.e., multiple entries allowed) with
+#' @param fws character string scalar or vector (i.e., multiple entries allowed) with
 #'  which to search and return valid USFWS identifiers (i.e., ORGNAMEs) for species
 #'  occurrence queries. Default (`NULL`) returns all available National Wildlife Refuges,
 #'  but other property types are available (see \code{ptype} argument).  The search is
@@ -15,37 +15,37 @@
 #' @export
 #' @return character vector of organizational names (ORGNAME) of USFWS properties meeting
 #'  the search criteria.  This output can be passed directly to \code{\link{fw_spp}} as
-#'  the \code{refuge} argument.
+#'  the \code{fws} argument.
 #' @examples
 #' # Get all National Wildlife Refuges
-#' all_refs <- find_refuges()
+#' all_refs <- find_fws()
 #'
 #' # Search for refuges using a partial name match
-#' ml <- find_refuges("longleaf")
+#' ml <- find_fws("longleaf")
 #'
 #' # Search for refuges matching multiple strings
-#' multi <- find_refuges(c("longleaf", "romain"))
+#' multi <- find_fws(c("longleaf", "romain"))
 #'
 #' # Regular expressions also work
-#' multi <- find_refuges("longl|romain")
+#' multi <- find_fws("longl|romain")
 #'
 #' # Search for all refuges beginning with "T"
-#' ts <- find_refuges("^t")
+#' ts <- find_fws("^t")
 #'
 #' # Return all southeast (region 4) refuges
-#' r4 <- find_refuges(region = 4)
+#' r4 <- find_fws(region = 4)
 #'
 #' # Return all mountain-prairie (region 6) refuges and waterfowl production areas
-#' r6 <- find_refuges(ptype = c("NWR", "WPA"), region = 6)
+#' r6 <- find_fws(ptype = c("NWR", "WPA"), region = 6)
 
-find_refuges <- function(refuge = NULL, ptype = "NWR", region = 1:8L)
+find_fws <- function(fws = NULL, ptype = "NWR", region = 1:8L)
 {
 
   if (!any(ptype %in% c("NWR", "WPA", "WMA", "FSA", "NFH")))
     stop("Unknown property type (`ptype`).\n",
-         "See available options in `?find_refuges`.")
+         "See available options in `?find_fws`.")
 
-  r <- system.file("extdata", "refuge_info.rds", package = "fwspp") %>%
+  r <- system.file("extdata", "fws_info.rds", package = "fwspp") %>%
     readRDS()
 
   # Filter by region
@@ -55,14 +55,14 @@ find_refuges <- function(refuge = NULL, ptype = "NWR", region = 1:8L)
               .data$FWSREGION %in% region,
               .data$RSL_TYPE %in% ptype)
 
-  if (is.null(refuge)) {
+  if (is.null(fws)) {
     return(sort(r$ORGNAME))
   } else {
-    refuge <- paste(refuge, collapse = "|")
-    refs <- filter(r, grepl(refuge, .data$ORGNAME, ignore.case = TRUE)) %>%
+    fws <- paste(fws, collapse = "|")
+    refs <- filter(r, grepl(fws, .data$ORGNAME, ignore.case = TRUE)) %>%
       pull(.data$ORGNAME) %>% sort()
     if (identical(refs, character(0)))
-      stop("No refuges matched your search criteria.")
+      stop("No USFWS properties matched your search criteria.")
     return(refs)
   }
 }

@@ -4,13 +4,13 @@
 #'  filters to relevant properties, if necessary.  Not meant to be called
 #'  directly by user.
 #'
-#' @param refuge character string; USFWS properties from which to extract
+#' @param prop character string; USFWS properties from which to extract
 #'  species occurrence records.  See \code{\link{fw_spp}}.
-#' @param bnd character scalar; which refuge boundary to use.  See
+#' @param bnd character scalar; which property boundary to use.  See
 #'  \code{\link{fw_spp}}
 #' @param verbose logical; suppress messaging? See \code{\link{fw_spp}}
 #'  during species occurrence queries
-prep_cadastral <- function(refuge, bnd, verbose)
+prep_cadastral <- function(prop, bnd, verbose)
 {
 
   # Get requested features
@@ -30,32 +30,32 @@ prep_cadastral <- function(refuge, bnd, verbose)
   if ("MULTISURFACE" %in% unique(st_geometry_type(st_geometry(r))))
     r <- sf::st_cast(r, "MULTIPOLYGON")
 
-  # Reduce to refuges matching input query
-  refs <- filter(r, .data$ORGNAME %in% refuge) %>%
+  # Reduce to properties matching input query
+  props <- filter(r, .data$ORGNAME %in% prop) %>%
     select(.data$ORGNAME, .data$FWSREGION)
-  ref_labels <- refs$ORGNAME %>% unique() %>% Cap() %>% shorten_orgnames()
+  prop_labels <- props$ORGNAME %>% unique() %>% Cap() %>% shorten_orgnames()
 
   # Dissolve into a single multi-part polygon by property
-  if (!identical(nrow(refs), length(ref_labels))) {
-    refs <- refs %>%
+  if (!identical(nrow(props), length(prop_labels))) {
+    props <- props %>%
       group_by(.data$ORGNAME) %>%
       summarise()
   }
 
   # Impose zero width buffer to correct potentially invalid geometries
   # ~ 25 had ring self-intersections...
-  refs <- suppressWarnings(sf::st_buffer(refs, 0))
+  props <- suppressWarnings(sf::st_buffer(props, 0))
 
   # Put in WGS84 even though GRS80 is practically identical
-  refs <- sf::st_transform(refs, 4326)
+  props <- sf::st_transform(props, 4326)
 
-  # Display queried refuges
+  # Display queried properties
   if (verbose) {
-    message(paste(c(paste0(length(ref_labels), " properties will be queried:"),
-                    strwrap(paste(sort(ref_labels), collapse = ", "),
+    message(paste(c(paste0(length(prop_labels), " properties will be queried:"),
+                    strwrap(paste(sort(prop_labels), collapse = ", "),
                             indent = 4, exdent = 4)),
                   collapse = "\n"))
   }
 
-  return(refs)
+  return(props)
 }

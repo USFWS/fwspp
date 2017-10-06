@@ -5,31 +5,31 @@
 \title{Geographic query of biodiversity databases based on U.S. Fish and Wildlife
  Service (USFWS) property boundaries}
 \usage{
-fwspp_occ(refuge = NULL, bnd = c("admin", "acq"), scrub = c("strict",
+fwspp_occ(fws = NULL, bnd = c("admin", "acq"), scrub = c("strict",
   "moderate", "none"), itis = TRUE, buffer = 0, verbose = TRUE,
   timeout = 1200L, area_cutoff = 10^2)
 }
 \arguments{
-\item{refuge}{character string indicating USFWS National Wildlife Refuges
-within and around which the user wishes to extract species occurrence
-records.  This string *should* result from running the
-\code{\link{find_refuges}} function to avoid potential mismatches.  See
+\item{fws}{character string indicating USFWS properties, typically National
+Wildlife Refuges within and around which the user wishes to extract species
+occurrence records.  This string *should* result from running the
+\code{\link{find_fws}} function to avoid potential mismatches.  See
 examples.}
 
-\item{bnd}{character scalar indicating the refuge boundary to use.  Default
+\item{bnd}{character scalar indicating the type of boundary to use.  Default
 ("admin") uses the current administrative boundary.  A second ption is to
 use the approved acquisition boundary ("acq").}
 
 \item{scrub}{character; one of 'strict' (default), 'moderate', or 'none',
 indicating the extent to which to reduce the number of records returned for
-a given \code{refuge}.  See details.}
+a given \code{fws}.  See details.}
 
 \item{itis}{logical (default TRUE) indicating whether to attempt to link
 occurrence records to ITIS information}
 
-\item{buffer}{numeric scalar of the distance in km from \code{refuge} to
+\item{buffer}{numeric scalar of the distance in km from \code{fws} to
 include in the search for species occurrence records. Default is 0 (use
-actual \code{refuge} boundary)}
+actual \code{fws} boundary)}
 
 \item{verbose}{logical (default TRUE) indicating whether to suppress messaging
 during species occurrence queries}
@@ -86,14 +86,14 @@ Geographic query of biodiversity databases based on U.S. Fish and Wildlife
 
 The basic process is to query GBIF, BISON, iDigBio, the Berkeley
  'Ecoinformatics' Engine, and AntWeb based on the bounding box
- associated with each \code{refuge} and any requested buffer.  For VertNet,
+ associated with each \code{fws} and any requested buffer.  For VertNet,
  the API requires spatial searches using a lat/lon coordinate and search
  radius.  We calculate the radius needed to fully capture the desired
  geometry.  Records are subsequently filtered based on the exact geometry.
  Additionally, we provide the options to:
  \itemize{
    \item scrub records to reduce the number of returned records for each
-      \code{refuge} (details below);
+      \code{fws} (details below);
    \item attempt to link each observation with an Integrated Taxonomic Information
       System (ITIS) record. Note that if ITIS linking is attempted, and a match found,
       the scientific name will be converted to this 'accepted' name identified by ITIS.
@@ -134,10 +134,10 @@ The boundaries specified by the \code{acq} option to the \code{bnd} argument
 \section{Important usage limitations/notes}{
 
 This function exists strictly to extract occurrence data for a given
- \code{refuge}. Attempts at estimating or inferring relative abundance are most
+ \code{fws}. Attempts at estimating or inferring relative abundance are most
  strongly discouraged and most likely meaningless.
 
-The extraction of records occurs on a refuge-by-refuge basis so the same
+The extraction of records occurs on a property-by-property basis so the same
  record may occur in multiple polygons depending on buffer specifications.
 }
 
@@ -145,14 +145,14 @@ The extraction of records occurs on a refuge-by-refuge basis so the same
 \dontrun{
 # Single refuge, administrative boundary, no buffer
 # By default, records are scrubbed very strictly (see details)
-ml <- find_refuges("longleaf") # Mountain Longleaf National Wildlife Refuge
-fwspp_occ(refuge = ml)
+ml <- find_fws("longleaf") # Mountain Longleaf National Wildlife Refuge
+fwspp_occ(fws = ml)
 # Multiple refuges, acquisition boundary with 5 km buffer, moderate scrubbing
-multi <- find_refuges(c("longleaf", "romain"))
-fwspp_occ(refuge = multi, bnd = "acq", scrub = "moderate", buffer = 5)
+multi <- find_fws(c("longleaf", "romain"))
+fwspp_occ(fws = multi, bnd = "acq", scrub = "moderate", buffer = 5)
 
 # All region 4 (southeast) refuges, with defaults
-r4 <- find_refuges(region = 4)
+r4 <- find_fws(region = 4)
 fw_spp(r4)
 }
 }

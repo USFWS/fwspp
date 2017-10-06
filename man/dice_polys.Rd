@@ -10,7 +10,7 @@ dice_polys(polys, max_area)
 \item{polys}{\code{\link[sf]{sf}} for a single USFWS property}
 
 \item{max_area}{numeric scalar indicating the approximate maximum area
-(in m^2) to allow when splitting \code{ref}. Most will be smaller, often
+(in m^2) to allow when splitting \code{polys}. Most will be smaller, often
 considerably so, given the irregular boundaries of most properties}
 }
 \description{

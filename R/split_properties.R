@@ -6,25 +6,25 @@
 #' Based on some preliminary timing comparisons, we split properties with one
 #'  or more polygons occupying a bounding box larger that 100 km^2
 #'
-#' @param ref \code{\link[sf]{sf}} object for a single USFWS property
+#' @param prop \code{\link[sf]{sf}} object for a single USFWS property
 #' @param area_cutoff numeric scalar indicating the polygon area (in km^2) above
-#'  which to split \code{ref} into smaller, approximately \code{area_cutoff}-sized
+#'  which to split \code{prop} into smaller, approximately \code{area_cutoff}-sized
 #'  polygons for processing
-split_ref <- function(ref, area_cutoff = 10^2) {
+split_prop <- function(prop, area_cutoff = 10^2) {
   area_cutoff <- 1000^2 * area_cutoff
-  ref_bb <- matrix(sf::st_bbox(ref), 2)
+  prop_bb <- matrix(sf::st_bbox(prop), 2)
   # Bounding box area if property queried as a whole
-  uni_area <- poly_bb_area(ref)
-  ref_split <- sf::st_cast(ref, to = "MULTIPOLYGON") %>%
+  uni_area <- poly_bb_area(prop)
+  prop_split <- sf::st_cast(prop, to = "MULTIPOLYGON") %>%
     sf::st_cast(., to = "POLYGON", warn = FALSE)
-  split_area <- poly_bb_area(ref_split)
+  split_area <- poly_bb_area(prop_split)
 
-  if (uni_area < split_area)
-    return(ref)
+  if (uni_area < area_cutoff)
+    return(prop)
   else if (max(split_area) > area_cutoff)
-    return(dice_polys(ref, area_cutoff))
+    return(dice_polys(prop, area_cutoff))
   else
-    return(ref_split)
+    return(prop_split)
 }
 
 #' Calculate bounding box area(s) for \code{sf} object
@@ -47,9 +47,9 @@ poly_bb_area <- function(polys) {
 
 #' Do the actual splitting of large properties into more manageable units
 #'
-#' @param polys  \code{\link[sf]{sf}} for a single USFWS property
+#' @param polys \code{\link[sf]{sf}} for a single USFWS property
 #' @param max_area numeric scalar indicating the approximate maximum area
-#'  (in m^2) to allow when splitting \code{ref}. Most will be smaller, often
+#'  (in m^2) to allow when splitting \code{polys}. Most will be smaller, often
 #'  considerably so, given the irregular boundaries of most properties
 dice_polys <- function(polys, max_area){
   stopifnot(all(sf::st_geometry_type(polys) %in% c("POLYGON", "MULTIPOLYGON")))

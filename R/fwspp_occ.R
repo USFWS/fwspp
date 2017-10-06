@@ -4,14 +4,14 @@
 #' @section General overview:
 #' The basic process is to query GBIF, BISON, iDigBio, the Berkeley
 #'  'Ecoinformatics' Engine, and AntWeb based on the bounding box
-#'  associated with each \code{refuge} and any requested buffer.  For VertNet,
+#'  associated with each \code{fws} and any requested buffer.  For VertNet,
 #'  the API requires spatial searches using a lat/lon coordinate and search
 #'  radius.  We calculate the radius needed to fully capture the desired
 #'  geometry.  Records are subsequently filtered based on the exact geometry.
 #'  Additionally, we provide the options to:
 #'  \itemize{
 #'    \item scrub records to reduce the number of returned records for each
-#'       \code{refuge} (details below);
+#'       \code{fws} (details below);
 #'    \item attempt to link each observation with an Integrated Taxonomic Information
 #'       System (ITIS) record. Note that if ITIS linking is attempted, and a match found,
 #'       the scientific name will be converted to this 'accepted' name identified by ITIS.
@@ -46,23 +46,21 @@
 #'
 #' @section Important usage limitations/notes:
 #' This function exists strictly to extract occurrence data for a given
-#'  \code{refuge}. Attempts at estimating or inferring relative abundance are most
-#'  strongly discouraged and most likely meaningless.
+#'  \code{fws} property. Attempts at estimating or inferring relative abundance
+#'  are most strongly discouraged and most likely meaningless.
 #'
-#' The extraction of records occurs on a refuge-by-refuge basis so the same
+#' The extraction of records occurs on a property-by-property basis so the same
 #'  record may occur in multiple polygons depending on buffer specifications.
 #'
-#' @param refuge character string indicating USFWS National Wildlife Refuges
-#'  within and around which the user wishes to extract species occurrence
-#'  records.  This string *should* result from running the
-#'  \code{\link{find_refuges}} function to avoid potential mismatches.  See
-#'  examples.
-#' @param bnd character scalar indicating the refuge boundary to use.  Default
-#'  ("admin") uses the current administrative boundary.  A second ption is to
-#'  use the approved acquisition boundary ("acq").
+#' @param fws character string indicating USFWS properties, typically National
+#'  Wildlife Refuges, within and around which the user wishes to extract species
+#'  occurrence records.  This string *should* result from running
+#'  \code{\link{find_fws}} to avoid potential mismatches.  See examples.
+#' @param bnd character scalar indicating the type of property boundary to use.
+#'  Default ("admin") uses the current administrative boundary.  The approved
+#'  acquisition boundary ("acq") is another option.
 #' @param scrub character; one of 'strict' (default), 'moderate', or 'none',
 #'  indicating the extent to which to reduce the number of records returned for
-#'  a given \code{refuge}.  See details.
 #' @param itis logical (default TRUE) indicating whether to attempt to link
 #'  occurrence records to ITIS information
 #' @param buffer numeric scalar of the distance in km from \code{refuge} to
@@ -71,6 +69,7 @@
 #' @param verbose logical (default TRUE) indicating whether to suppress messaging
 #'  during species occurrence queries
 #' @param timeout integer indicating time, in seconds, to allow for HTTP requests to
+#'  a given \code{fws}.  See details.
 #'  process. Default is 20 minutes (\code{timeout = 1200L}), which should permit most
 #'  of the largest GBIF queries to complete on a ~ 20 Mbps internet connection. GBIF
 #'  is nearly always the slowest request. If timeouts are a recurring problem, it may
@@ -114,46 +113,47 @@
 #' @examples
 #' \dontrun{
 #' # Single refuge, administrative boundary, no buffer
-#' # By default, records are scrubbed very strictly (see details)
-#' ml <- find_refuges("longleaf") # Mountain Longleaf National Wildlife Refuge
-#' fwspp_occ(refuge = ml)
-
-#' # Multiple refuges, acquisition boundary with 5 km buffer, moderate scrubbing
-#' multi <- find_refuges(c("longleaf", "romain"))
-#' fwspp_occ(refuge = multi, bnd = "acq", scrub = "moderate", buffer = 5)
+#' # By default, records are scrubbed very strictly (see Details)
+#'  # Mountain Longleaf National Wildlife Refuge
+#' ml <- find_fws("longleaf")
+#' fwspp_occ(fws = ml)
 #'
-#' # All region 4 (southeast) refuges, with defaults
-#' r4 <- find_refuges(region = 4)
+#' # Multiple refuges, acquisition boundary with 5 km buffer, moderate scrubbing
+#' multi <- find_fws(c("longleaf", "romain"))
+#' fwspp_occ(fws = multi, bnd = "acq", scrub = "moderate", buffer = 5)
+#'
+#' # All Region 4 (southeast) refuges, with defaults
+#' r4 <- find_fws(region = 4)
 #' fw_spp(r4)
 #' }
 
-fwspp_occ <- function(refuge = NULL, bnd = c("admin", "acq"),
+fwspp_occ <- function(fws = NULL, bnd = c("admin", "acq"),
                       scrub = c("strict", "moderate", "none"),
                       itis = TRUE, buffer = 0, verbose = TRUE,
                       timeout = 1200L, area_cutoff = 10^2) {
 
-  if (is.null(refuge)) stop("You must provide valid refuge names to query.",
-                            "\nSee `?find_refuges` for examples.")
+  if (is.null(fws)) stop("You must provide valid property names to query.",
+                            "\nSee `?find_fws` for examples.")
   bnd <- match.arg(bnd)
   scrub <- match.arg(scrub)
 
-  # Import refuge spatial information
+  # Import spatial data for relevant properties
   check_cadastral()
-  refs <- prep_cadastral(refuge, bnd, verbose)
+  props <- prep_cadastral(fws, bnd, verbose)
 
   # Import global registery of biodiversity repositories
   grbio <- get_grbio()
 
-  # Cycle through refuges
+  # Cycle through properties
   if (verbose)
-    out <- lapply(refuge, function(ref) {
-        retrieve_occ(refs, ref, buffer, scrub, itis, grbio, timeout, area_cutoff)})
+    out <- lapply(fws, function(prop) {
+        retrieve_occ(props, prop, buffer, scrub, itis, grbio, plot, timeout, area_cutoff)})
   else
-    out <- pbapply::pblapply(refuge, function(ref) {
+    out <- pbapply::pblapply(fws, function(prop) {
       suppressMessages(
-          retrieve_occ(refs, ref, buffer, scrub, itis, grbio, timeout, area_cutoff))})
+          retrieve_occ(props, prop, buffer, scrub, itis, grbio, plot, timeout, area_cutoff))})
 
-  attributes(out) <- list(names = Cap(shorten_orgnames(refuge)),
+  attributes(out) <- list(names = Cap(shorten_orgnames(fws)),
                           class = "fwspp",
                           boundary = bnd, scrubbing = scrub,
                           itis = itis, buffer_km = buffer,

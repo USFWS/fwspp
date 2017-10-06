@@ -4,13 +4,13 @@
 \alias{prep_cadastral}
 \title{Prepare USFWS cadastral spatial data}
 \usage{
-prep_cadastral(refuge, bnd, verbose)
+prep_cadastral(prop, bnd, verbose)
 }
 \arguments{
-\item{refuge}{character string; USFWS properties from which to extract
+\item{prop}{character string; USFWS properties from which to extract
 species occurrence records.  See \code{\link{fw_spp}}.}
 
-\item{bnd}{character scalar; which refuge boundary to use.  See
+\item{bnd}{character scalar; which property boundary to use.  See
 \code{\link{fw_spp}}}
 
 \item{verbose}{logical; suppress messaging? See \code{\link{fw_spp}}
