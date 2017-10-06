@@ -19,14 +19,15 @@
 #'
 #' @section Scrubbing details:
 #' By default (\code{scrub = "strict"}), this function scrubs a lot of records.
-#'  Specifically, it retains all unique records with associated media (e.g., photo,
-#'  audio), and then a single record for each species without media, typically the most
-#'  recent with evidence to support the identification, within a given boundary. Records
-#'  for which evidence was not available (i.e., the function was unable to associate a
-#'  record with some collection/catalog number) are removed.  Moderate scrubbing
-#'  (\code{scrub = "moderate"}) attempts only to eliminate records sharing the same catalog
-#'  number and redundant observations (i.e., multiple individuals of the same species
-#'  recorded on the same date at a single location).
+#'  Specifically, it retains a single record for each species, giving preference to
+#'  records with associated media (e.g., photo, audio) within a given property.  The
+#'  retained record is typically the most recent with evidence to support the
+#'  identification. Records for which evidence was not available (i.e., no associated
+#'  collection or catalog number) are removed.  Moderate scrubbing
+#'  (\code{scrub = "moderate"}) attempts only to duplicate records (i.e., identical
+#'  catalog numbers) and redundant observations (i.e., multiple individuals of the same
+#'  species recorded on the same date at a single location). All records can be
+#'  returned with (\code{scrub = "none"}).
 #'
 #' @section Additional boundary information:
 #' The boundaries specified by the \code{admin} option to the \code{bnd} argument
@@ -61,22 +62,24 @@
 #'  acquisition boundary ("acq") is another option.
 #' @param scrub character; one of 'strict' (default), 'moderate', or 'none',
 #'  indicating the extent to which to reduce the number of records returned for
-#' @param itis logical (default TRUE) indicating whether to attempt to link
-#'  occurrence records to ITIS information
-#' @param buffer numeric scalar of the distance in km from \code{refuge} to
-#'  include in the search for species occurrence records. Default is 0 (use
-#'  actual \code{refuge} boundary)
-#' @param verbose logical (default TRUE) indicating whether to suppress messaging
-#'  during species occurrence queries
-#' @param timeout integer indicating time, in seconds, to allow for HTTP requests to
 #'  a given \code{fws}.  See details.
+#' @param itis logical (default TRUE); attempt to link occurrence records to
+#'  ITIS information?
+#' @param buffer numeric scalar; distance (km) from the \code{fws} \code{bnd} to
+#'  include in the search for species occurrence records. Default is no buffer.
+#' @param verbose logical (default TRUE); print messages during species occurrence
+#'  queries?
+#' @param plot logical (default FALSE); illustrate query progress via a plot of
+#'  the \code{fws} boundary and any partitions? This is most useful during
+#'  interactive sessions
+#' @param timeout integer; time, in seconds, to allow for HTTP requests to
 #'  process. Default is 20 minutes (\code{timeout = 1200L}), which should permit most
 #'  of the largest GBIF queries to complete on a ~ 20 Mbps internet connection. GBIF
 #'  is nearly always the slowest request. If timeouts are a recurring problem, it may
 #'  be worth increasing this parameter.
-#' @param area_cutoff numeric scalar indicating the polygon area (in km^2, default
-#'  = 100 km^2) above which to split properties into smaller, approximately
-#'  \code{area_cutoff}-sized polygons for processing. There is no need to modify
+#' @param area_cutoff numeric scalar; the polygon area (in km^2; default 100 km^2)
+#'  above which to split properties into smaller, approximately
+#'  \code{area_cutoff}-sized pieces for processing. There is no need to modify
 #'  this parameter unless you reach the hard limits on occurrence records set
 #'  by GBIF, in which case you can reduce this number.
 #' @export
@@ -95,16 +98,17 @@
 #'    \item{com_name}{Presumed most "accepted" vernacular name, from ITIS, if available.}
 #'    \item{lon}{Longitude (WGS84) of observation.}
 #'    \item{lat}{Latitude (WGS84) of observation.}
-#'    \item{loc_unc_m}{Locational uncertainty (m) of observation coordinates.  Typically
-#'          this is not available.}
+#'    \item{loc_unc_m}{Locational uncertainty (m) of observation coordinates; typically
+#'          unavailable.}
 #'    \item{year}{Year of observation, if available.}
 #'    \item{month}{Month of observation, if available.}
 #'    \item{day}{Day of month of observation, if available.}
 #'    \item{evidence}{Attempt to link observation to a URL that best substantiates the
-#'          observation, if available, generally in the following order: (1) URL to media
-#'          (photo, audio, video) of the observation, (2) URL to the observation in the
-#'          original collection, (3) URL of the collection, with catalog number, or (4)
-#'          URL of the institution housing the collection, with catalog number.}
+#'          observation, if available, generally in the following order: (1) URL to
+#'          observation with media (photo, audio, video) or the media itself, (2) URL
+#'          to the observation in the original collection, (3) URL of the collection,
+#'          with catalog number, or (4) URL of the institution housing the collection,
+#'          with catalog number.}
 #'    \item{bio_repo}{Biodiversity database source of the observation, currently one of
 #'          GBIF, BISON, iDigBio, VertNet, EcoEngine, or AntWeb.}
 #'    \item{note}{Additional notes on the observation, currently restricted to indicating

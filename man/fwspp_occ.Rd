@@ -7,42 +7,44 @@
 \usage{
 fwspp_occ(fws = NULL, bnd = c("admin", "acq"), scrub = c("strict",
   "moderate", "none"), itis = TRUE, buffer = 0, verbose = TRUE,
-  timeout = 1200L, area_cutoff = 10^2)
+  plot = FALSE, timeout = 1200L, area_cutoff = 10^2)
 }
 \arguments{
 \item{fws}{character string indicating USFWS properties, typically National
-Wildlife Refuges within and around which the user wishes to extract species
-occurrence records.  This string *should* result from running the
-\code{\link{find_fws}} function to avoid potential mismatches.  See
-examples.}
+Wildlife Refuges, within and around which the user wishes to extract species
+occurrence records.  This string *should* result from running
+\code{\link{find_fws}} to avoid potential mismatches.  See examples.}
 
-\item{bnd}{character scalar indicating the type of boundary to use.  Default
-("admin") uses the current administrative boundary.  A second ption is to
-use the approved acquisition boundary ("acq").}
+\item{bnd}{character scalar indicating the type of property boundary to use.
+Default ("admin") uses the current administrative boundary.  The approved
+acquisition boundary ("acq") is another option.}
 
 \item{scrub}{character; one of 'strict' (default), 'moderate', or 'none',
 indicating the extent to which to reduce the number of records returned for
 a given \code{fws}.  See details.}
 
-\item{itis}{logical (default TRUE) indicating whether to attempt to link
-occurrence records to ITIS information}
+\item{itis}{logical (default TRUE); attempt to link occurrence records to
+ITIS information?}
 
-\item{buffer}{numeric scalar of the distance in km from \code{fws} to
-include in the search for species occurrence records. Default is 0 (use
-actual \code{fws} boundary)}
+\item{buffer}{numeric scalar; distance (km) from the \code{fws} \code{bnd} to
+include in the search for species occurrence records. Default is no buffer.}
 
-\item{verbose}{logical (default TRUE) indicating whether to suppress messaging
-during species occurrence queries}
+\item{verbose}{logical (default TRUE); print messages during species occurrence
+queries?}
 
-\item{timeout}{integer indicating time, in seconds, to allow for HTTP requests to
+\item{plot}{logical (default FALSE); illustrate query progress via a plot of
+the \code{fws} boundary and any partitions? This is most useful during
+interactive sessions}
+
+\item{timeout}{integer; time, in seconds, to allow for HTTP requests to
 process. Default is 20 minutes (\code{timeout = 1200L}), which should permit most
 of the largest GBIF queries to complete on a ~ 20 Mbps internet connection. GBIF
 is nearly always the slowest request. If timeouts are a recurring problem, it may
 be worth increasing this parameter.}
 
-\item{area_cutoff}{numeric scalar indicating the polygon area (in km^2, default
-= 100 km^2) above which to split properties into smaller, approximately
-\code{area_cutoff}-sized polygons for processing. There is no need to modify
+\item{area_cutoff}{numeric scalar; the polygon area (in km^2; default 100 km^2)
+above which to split properties into smaller, approximately
+\code{area_cutoff}-sized pieces for processing. There is no need to modify
 this parameter unless you reach the hard limits on occurrence records set
 by GBIF, in which case you can reduce this number.}
 }
@@ -62,16 +64,17 @@ Nothing. But generates a \code{rds} for each property in \code{export_dir}
    \item{com_name}{Presumed most "accepted" vernacular name, from ITIS, if available.}
    \item{lon}{Longitude (WGS84) of observation.}
    \item{lat}{Latitude (WGS84) of observation.}
-   \item{loc_unc_m}{Locational uncertainty (m) of observation coordinates.  Typically
-         this is not available.}
+   \item{loc_unc_m}{Locational uncertainty (m) of observation coordinates; typically
+         unavailable.}
    \item{year}{Year of observation, if available.}
    \item{month}{Month of observation, if available.}
    \item{day}{Day of month of observation, if available.}
    \item{evidence}{Attempt to link observation to a URL that best substantiates the
-         observation, if available, generally in the following order: (1) URL to media
-         (photo, audio, video) of the observation, (2) URL to the observation in the
-         original collection, (3) URL of the collection, with catalog number, or (4)
-         URL of the institution housing the collection, with catalog number.}
+         observation, if available, generally in the following order: (1) URL to
+         observation with media (photo, audio, video) or the media itself, (2) URL
+         to the observation in the original collection, (3) URL of the collection,
+         with catalog number, or (4) URL of the institution housing the collection,
+         with catalog number.}
    \item{bio_repo}{Biodiversity database source of the observation, currently one of
          GBIF, BISON, iDigBio, VertNet, EcoEngine, or AntWeb.}
    \item{note}{Additional notes on the observation, currently restricted to indicating
@@ -103,14 +106,15 @@ The basic process is to query GBIF, BISON, iDigBio, the Berkeley
 \section{Scrubbing details}{
 
 By default (\code{scrub = "strict"}), this function scrubs a lot of records.
- Specifically, it retains all unique records with associated media (e.g., photo,
- audio), and then a single record for each species without media, typically the most
- recent with evidence to support the identification, within a given boundary. Records
- for which evidence was not available (i.e., the function was unable to associate a
- record with some collection/catalog number) are removed.  Moderate scrubbing
- (\code{scrub = "moderate"}) attempts only to eliminate records sharing the same catalog
- number and redundant observations (i.e., multiple individuals of the same species
- recorded on the same date at a single location).
+ Specifically, it retains a single record for each species, giving preference to
+ records with associated media (e.g., photo, audio) within a given property.  The
+ retained record is typically the most recent with evidence to support the
+ identification. Records for which evidence was not available (i.e., no associated
+ collection or catalog number) are removed.  Moderate scrubbing
+ (\code{scrub = "moderate"}) attempts only to duplicate records (i.e., identical
+ catalog numbers) and redundant observations (i.e., multiple individuals of the same
+ species recorded on the same date at a single location). All records can be
+ returned with (\code{scrub = "none"}).
 }
 
 \section{Additional boundary information}{
@@ -134,8 +138,8 @@ The boundaries specified by the \code{acq} option to the \code{bnd} argument
 \section{Important usage limitations/notes}{
 
 This function exists strictly to extract occurrence data for a given
- \code{fws}. Attempts at estimating or inferring relative abundance are most
- strongly discouraged and most likely meaningless.
+ \code{fws} property. Attempts at estimating or inferring relative abundance
+ are most strongly discouraged and most likely meaningless.
 
 The extraction of records occurs on a property-by-property basis so the same
  record may occur in multiple polygons depending on buffer specifications.
@@ -144,14 +148,16 @@ The extraction of records occurs on a property-by-property basis so the same
 \examples{
 \dontrun{
 # Single refuge, administrative boundary, no buffer
-# By default, records are scrubbed very strictly (see details)
-ml <- find_fws("longleaf") # Mountain Longleaf National Wildlife Refuge
+# By default, records are scrubbed very strictly (see Details)
+ # Mountain Longleaf National Wildlife Refuge
+ml <- find_fws("longleaf")
 fwspp_occ(fws = ml)
+
 # Multiple refuges, acquisition boundary with 5 km buffer, moderate scrubbing
 multi <- find_fws(c("longleaf", "romain"))
 fwspp_occ(fws = multi, bnd = "acq", scrub = "moderate", buffer = 5)
 
-# All region 4 (southeast) refuges, with defaults
+# All Region 4 (southeast) refuges, with defaults
 r4 <- find_fws(region = 4)
 fw_spp(r4)
 }
