@@ -38,8 +38,10 @@ try_capture_stack <- function(quoted_code, env) {
   )
 }
 
-gbif_count <- function(geometry, timeout) {
-  rgbif:::gbif_GET("https://api.gbif.org/v1/occurrence/search",
-                   list(geometry = geometry),
-                   curlopts = list(ssl_verifypeer = 0L, timeout = timeout))
+gbif_count <- function(poly, timeout, ...) {
+  n <- rgbif::occ_search(limit = 0, ...,
+                         geometry = get_wkt(poly),
+                         return = "meta",
+                         curlopts = list(ssl_verifypeer = 0L, timeout = timeout))
+  pull(n, count)
 }
