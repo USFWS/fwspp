@@ -29,7 +29,8 @@ scrub_occ <- function(occ_recs, scrub) {
 
     # Prioritize order biodiversity repo
     col_order <- names(occ_recs)
-    occ_recs <- inner_join(data.frame(bio_repo = repo_pref, stringsAsFactors = FALSE),
+    occ_recs <- inner_join(data.frame(bio_repo = repo_pref,
+                                      stringsAsFactors = FALSE),
                            occ_recs, by = "bio_repo")
 
     # Catalog number duplicates

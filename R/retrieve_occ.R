@@ -33,38 +33,29 @@ retrieve_occ <- function(props, prop, buffer, scrub, itis, grbio,
   }
 
   if (any(sapply(occ_recs, is_error))) return(occ_recs)
-
   occ_recs <- bind_rows(occ_recs)
-
   if (nrow(occ_recs) == 0) return(NULL)
 
-  #############################################################################
-  ##################### Filter to boundaries of interest ######################
-  #############################################################################
+  # Filter to boundaries of interest
+  occ_recs <- clip_occ(occ_recs, prop)
+  if (nrow(occ_recs) == 0) return(NULL)
 
-  occ_recs <- clip_occ(occ_recs, ref)
-
-  #############################################################################
-  ################# ITIS joining and scrubbing, if requested ##################
-  #############################################################################
-  if (nrow(occ_recs) > 0) {
-
-    if (itis) {
-      occ_recs <- join_itis(occ_recs)
-      if (is_error(occ_recs)) return(occ_recs)
-    }
-
-    if (scrub != "none") {
-      try_scrub <- try_verb_n(scrub_occ, 1)
-      occ_recs <- try_scrub(occ_recs, scrub)
-      if (is_error(occ_recs)) return(occ_recs)
-    }
-
-    occ_recs %>%
-      mutate(org_name = org_name) %>%
-      select(.data$org_name, everything(), -.data$media_url, -.data$cat_no) %>%
-      arrange(.data$class, .data$sci_name, .data$com_name, .data$year,
-          .data$month, .data$day)
-
+  # ITIS joining and scrubbing, if requested
+  if (itis) {
+    occ_recs <- join_itis(occ_recs)
+    if (is_error(occ_recs)) return(occ_recs)
   }
+
+  if (scrub != "none") {
+    try_scrub <- try_verb_n(scrub_occ, 1)
+    occ_recs <- try_scrub(occ_recs, scrub)
+    if (is_error(occ_recs)) return(occ_recs)
+  }
+
+  occ_recs %>%
+    mutate(org_name = org_name) %>%
+    select(.data$org_name, everything(), -.data$media_url, -.data$cat_no) %>%
+    arrange(.data$class, .data$sci_name, .data$com_name, .data$year,
+            .data$month, .data$day)
+
 }

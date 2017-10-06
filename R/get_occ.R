@@ -14,12 +14,9 @@ get_GBIF <- function(poly, timeout, limit = 200000) {
 
   try_gbif <- try_verb_n(rgbif::occ_search)
   # We want to capture media, if available, so can't use 'spocc' call to GBIF
-  n <- Sys.time()
   gbif_recs <- try_gbif(limit = limit,
                         geometry = ch_geom,
                         curlopts = list(ssl_verifypeer = 0L, timeout = timeout))
-  elapsed <- Sys.time() - n
-  message("  GBIF elapsed time: ", round(as.numeric(elapsed), 2), " ", attr(elapsed, "units"))
 
   if (is_error(gbif_recs)) {
     warning("GBIF query failed.")
