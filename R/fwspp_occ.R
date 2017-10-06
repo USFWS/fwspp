@@ -134,7 +134,8 @@
 fwspp_occ <- function(fws = NULL, bnd = c("admin", "acq"),
                       scrub = c("strict", "moderate", "none"),
                       itis = TRUE, buffer = 0, verbose = TRUE,
-                      timeout = 1200L, area_cutoff = 10^2) {
+                      plot = FALSE, timeout = 1200L,
+                      area_cutoff = 10^2) {
 
   if (is.null(fws)) stop("You must provide valid property names to query.",
                             "\nSee `?find_fws` for examples.")
