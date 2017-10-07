@@ -15,6 +15,7 @@
 
 install_fws_cadastral <- function() {
 
+
   if (!(curl::has_internet())) {
     stop(paste(strwrap(
       paste("No internet connection detected.  Please try again later when a stable",
@@ -22,8 +23,17 @@ install_fws_cadastral <- function() {
       collapse = "\n"))
   } else {
     tmp <- tempfile(fileext = ".zip")
-    utils::download.file("https://ecos.fws.gov/ServCat/DownloadFile/126665", tmp,
-                         mode = "wb", cacheOK = FALSE)
+    dl <- try(utils::download.file(fws_url(), tmp, mode = "wb",
+                                   quiet = TRUE, cacheOK = FALSE),
+              silent = TRUE)
+    if (inherits(dl, "try-error")) {
+      utils::browseURL(fws_url())
+      stop(wrap_message(
+        paste("Automatic cadastral installation failed. Unzip the contents of",
+              "the currently downloading file (i.e., 'FWSCadastral.gdb') into",
+              system.file("extdata", package = "fwspp"))))
+    }
+
     utils::unzip(tmp, overwrite = TRUE,
                  exdir = system.file("extdata", package = "fwspp"))
 

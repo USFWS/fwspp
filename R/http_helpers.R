@@ -23,6 +23,8 @@ try_verb_n <- function(verb, n = 3) {
 
 is_error <- function(obj) inherits(obj, "error")
 
+fws_url <- function() "https://ecos.fws.gov/ServCat/DownloadFile/126665"
+
 # From evaluate package
 # https://github.com/r-lib/evaluate/blob/master/R/traceback.r
 try_capture_stack <- function(quoted_code, env) {
