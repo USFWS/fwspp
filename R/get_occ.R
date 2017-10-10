@@ -16,7 +16,6 @@ get_GBIF <- function(poly, timeout, limit = 200000) {
   # We want to capture media, if available, so can't use 'spocc' call to GBIF
   gbif_recs <- try_gbif(limit = limit,
                         geometry = ch_geom,
-                        curlopts = list(ssl_verifypeer = 0L, timeout = timeout))
 
   if (is_error(gbif_recs)) {
     warning("GBIF query failed.")
@@ -116,7 +115,7 @@ get_VertNet <- function(center, radius, timeout, limit = 200000) {
   # `spocc` doesn't currently allow geographic searches with VertNet while `rvertnet` does
   try_vn <- try_verb_n(rvertnet::spatialsearch)
   vn_recs <- try_vn(center[2], center[1], radius, limit, messages = FALSE,
-                    callopts = list(ssl_verifypeer = 0L, timeout = timeout),
+                    callopts = list(timeout = timeout),
                     only_dwc = FALSE)
   if (is_error(vn_recs)) warning("VertNet query failed.")
   vn_recs

@@ -40,10 +40,9 @@ try_capture_stack <- function(quoted_code, env) {
   )
 }
 
-gbif_count <- function(poly, timeout, ...) {
+gbif_count <- function(poly, ...) {
   n <- rgbif::occ_search(limit = 0, ...,
                          geometry = get_wkt(poly),
-                         return = "meta",
-                         curlopts = list(ssl_verifypeer = 0L, timeout = timeout))
+                         return = "meta")
   pull(n, count)
 }
