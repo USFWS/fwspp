@@ -10,21 +10,13 @@
 #' @param area_cutoff numeric scalar indicating the polygon area (in km^2) above
 #'  which to split \code{prop} into smaller, approximately \code{area_cutoff}-sized
 #'  polygons for processing
-split_prop <- function(prop, area_cutoff = 10^2) {
-  area_cutoff <- 1000^2 * area_cutoff
+split_prop <- function(prop, area_cutoff) {
+  area_cutoff_m <- 1000^2 * area_cutoff
   prop_bb <- matrix(sf::st_bbox(prop), 2)
   # Bounding box area if property queried as a whole
   uni_area <- poly_bb_area(prop)
-  prop_split <- sf::st_cast(prop, to = "MULTIPOLYGON") %>%
-    sf::st_cast(., to = "POLYGON", warn = FALSE)
-  split_area <- poly_bb_area(prop_split)
-
-  if (uni_area < area_cutoff)
-    return(prop)
-  else if (max(split_area) > area_cutoff)
-    return(dice_polys(prop, area_cutoff))
-  else
-    return(prop_split)
+  if (uni_area < area_cutoff_m) return(prop)
+  return(dice_polys(prop, area_cutoff_m))
 }
 
 #' Calculate bounding box area(s) for \code{sf} object
