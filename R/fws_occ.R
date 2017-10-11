@@ -120,18 +120,18 @@
 #' # By default, records are scrubbed very strictly (see Details)
 #'  # Mountain Longleaf National Wildlife Refuge
 #' ml <- find_fws("longleaf")
-#' fwspp_occ(fws = ml)
+#' fws_occ(fws = ml)
 #'
 #' # Multiple refuges, acquisition boundary with 5 km buffer, moderate scrubbing
 #' multi <- find_fws(c("longleaf", "romain"))
-#' fwspp_occ(fws = multi, bnd = "acq", scrub = "moderate", buffer = 5)
+#' fws_occ(fws = multi, bnd = "acq", scrub = "moderate", buffer = 5)
 #'
 #' # All Region 4 (southeast) refuges, with defaults
 #' r4 <- find_fws(region = 4)
 #' fw_spp(r4)
 #' }
 
-fwspp_occ <- function(fws = NULL, bnd = c("admin", "acq"),
+fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
                       scrub = c("strict", "moderate", "none"),
                       itis = TRUE, buffer = 0, verbose = TRUE,
                       plot = FALSE, timeout = 1200L,
