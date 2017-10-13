@@ -9,25 +9,79 @@ get_GBIF <- function(poly, timeout, limit = 200000) {
 
   message("Querying the Global Biodiversity Information Facility (GBIF)...")
 
-  ch_geom <- poly %>% sf::st_convex_hull() %>%
-    sf::st_geometry() %>% sf::st_as_text()
+  # Count recs
+  try_gbif_count <- try_verb_n(gbif_count)
+  q_recs <- try_gbif_count(poly)
+  if (is_error(q_recs))  {
+    warning("GBIF record count failed.")
+    return(q_recs)
+  }
 
-  try_gbif <- try_verb_n(rgbif::occ_search)
   # We want to capture media, if available, so can't use 'spocc' call to GBIF
-  gbif_recs <- try_gbif(limit = limit,
-                        geometry = ch_geom,
+  try_gbif <- try_verb_n(rgbif::occ_search)
+
+  curr_yr <- as.POSIXlt(Sys.time())$year + 1900
+
+  # Hoop-jumping to retrieve more records, if necessary
+  if (q_recs > 100000) {
+
+    message("Splitting the GBIF query temporally to recover all records.")
+
+    # Finding year breaks
+    n_grp <- ceiling(q_recs/100000)
+    yr_bnd_l <- integer(0)
+
+    for (yr in curr_yr:1776) {
+
+      cutoff <- 100000 * (length(yr_bnd_l) + 1)
+      yr_rng <- paste(yr, curr_yr, sep = ",")
+      n_recs <- try_gbif_count(poly,
+                               year = yr_rng)
+      if (is_error(n_recs))  {
+        warning("GBIF record count failed.")
+        return(n_recs)
+      }
+      if (n_recs - cutoff > -15000)
+        yr_bnd_l <- c(yr_bnd_l, yr)
+
+      if (length(yr_bnd_l) == (n_grp - 1)) break
+
+    }
+
+    yr_bnd_h <- c(rev(yr_bnd_l - 1), curr_yr)
+    yr_bnd_l <- c(1776, rev(yr_bnd_l))
+
+    # Set up receptacle for actual data queries
+    gbif_recs <- list(media = list(),
+                      data = tibble())
+
+    for (i in seq_along(yr_bnd_l)) {
+      yr_rng <- paste(yr_bnd_l[i], yr_bnd_h[i], sep = ",")
+      message("  Processing occurrence records from ", sub(",", " - ", yr_rng))
+      tmp <- try_gbif(limit = limit, year = yr_rng,
+                      geometry = get_wkt(poly),
+                      # bump timeout
+                      curlopts = list(timeout = timeout))
+      if (is_error(tmp)) {
+        gbif_recs <- tmp
+        break
+      }
+
+      gbif_recs$media <- c(gbif_recs$media, tmp$media)
+      gbif_recs$data <- bind_rows(gbif_recs$data, tmp$data)
+
+    }
+
+  } else {
+    gbif_recs <- try_gbif(limit = limit,
+                          geometry = get_wkt(poly),
+                          curlopts = list(timeout = timeout))
+  }
 
   if (is_error(gbif_recs)) {
     warning("GBIF query failed.")
     return(gbif_recs)
   }
-
-  q_recs <- gbif_recs$meta$count
-  if (q_recs >= 200000)
-    message(wrap_message(
-      paste("The GBIF query reached its hard limit of 200,000 records.",
-            "Continuing with the first 200,000 records, but you may wish",
-            "to specify a smaller `area_cutoff` argument for this property.")))
 
   gbif_recs
 }

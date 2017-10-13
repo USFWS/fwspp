@@ -69,19 +69,11 @@
 #'  include in the search for species occurrence records. Default is no buffer.
 #' @param verbose logical (default TRUE); print messages during species occurrence
 #'  queries?
-#' @param plot logical (default FALSE); illustrate query progress via a plot of
-#'  the \code{fws} boundary and any partitions? This is most useful during
-#'  interactive sessions
 #' @param timeout integer; time, in seconds, to allow for HTTP requests to
 #'  process. Default is 20 minutes (\code{timeout = 1200L}), which should permit most
 #'  of the largest GBIF queries to complete on a ~ 20 Mbps internet connection. GBIF
 #'  is nearly always the slowest request. If timeouts are a recurring problem, it may
 #'  be worth increasing this parameter.
-#' @param area_cutoff numeric scalar; the polygon area (in km^2; default 100 km^2)
-#'  above which to split properties into smaller, approximately
-#'  \code{area_cutoff}-sized pieces for processing. There is no need to modify
-#'  this parameter unless you reach the hard limits on occurrence records set
-#'  by GBIF, in which case you can reduce this number.
 #' @export
 #' @return Nothing. But generates a \code{rds} for each property in \code{export_dir}
 #'  with the following columns if \code{itis = TRUE} (default).  If \code{itis = FALSE},
@@ -134,8 +126,7 @@
 fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
                       scrub = c("strict", "moderate", "none"),
                       itis = TRUE, buffer = 0, verbose = TRUE,
-                      plot = FALSE, timeout = 1200L,
-                      area_cutoff = 10^2) {
+                      timeout = 1200L) {
 
   if (is.null(fws)) stop("You must provide valid property names to query.",
                             "\nSee `?find_fws` for examples.")
@@ -152,17 +143,17 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
   # Cycle through properties
   if (verbose)
     out <- lapply(fws, function(prop) {
-        retrieve_occ(props, prop, buffer, scrub, itis, grbio, plot, timeout, area_cutoff)})
+        retrieve_occ(props, prop, buffer, scrub, itis, grbio, timeout)})
   else
     out <- pbapply::pblapply(fws, function(prop) {
       suppressMessages(
-          retrieve_occ(props, prop, buffer, scrub, itis, grbio, plot, timeout, area_cutoff))})
+          retrieve_occ(props, prop, buffer, scrub, itis, grbio, timeout))})
 
   attributes(out) <- list(names = Cap(shorten_orgnames(fws)),
                           class = "fwspp",
                           boundary = bnd, scrubbing = scrub,
                           itis = itis, buffer_km = buffer,
-                          timeout = timeout, area_cutoff = area_cutoff)
+                          timeout = timeout)
 
   if (!dir.exists(export_dir)) dir.create(export_dir)
 
