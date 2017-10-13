@@ -1,11 +1,3 @@
-#' Manage the retrieval, cleaning, and error handling of
-#' occurrence records for a given \code{\link[sf]{sf}} object
-#'
-#' @param poly \code{\link[sf]{sf}} object; must contain only one POLYGON
-#'  or MULTIPOLYGON geometry
-#' @param grbio \code{data.frame} created by \code{\link{get_grbio}}
-#' @param timeout integer indicating time, in seconds, to allow for HTTP requests to
-#'  process.
 manage_gets <- function(prop, grbio, timeout = NULL) {
 
   stopifnot(nrow(prop) == 1 &&
