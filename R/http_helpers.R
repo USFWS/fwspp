@@ -40,9 +40,9 @@ try_capture_stack <- function(quoted_code, env) {
   )
 }
 
-gbif_count <- function(poly, ...) {
+gbif_count <- function(prop, ...) {
   n <- rgbif::occ_search(limit = 0, ...,
-                         geometry = get_wkt(poly),
+                         geometry = get_wkt(prop),
                          return = "meta")
   pull(n, count)
 }

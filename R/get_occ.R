@@ -5,7 +5,7 @@
 # to proceed to additional properties
 
 #' @noRd
-get_GBIF <- function(poly, timeout, limit = 200000) {
+get_GBIF <- function(prop, q_recs = NULL, timeout, limit = 200000) {
 
   message("Querying the Global Biodiversity Information Facility (GBIF)...")
 
@@ -35,7 +35,7 @@ get_GBIF <- function(poly, timeout, limit = 200000) {
 
       cutoff <- 100000 * (length(yr_bnd_l) + 1)
       yr_rng <- paste(yr, curr_yr, sep = ",")
-      n_recs <- try_gbif_count(poly,
+      n_recs <- try_gbif_count(prop,
                                year = yr_rng)
       if (is_error(n_recs))  {
         warning("GBIF record count failed.")
@@ -59,7 +59,7 @@ get_GBIF <- function(poly, timeout, limit = 200000) {
       yr_rng <- paste(yr_bnd_l[i], yr_bnd_h[i], sep = ",")
       message("  Processing occurrence records from ", sub(",", " - ", yr_rng))
       tmp <- try_gbif(limit = limit, year = yr_rng,
-                      geometry = get_wkt(poly),
+                      geometry = get_wkt(prop),
                       # bump timeout
                       curlopts = list(timeout = timeout))
       if (is_error(tmp)) {
@@ -74,7 +74,7 @@ get_GBIF <- function(poly, timeout, limit = 200000) {
 
   } else {
     gbif_recs <- try_gbif(limit = limit,
-                          geometry = get_wkt(poly),
+                          geometry = get_wkt(prop),
                           curlopts = list(timeout = timeout))
   }
 

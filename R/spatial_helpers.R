@@ -45,7 +45,7 @@ clip_occ <- function(occ_recs, prop) {
   occ_recs[keep, ]
 }
 
-get_wkt <- function(poly) {
-  poly %>% sf::st_convex_hull() %>%
+get_wkt <- function(prop) {
+  prop %>% sf::st_convex_hull() %>%
     sf::st_geometry() %>% sf::st_as_text()
 }

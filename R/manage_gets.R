@@ -6,17 +6,17 @@
 #' @param grbio \code{data.frame} created by \code{\link{get_grbio}}
 #' @param timeout integer indicating time, in seconds, to allow for HTTP requests to
 #'  process.
-manage_gets <- function(poly, grbio, timeout) {
+manage_gets <- function(prop, grbio, timeout = NULL) {
 
-  stopifnot(nrow(poly) == 1 &&
-              sf::st_geometry_type(poly) %in% c("POLYGON", "MULTIPOLYGON"))
+  stopifnot(nrow(prop) == 1 &&
+              sf::st_geometry_type(prop) %in% c("POLYGON", "MULTIPOLYGON"))
 
   # HTTP requests by latitude/longitude range, or radius around central loc
-  poly_bb <- matrix(sf::st_bbox(poly), 2)
-  # Ensure very small polygons are queried
-  lat_range <- poly_bb[2, ] + c(-0.00006, 0.00006)
-  lon_range <- poly_bb[1, ] + c(-0.00006, 0.00006)
-  radius <- geosphere::distVincentyEllipsoid(rowMeans(poly_bb), t(poly_bb)) %>%
+  prop_bb <- matrix(sf::st_bbox(prop), 2)
+  # Ensure very small properties are queried
+  lat_range <- prop_bb[2, ] + c(-0.00006, 0.00006)
+  lon_range <- prop_bb[1, ] + c(-0.00006, 0.00006)
+  radius <- geosphere::distVincentyEllipsoid(rowMeans(prop_bb), t(prop_bb)) %>%
     ceiling() %>% max()
 
   #############################################################################
@@ -24,7 +24,7 @@ manage_gets <- function(poly, grbio, timeout) {
   #############################################################################
 
   # GBIF
-  gbif_recs <- get_GBIF(poly, timeout)
+  gbif_recs <- get_GBIF(prop, q_recs, timeout)
   if (is_error(gbif_recs)) return(gbif_recs)
   if (gbif_recs$meta$count > 0) {
     try_clean_GBIF <- try_verb_n(clean_GBIF, 1)
@@ -51,7 +51,7 @@ manage_gets <- function(poly, grbio, timeout) {
   } else idb_recs <- NULL
 
   ## VertNet
-  vn_recs <- get_VertNet(rowMeans(poly_bb), radius, timeout)
+  vn_recs <- get_VertNet(rowMeans(prop_bb), radius, timeout)
   if (is_error(vn_recs)) return(vn_recs)
   if (!is.null(vn_recs)) {
     try_clean_VertNet <- try_verb_n(clean_VertNet, 1)
