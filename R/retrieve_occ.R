@@ -1,5 +1,5 @@
 retrieve_occ <- function(props, prop, buffer, scrub, itis, grbio,
-                         plot, timeout, area_cutoff) {
+                         timeout) {
 
   org_name <- prop
   short_org <- Cap(org_name) %>% shorten_orgnames()
@@ -8,32 +8,10 @@ retrieve_occ <- function(props, prop, buffer, scrub, itis, grbio,
   # Consider buffer
   if (buffer) prop <- buffer_prop(prop, buffer)
 
-  # Consider splitting property to facilitate queries
-  prop <- split_prop(prop, area_cutoff)
-
-  n_polys <- nrow(prop)
-
   msg <- c("\nProcessing", short_org)
-  if (n_polys > 0)
-    msg <- c(msg, "in", n_polys, "parts...")
-  message(paste(msg, collapse = " "))
-  if (plot) plot(prop, col = "#d9d9d9", main = short_org)
 
-  occ_recs <- vector(length = n_polys, mode = "list")
-  for (i in seq_len(n_polys)) {
-    poly <- prop[i, ]
-    if (plot) {
-      Sys.sleep(0.1)
-      plot(poly, col = "#74c476", add = TRUE)
-    }
-    tmp <- manage_gets(poly, grbio, timeout)
-    occ_recs[[i]] <- tmp
-    if (is_error(tmp)) break
-    if (plot) plot(poly, col = "#006d2c", add = TRUE)
-  }
-
-  if (any(sapply(occ_recs, is_error))) return(occ_recs)
-  occ_recs <- bind_rows(occ_recs)
+  occ_recs <- manage_gets(prop, grbio, timeout)
+  if (is_error(occ_recs)) return(occ_recs)
   if (nrow(occ_recs) == 0) return(NULL)
 
   # Filter to boundaries of interest
