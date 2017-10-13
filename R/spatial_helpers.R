@@ -34,18 +34,6 @@ get_UTM_zone <- function(lon) {
   (floor((lon + 180)/6) %% 60) + 1
 }
 
-#' Calculate approximate ratio of latitude:longitude distance
-#'
-#' Used to try and generate relatively square polygons when chopping
-#'  properties
-#'
-#' @param lat numeric scalar of latitude in decimal degrees
-ll_ratio <- function(lat) {
-  d_lat <- geosphere::distVincentyEllipsoid(c(0, lat - 0.5), c(0, lat + 0.5))
-  d_lon <- geosphere::distVincentyEllipsoid(c(0, lat), c(1, lat))
-  d_lat/d_lon
-}
-
 clip_occ <- function(occ_recs, prop) {
   occ_pts <- sf::st_multipoint(cbind(occ_recs$lon, occ_recs$lat)) %>%
     sf::st_sfc(crs = sf::st_crs(prop)$proj4string) %>%
