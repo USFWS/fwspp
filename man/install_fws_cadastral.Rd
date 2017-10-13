@@ -7,7 +7,7 @@
 install_fws_cadastral()
 }
 \description{
-This function must be run prior to first use of \code{fwspp_occ} (which will prompt you
+This function must be run prior to first use of \code{fws_occ} (which will prompt you
  if necessary).  This function can also be used to update to the most recent
  cadastral geodatabase if the \code{fwspp} package hasn't yet incorporated it.  However,
  the cadastral geodatabase is updated rather infrequently, and updating will take
