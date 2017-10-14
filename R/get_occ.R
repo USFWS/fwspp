@@ -16,15 +16,12 @@ get_GBIF <- function(prop, q_recs, timeout, limit = 200000) {
 
   # Hoop-jumping to retrieve more records, if necessary
   if (q_recs > 100000) {
-
     message("Splitting the GBIF query temporally to recover all records.")
-
     # Finding year breaks
     n_grp <- ceiling(q_recs/100000)
     yr_bnd_l <- integer(0)
 
     for (yr in curr_yr:1776) {
-
       cutoff <- 100000 * (length(yr_bnd_l) + 1)
       yr_rng <- paste(yr, curr_yr, sep = ",")
       n_recs <- try_gbif_count(prop,
@@ -35,9 +32,7 @@ get_GBIF <- function(prop, q_recs, timeout, limit = 200000) {
       }
       if (n_recs - cutoff > -15000)
         yr_bnd_l <- c(yr_bnd_l, yr)
-
       if (length(yr_bnd_l) == (n_grp - 1)) break
-
     }
 
     yr_bnd_h <- c(rev(yr_bnd_l - 1), curr_yr)
@@ -62,21 +57,14 @@ get_GBIF <- function(prop, q_recs, timeout, limit = 200000) {
 
       gbif_recs$media <- c(gbif_recs$media, tmp$media)
       gbif_recs$data <- bind_rows(gbif_recs$data, tmp$data)
-
     }
-
     gbif_recs$meta$count <- q_recs
   } else {
     gbif_recs <- try_gbif(limit = limit,
                           geometry = get_wkt(prop),
                           curlopts = list(timeout = timeout))
   }
-
-  if (is_error(gbif_recs)) {
-    warning("GBIF query failed.")
-    return(gbif_recs)
-  }
-
+  if (is_error(gbif_recs)) warning("GBIF query failed.")
   gbif_recs
 }
 
@@ -87,7 +75,6 @@ get_BISON <- function(lat_range, lon_range, timeout) {
 
   ## `BISON search with geometry in `spocc` package omits desired metadata (i.e., media info)
   ## Two queries, one to get # records and second to retrieve them, is faster...
-
   for (i in 1:3) { # Try up to 3 times to set up SOLR connection
     con <- try(solrium::solr_connect("https://bison.usgs.gov/solr/occurrences/select/",
                                      verbose = FALSE),
@@ -129,11 +116,7 @@ get_BISON <- function(lat_range, lon_range, timeout) {
     warning("BISON query failed.")
     return(bison_recs[[which(errs)[1]]])
   }
-
-  bison_recs <- bind_rows(bison_recs)
-
-  bison_recs
-
+  bind_rows(bison_recs)
 }
 
 #' @noRd
@@ -187,9 +170,7 @@ get_EcoEngine <- function(lat_range, lon_range, timeout) {
   if (is_error(ee_recs))
     if (grepl("count not greater than 0", ee_recs$message))
       return(NULL)
-
   ee_recs
-
 }
 
 #' @noRd
