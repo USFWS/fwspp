@@ -152,28 +152,7 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
   attributes(out) <- list(names = Cap(shorten_orgnames(fws)),
                           class = "fwspp",
                           boundary = bnd, scrubbing = scrub,
-                          itis = itis, buffer_km = buffer,
-                          timeout = timeout)
+                          itis = itis, buffer_km = buffer)
 
-  if (!dir.exists(export_dir)) dir.create(export_dir)
-
-  # FORMER CSV EXPORT CODE
-  # MODIFY TO RDS
-  # CHECK IF FILE EXISTS, IF SO SKIP? OR OVERWRITE?
-    invisible(
-      lapply(seq_along(out), function(i) {
-        tmp_fn <- paste0(gsub(" |[.]", "", names(out)[i]), ".csv")
-        if (inherits(out[[i]], "try-error")) {
-          cat("fw_spp failed for", names(out)[i], "\n")
-        } else if (is.null(out[[i]])) {
-          cat("No valid observations found for", names(out)[i], "\n")
-        } else {
-          utils::write.csv(out[[i]], row.names = FALSE,
-                           file = file.path(export_dir, tmp_fn))
-        }
-      })
-    )
-
-    return(out)
-
+  out
 }
