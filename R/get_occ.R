@@ -5,7 +5,7 @@
 # to proceed to additional properties
 
 #' @noRd
-get_GBIF <- function(prop, q_recs = NULL, timeout, limit = 200000) {
+get_GBIF <- function(prop, q_recs, timeout, limit = 200000) {
 
   message("Querying the Global Biodiversity Information Facility (GBIF)...")
 
@@ -45,7 +45,8 @@ get_GBIF <- function(prop, q_recs = NULL, timeout, limit = 200000) {
 
     # Set up receptacle for actual data queries
     gbif_recs <- list(media = list(),
-                      data = tibble())
+                      data = tibble(),
+                      meta = list())
 
     for (i in seq_along(yr_bnd_l)) {
       yr_rng <- paste(yr_bnd_l[i], yr_bnd_h[i], sep = ",")
@@ -64,6 +65,7 @@ get_GBIF <- function(prop, q_recs = NULL, timeout, limit = 200000) {
 
     }
 
+    gbif_recs$meta$count <- q_recs
   } else {
     gbif_recs <- try_gbif(limit = limit,
                           geometry = get_wkt(prop),
