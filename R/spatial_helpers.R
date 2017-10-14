@@ -17,7 +17,7 @@ check_cadastral <- function() {
       install_fws_cadastral()
     else {
       message("Very well. Run `install_fws_cadastral()` at your leisure.")
-      invisible(NULL)
+      return(invisible())
     }
   }
 }
