@@ -1,5 +1,5 @@
 retrieve_occ <- function(props, prop, buffer, scrub, itis, grbio,
-                         timeout) {
+                         timeout = NULL) {
 
   org_name <- prop
   short_org <- Cap(org_name) %>% shorten_orgnames()

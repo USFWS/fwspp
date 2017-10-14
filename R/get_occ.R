@@ -9,14 +9,6 @@ get_GBIF <- function(prop, q_recs = NULL, timeout, limit = 200000) {
 
   message("Querying the Global Biodiversity Information Facility (GBIF)...")
 
-  # Count recs
-  try_gbif_count <- try_verb_n(gbif_count)
-  q_recs <- try_gbif_count(poly)
-  if (is_error(q_recs))  {
-    warning("GBIF record count failed.")
-    return(q_recs)
-  }
-
   # We want to capture media, if available, so can't use 'spocc' call to GBIF
   try_gbif <- try_verb_n(rgbif::occ_search)
 

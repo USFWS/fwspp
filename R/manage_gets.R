@@ -1,5 +1,6 @@
 manage_gets <- function(prop, grbio, timeout = NULL) {
 
+  # TEST IF FLEXIBILITY IN THESE REQUIREMENTS
   stopifnot(nrow(prop) == 1 &&
               sf::st_geometry_type(prop) %in% c("POLYGON", "MULTIPOLYGON"))
 
@@ -14,6 +15,21 @@ manage_gets <- function(prop, grbio, timeout = NULL) {
   #############################################################################
   ## Retrieve and standardize occurrence records from biodiversity databases ##
   #############################################################################
+
+  # Compare and set timeout programmatically, if not specified by user
+  # Timeout is based on GBIF queries, which are typically slowest
+  try_gbif_count <- try_verb_n(gbif_count)
+  q_recs <- try_gbif_count(prop)
+  if (is_error(q_recs))  {
+    warning("GBIF record count failed.")
+    return(q_recs)
+  }
+  if (!is.null(timeout)) {
+    prog_recs <- est_nrecs(timeout)
+    if (prog_recs < q_recs)
+      warning("Your timeout setting may be too short. Watch for repeated ",
+              "HTTP timeout errors and adjust accordingly.")
+  } else timeout <- est_timeout(min(125000, q_recs))
 
   # GBIF
   gbif_recs <- get_GBIF(prop, q_recs, timeout)
