@@ -113,7 +113,7 @@ get_BISON <- function(lat_range, lon_range, timeout) {
   if (q_recs == 0) return(NULL)
 
   # Splitting very large requests
-  starts <- seq(from = 0, by = 175000, length = ceiling(q_recs/175000))
+  starts <- seq(from = 0, by = 100000, length = ceiling(q_recs/100000))
 
   bison_recs <- lapply(starts, function(start) {
     try_solr(
@@ -121,7 +121,7 @@ get_BISON <- function(lat_range, lon_range, timeout) {
                        paste(lat_range, collapse = " TO "), "]"),
                 paste0("decimalLongitude:[",
                        paste(lon_range, collapse = " TO "), "]")),
-      start = start, rows = 175000, callopts = httr::timeout(timeout))
+      start = start, rows = 100000, callopts = httr::timeout(timeout))
   })
 
   errs <- sapply(bison_recs, is_error)
