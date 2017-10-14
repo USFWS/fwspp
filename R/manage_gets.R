@@ -52,13 +52,13 @@ manage_gets <- function(prop, grbio, timeout = NULL) {
   }
 
   ## Berkeley 'Ecoinformatics' Eengine
-  # ee_recs <- get_EcoEngine(lat_range, lon_range, timeout)
-  # if (is_error(ee_recs)) return(ee_recs)
-  # if (!is.null(ee_recs)) {
-  #   try_clean_EcoEngine <- try_verb_n(clean_EcoEngine, 1)
-  #   ee_recs <- try_clean_EcoEngine(ee_recs, grbio)
-  #   if (is_error(ee_recs)) return(ee_recs)
-  # }
+  ee_recs <- get_EcoEngine(lat_range, lon_range, timeout)
+  if (is_error(ee_recs)) return(ee_recs)
+  if (!is.null(ee_recs)) {
+    try_clean_EcoEngine <- try_verb_n(clean_EcoEngine, 1)
+    ee_recs <- try_clean_EcoEngine(ee_recs, grbio)
+    if (is_error(ee_recs)) return(ee_recs)
+  }
 
   ## AntWeb
   aw_recs <- get_AntWeb(lat_range, lon_range, timeout)
@@ -72,8 +72,7 @@ manage_gets <- function(prop, grbio, timeout = NULL) {
   #############################################################################
   ## Consolidate standardized occurrence records from biodiversity databases ##
   #############################################################################
-  bind_rows(gbif_recs, bison_recs, idb_recs, vn_recs, aw_recs) %>%
-  # bind_rows(gbif_recs, bison_recs, idb_recs, vn_recs, ee_recs, aw_recs) %>%
+  bind_rows(gbif_recs, bison_recs, idb_recs, vn_recs, ee_recs, aw_recs) %>%
     # Drop records with no species ID or monomials (e.g., genus only)
     filter(!is.na(.data$sci_name),
            vapply(strsplit(.data$sci_name, "\\W+"), length, integer(1)) == 2)
