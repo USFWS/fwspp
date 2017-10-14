@@ -18,6 +18,6 @@ during species occurrence queries}
 }
 \description{
 Converts USFWS cadastral geodatabase into \code{\link[sf]{sf}} and
- filters to relevant properties, if necessary.  Not meant to be called
- directly by user.
+ filters to relevant properties, if necessary.  Exported by not
+ typically called directly by user.
 }

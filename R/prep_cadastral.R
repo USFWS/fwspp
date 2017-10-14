@@ -1,8 +1,8 @@
 #' Prepare USFWS cadastral spatial data
 #'
 #' Converts USFWS cadastral geodatabase into \code{\link[sf]{sf}} and
-#'  filters to relevant properties, if necessary.  Not meant to be called
-#'  directly by user.
+#'  filters to relevant properties, if necessary.  Exported by not
+#'  typically called directly by user.
 #'
 #' @param prop character string; USFWS properties from which to extract
 #'  species occurrence records.  See \code{\link{fw_spp}}.
@@ -10,8 +10,8 @@
 #'  \code{\link{fw_spp}}
 #' @param verbose logical; suppress messaging? See \code{\link{fw_spp}}
 #'  during species occurrence queries
-prep_cadastral <- function(prop, bnd, verbose)
-{
+#' @export
+prep_cadastral <- function(prop, bnd, verbose) {
 
   # Get requested features
   gdb <- system.file("extdata", "FWSCadastral.gdb", package = "fwspp")
@@ -43,7 +43,7 @@ prep_cadastral <- function(prop, bnd, verbose)
   }
 
   # Impose zero width buffer to correct potentially invalid geometries
-  # ~ 25 had ring self-intersections...
+  # e.g., ring self-intersections...
   props <- suppressWarnings(sf::st_buffer(props, 0))
 
   # Put in WGS84 even though GRS80 is practically identical
@@ -56,6 +56,5 @@ prep_cadastral <- function(prop, bnd, verbose)
                             indent = 4, exdent = 4)),
                   collapse = "\n"))
   }
-
-  return(props)
+  props
 }
