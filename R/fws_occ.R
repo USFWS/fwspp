@@ -1,3 +1,5 @@
+#' Species occurrence records on U.S. Fish and Wildlife properties
+#'
 #' Geographic query of biodiversity databases based on U.S. Fish and Wildlife
 #'  Service (USFWS) property boundaries
 #'
@@ -45,6 +47,14 @@
 #'  program. See \url{https://ecos.fws.gov/ServCat/Reference/Profile/60738} for
 #'  more information.
 #'
+#' @section Query timeout details:
+#' By default, timeout is calculated based on testing of GBIF queries on a ~ 20 Mbps
+#'  internet connection. GBIF queries are nearly always the slowest request. If
+#'  timeouts are a recurring problem, however, it may be worth fixing this parameter at
+#'  a large value (e.g., 1.5 h, or \code{timeout = 5400L}.  If queries are regularly
+#'  timing out, please contact the maintainer with details or, better yet, file an
+#'  issue at \url{https://github.com/adamdsmith/fwspp/issues}.
+#'
 #' @section Important usage limitations/notes:
 #' This function exists strictly to extract occurrence data for a given
 #'  \code{fws} property. Attempts at estimating or inferring relative abundance
@@ -70,10 +80,8 @@
 #' @param verbose logical (default TRUE); print messages during species occurrence
 #'  queries?
 #' @param timeout integer; time, in seconds, to allow for HTTP requests to
-#'  process. Default is 20 minutes (\code{timeout = 1200L}), which should permit most
-#'  of the largest GBIF queries to complete on a ~ 20 Mbps internet connection. GBIF
-#'  is nearly always the slowest request. If timeouts are a recurring problem, it may
-#'  be worth increasing this parameter.
+#'  process. By default (\code{timeout = NULL}), query timeout is set
+#'  programmatically and conservatively.  See details.
 #' @export
 #' @return Nothing. But generates a \code{rds} for each property in \code{export_dir}
 #'  with the following columns if \code{itis = TRUE} (default).  If \code{itis = FALSE},
@@ -81,8 +89,8 @@
 #'  is that associated with the observation from the \code{bio_repo} source, **not** from
 #'  ITIS:
 #'  \describe{
+#'    \item{org_name}{official organizational name of USFWS property}
 #'    \item{class}{Taxonomic class of observation, from ITIS, if available.}
-#'    \item{tsn}{Taxonomic serial number, from ITIS, if available.}
 #'    \item{taxon_rank}{Taxonomic rank of observation, from ITIS, if available.}
 #'    \item{sci_name}{Accepted scientific name, from ITIS, if available. Note, however,
 #'          that if \code{taxon_rank} is available and is not 'Species', this scientific
@@ -126,7 +134,7 @@
 fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
                       scrub = c("strict", "moderate", "none"),
                       itis = TRUE, buffer = 0, verbose = TRUE,
-                      timeout = 1200L) {
+                      timeout = NULL) {
 
   if (is.null(fws)) stop("You must provide valid property names to query.",
                             "\nSee `?find_fws` for examples.")

@@ -2,12 +2,11 @@
 % Please edit documentation in R/fws_occ.R
 \name{fws_occ}
 \alias{fws_occ}
-\title{Geographic query of biodiversity databases based on U.S. Fish and Wildlife
- Service (USFWS) property boundaries}
+\title{Species occurrence records on U.S. Fish and Wildlife properties}
 \usage{
 fws_occ(fws = NULL, bnd = c("admin", "acq"), scrub = c("strict",
   "moderate", "none"), itis = TRUE, buffer = 0, verbose = TRUE,
-  timeout = 1200L)
+  timeout = NULL)
 }
 \arguments{
 \item{fws}{character string indicating USFWS properties, typically National
@@ -33,10 +32,8 @@ include in the search for species occurrence records. Default is no buffer.}
 queries?}
 
 \item{timeout}{integer; time, in seconds, to allow for HTTP requests to
-process. Default is 20 minutes (\code{timeout = 1200L}), which should permit most
-of the largest GBIF queries to complete on a ~ 20 Mbps internet connection. GBIF
-is nearly always the slowest request. If timeouts are a recurring problem, it may
-be worth increasing this parameter.}
+process. By default (\code{timeout = NULL}), query timeout is set
+programmatically and conservatively.  See details.}
 }
 \value{
 Nothing. But generates a \code{rds} for each property in \code{export_dir}
@@ -45,8 +42,8 @@ Nothing. But generates a \code{rds} for each property in \code{export_dir}
  is that associated with the observation from the \code{bio_repo} source, **not** from
  ITIS:
  \describe{
+   \item{org_name}{official organizational name of USFWS property}
    \item{class}{Taxonomic class of observation, from ITIS, if available.}
-   \item{tsn}{Taxonomic serial number, from ITIS, if available.}
    \item{taxon_rank}{Taxonomic rank of observation, from ITIS, if available.}
    \item{sci_name}{Accepted scientific name, from ITIS, if available. Note, however,
          that if \code{taxon_rank} is available and is not 'Species', this scientific
@@ -123,6 +120,16 @@ The boundaries specified by the \code{acq} option to the \code{bnd} argument
  Possessions. The primary source for this information is the USFWS Realty
  program. See \url{https://ecos.fws.gov/ServCat/Reference/Profile/60738} for
  more information.
+}
+
+\section{Query timeout details}{
+
+By default, timeout is calculated based on testing of GBIF queries on a ~ 20 Mbps
+ internet connection. GBIF queries are nearly always the slowest request. If
+ timeouts are a recurring problem, however, it may be worth fixing this parameter at
+ a large value (e.g., 1.5 h, or \code{timeout = 5400L}.  If queries are regularly
+ timing out, please contact the maintainer with details or, better yet, file an
+ issue at \url{https://github.com/adamdsmith/fwspp/issues}.
 }
 
 \section{Important usage limitations/notes}{
