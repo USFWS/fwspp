@@ -7,9 +7,7 @@
 try_verb_n <- function(verb, n = 3) {
   function(...) {
     for (i in seq_len(n)) {
-      out <- try_capture_stack(
-        verb(...),
-        env = new.env(parent = parent.frame()))
+      out <- try_capture_stack(verb(...))
       if (!is_error(out) || i == n) break
       wait <- stats::runif(1, min(5 ^ i, 120), min(5 ^ (i + 1), 180))
       mess <- paste("HTTP timeout or error on attempt %d.",
@@ -27,7 +25,7 @@ fws_url <- function() "https://ecos.fws.gov/ServCat/DownloadFile/126665"
 
 # From evaluate package
 # https://github.com/r-lib/evaluate/blob/master/R/traceback.r
-try_capture_stack <- function(quoted_code, env) {
+try_capture_stack <- function(quoted_code, env = new.env(parent = parent.frame())) {
   capture_calls <- function(e) {
     e$calls <- utils::head(sys.calls()[-seq_len(frame + 7)], -2)
     signalCondition(e)
@@ -45,4 +43,15 @@ gbif_count <- function(prop, ...) {
                          geometry = get_wkt(prop),
                          return = "meta")
   pull(n, count)
+}
+
+est_timeout <- function(n_recs) {
+  mins <- exp(-6 + 0.85 * log(n_recs))
+  ceiling(mins * 60)
+}
+
+est_nrecs <- function(timeout) {
+  mins <- timeout / 60
+  recs <- round(exp((log(mins) + 6) / 0.85))
+  1000 * (recs %/% 1000 + as.logical(recs %% 1000))
 }
