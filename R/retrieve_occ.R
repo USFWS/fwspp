@@ -8,7 +8,7 @@ retrieve_occ <- function(props, prop, buffer, scrub, itis, grbio,
   # Consider buffer
   if (buffer) prop <- buffer_prop(prop, buffer)
 
-  msg <- c("\nProcessing", short_org)
+  message("\nProcessing ", short_org)
 
   occ_recs <- manage_gets(prop, grbio, timeout)
   if (is_error(occ_recs)) return(occ_recs)
