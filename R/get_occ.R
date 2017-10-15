@@ -10,6 +10,7 @@ get_GBIF <- function(prop, q_recs, timeout, limit = 200000) {
   message("Querying the Global Biodiversity Information Facility (GBIF)...")
 
   # We want to capture media, if available, so can't use 'spocc' call to GBIF
+  try_gbif_count <- try_verb_n(gbif_count)
   try_gbif <- try_verb_n(rgbif::occ_search)
 
   curr_yr <- as.POSIXlt(Sys.time())$year + 1900
