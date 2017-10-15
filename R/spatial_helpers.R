@@ -49,3 +49,15 @@ get_wkt <- function(prop) {
   prop %>% sf::st_convex_hull() %>%
     sf::st_geometry() %>% sf::st_as_text()
 }
+
+prop_bb_area <- function(prop) {
+  stopifnot(sf::st_geometry_type(prop) %in% c("POLYGON", "MULTIPOLYGON"))
+  bb <- sf::st_bbox(prop)
+  lon_range <- unname(bb[c(1, 3)]); lat_range <- unname(bb[c(2, 4)])
+  poly_coords <- cbind(sort(rep(lon_range, 2)), c(lat_range, rev(lat_range)))
+  poly_area <- rbind(poly_coords, poly_coords[1, ]) %>% list() %>%
+    sf::st_polygon() %>% sf::st_sfc() %>%
+    sf::st_set_crs(sf::st_crs(prop)$proj4string) %>%
+    sf::st_area() %>% as.numeric()
+  poly_area
+}
