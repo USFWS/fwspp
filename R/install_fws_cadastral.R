@@ -49,7 +49,8 @@ install_fws_cadastral <- function() {
                                 "fws_info.rds"))
     message("USFWS Cadastral Database installed/updated successfully")
 
-    invisible(NULL)
+    prep_cadastral()
 
+    invisible()
   }
 }
