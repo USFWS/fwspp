@@ -55,14 +55,14 @@ find_fws <- function(fws = NULL, ptype = "NWR", region = 1:8L)
               .data$FWSREGION %in% region,
               .data$RSL_TYPE %in% ptype)
 
-  if (is.null(fws)) {
-    return(sort(r$ORGNAME))
-  } else {
+  if (is.null(fws))
+    refs <- sort(r$ORGNAME)
+  else {
     fws <- paste(fws, collapse = "|")
     refs <- filter(r, grepl(fws, .data$ORGNAME, ignore.case = TRUE)) %>%
       pull(.data$ORGNAME) %>% sort()
     if (identical(refs, character(0)))
       stop("No USFWS properties matched your search criteria.")
-    return(refs)
   }
+  check_dup_orgnames(refs)
 }

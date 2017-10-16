@@ -8,6 +8,20 @@ shorten_orgnames <- function(orgnames) {
   orgnames
 }
 
+check_dup_orgnames <- function(orgnames) {
+  if (n_distinct(orgnames) < length(orgnames)) {
+    dups <- orgnames[duplicated(orgnames)] %>% unique()
+    dups <- paste(" * ", dups, "\n") %>% paste(., collapse = "")
+    stop(
+      paste0("Your search returned multiple USFWS properties with the same name.\n",
+             dups,
+             wrap_message(
+               paste("Specify the `region` argument to avoid unintended behavior.",
+                     "Properties with the same name will be considered collectively."))))
+  }
+  orgnames
+}
+
 Cap <- function(string, words = c("all", "first")) {
   words <- match.arg(words)
   isna <- is.na(string)
