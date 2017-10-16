@@ -4,20 +4,11 @@
 \alias{prep_cadastral}
 \title{Prepare USFWS cadastral spatial data}
 \usage{
-prep_cadastral(prop, bnd, verbose)
-}
-\arguments{
-\item{prop}{character string; USFWS properties from which to extract
-species occurrence records.  See \code{\link{fw_spp}}.}
-
-\item{bnd}{character scalar; which property boundary to use.  See
-\code{\link{fw_spp}}}
-
-\item{verbose}{logical; suppress messaging? See \code{\link{fw_spp}}
-during species occurrence queries}
+prep_cadastral()
 }
 \description{
-Converts USFWS cadastral geodatabase into \code{\link[sf]{sf}} and
- filters to relevant properties, if necessary.  Exported by not
- typically called directly by user.
+Converts USFWS cadastral geodatabase into two \code{\link[sf]{sf}} and
+ stores them for faster loading on subsequent use by
+ \code{link{prep_properties}}. Exported but not typically called
+ directly by user unless \code{\link{install_fws_cadastral}} fails.
 }
