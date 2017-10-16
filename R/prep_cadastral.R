@@ -36,8 +36,7 @@ prep_cadastral <- function() {
     # Dissolve into a single multi-part polygon by property
     # Include ORGCODE as well to overcome identically-names properties
     props <- props %>%
-      select(.data$ORGNAME, .data$ORGCODE, .data$FWSREGION) %>%
-      group_by(.data$ORGNAME, .data$ORGCODE) %>%
+      group_by(.data$ORGNAME, .data$FWSREGION, .data$RSL_TYPE) %>%
       summarize()
 
     # Put in WGS84 even though GRS80 is practically identical

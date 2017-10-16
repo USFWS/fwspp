@@ -8,18 +8,20 @@ shorten_orgnames <- function(orgnames) {
   orgnames
 }
 
-check_dup_orgnames <- function(orgnames) {
-  if (n_distinct(orgnames) < length(orgnames)) {
-    dups <- orgnames[duplicated(orgnames)] %>% unique()
+check_dup_orgnames <- function(org_df) {
+  if (n_distinct(org_df$ORGNAME) < nrow(org_df)) {
+    orgs <- pull(org_df, .data$ORGNAME)
+    dups <- orgs[duplicated(orgs)]
     dups <- paste(" * ", dups, "\n") %>% paste(., collapse = "")
-    stop(
-      paste0("Your search returned multiple USFWS properties with the same name.\n",
-             dups,
-             wrap_message(
-               paste("Specify the `region` argument to avoid unintended behavior.",
-                     "Properties with the same name will be considered collectively."))))
+    warning(paste0(
+      "Your search returned multiple USFWS properties with the same name.\n",
+      dups,
+      wrap_message(
+        paste("To avoid querying an unwanted property, check the output and",
+              "perhaps specify the `region` argument to avoid unintended behavior."))),
+      call. = FALSE)
   }
-  orgnames
+  org_df
 }
 
 Cap <- function(string, words = c("all", "first")) {

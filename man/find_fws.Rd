@@ -23,9 +23,9 @@ options include "WPA" (Waterfowl Production Areas), "WMA" (Wildlife Management A
 \url{https://www.fws.gov/where}); valid values range from 1 to 8}
 }
 \value{
-character vector of organizational names (ORGNAME) of USFWS properties meeting
- the search criteria.  This output can be passed directly to \code{\link{fw_spp}} as
- the \code{fws} argument.
+\code{data.frame} of organizational names (ORGNAME) of USFWS properties
+ meeting the search criteria and their associate USFWS region.  This output can be
+ passed directly to \code{\link{fws_occ}} as the \code{fws} argument.
 }
 \description{
 Find USFWS properties available for query.

@@ -13,9 +13,9 @@
 #' @param region integer indicating which USFWS Region(s) to search (
 #' \url{https://www.fws.gov/where}); valid values range from 1 to 8
 #' @export
-#' @return character vector of organizational names (ORGNAME) of USFWS properties meeting
-#'  the search criteria.  This output can be passed directly to \code{\link{fw_spp}} as
-#'  the \code{fws} argument.
+#' @return \code{data.frame} of organizational names (ORGNAME) of USFWS properties
+#'  meeting the search criteria and their associate USFWS region.  This output can be
+#'  passed directly to \code{\link{fws_occ}} as the \code{fws} argument.
 #' @examples
 #' # Get all National Wildlife Refuges
 #' all_refs <- find_fws()
@@ -51,18 +51,19 @@ find_fws <- function(fws = NULL, ptype = "NWR", region = 1:8L)
   # Filter by region
   if (!all(region %in% 1:8L)) stop("Valid USFWS regions range from 1 to 8.\n",
                                    "See https://www.fws.gov/where for assistance.")
-  r <- filter(r,
-              .data$FWSREGION %in% region,
-              .data$RSL_TYPE %in% ptype)
+  r <- r %>%
+    filter(.data$FWSREGION %in% region,
+           .data$RSL_TYPE %in% ptype) %>%
+    select(-RSL_TYPE)
 
   if (is.null(fws))
-    refs <- sort(r$ORGNAME)
+    refs <- arrange(r, .data$ORGNAME)
   else {
     fws <- paste(fws, collapse = "|")
-    refs <- filter(r, grepl(fws, .data$ORGNAME, ignore.case = TRUE)) %>%
-      pull(.data$ORGNAME) %>% sort()
-    if (identical(refs, character(0)))
-      stop("No USFWS properties matched your search criteria.")
+    refs <- filter(r, grepl(fws, .data$ORGNAME, ignore.case = TRUE))
+    if (nrow(refs) == 0)
+      stop("No USFWS properties matched your search criteria.",
+           call. = FALSE)
   }
   check_dup_orgnames(refs)
 }
