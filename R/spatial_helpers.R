@@ -70,3 +70,92 @@ prop_bb_area <- function(prop) {
   prop_bb(prop) %>%
     sf::st_area() %>% as.numeric()
 }
+
+split_prop <- function(prop, count_fxn) {
+  prop_ch <- sf::st_convex_hull(prop)
+  # Check if spans IDL
+  # Not foolproof, but seems safe
+  if (diff(range(sf::st_bbox(prop_ch))) > 350)
+    prop <- split_by_idl(prop)
+
+  out <- lapply(seq_len(nrow(prop)), function(i) {
+    tmp_prop <- prop[i, ]
+    q_recs <- count_fxn(tmp_prop)
+    if (fwspp:::is_error(q_recs)) return(q_recs)
+    # If relative small number of records, splitting is superfluous
+    if (q_recs < 125000) return(tmp_prop)
+    prop_area <- sf::st_area(tmp_prop) %>% as.numeric()
+    bb_area <- fwspp:::prop_bb_area(tmp_prop)
+    # If bounding box is mostly occupied by refuge,
+    # not much to be done.
+    if (prop_area / bb_area > 0.1) return(tmp_prop)
+
+    # SLICE AND DICE
+    tmp_prop <- dice_prop(tmp_prop)
+
+
+
+})
+
+  errs <- sapply(out, fwspp:::is_error)
+  if (any(errs)) {
+    return(out[[which(errs)[1]]])
+  }
+
+
+
+  }
+
+split_by_idl <- function(prop) {
+  message("Dealing with International Date Line issues")
+  west <- list(
+    matrix(c(-180, -89.99, -180, 89.99, -90, 89.99,
+             -90, -89.99, -180, -89.99), byrow = TRUE,
+           nrow = 5)) %>%
+    sf::st_polygon() %>% sf::st_sfc() %>%
+    sf::st_set_crs(4326)
+  east <- list(
+    matrix(c(90, -89.99, 90, 89.99, 180, 89.99, 180,
+             -89.99, 90, -89.99), byrow = TRUE,
+           nrow = 5)) %>%
+    sf::st_polygon() %>% sf::st_sfc() %>%
+    sf::st_set_crs(4326)
+  suppressWarnings({
+    west_prop <- st_intersection(prop, west)
+    east_prop <- st_intersection(prop, east)
+    prop <- rbind(west_prop, east_prop)
+  })
+}
+
+#' Do the actual splitting of large properties into more manageable units
+#'
+#' @param prop \code{\link[sf]{sf}} to dice
+dice_prop < function(prop){
+  message("Splitting property for more efficient queries.")
+  stopifnot(all(sf::st_geometry_type(prop) %in% c("POLYGON", "MULTIPOLYGON")))
+  bb <- matrix(sf::st_bbox(prop), 2)
+  llr <- apply(bb, 1, diff)
+  llr[2] <- llr[2] * ll_ratio(mean(bb[2, ]))
+  llr <- llr[2] / llr[1]
+  if (llr < 1) {
+    nr <- ceiling(sqrt(20 / llr))
+    nc <- floor(20 / nr)
+  } else {
+    nc <- floor(sqrt(20 / llr))
+    nr <- ceiling(20 / nc)
+  }
+  overlay <- raster::raster(raster::extent(bb), nrow = nr, ncol = nc) %>%
+      raster::rasterToPolygons() %>% sf::st_as_sf()
+  sf::st_crs(overlay) <- sf::st_crs(prop)
+  out <- suppressWarnings(sf::st_intersection(prop, overlay))
+  out
+}
+
+# Calculate approximate ratio of latitude:longitude distance	for a given
+# latitudinal position on the Earth
+# @param lat numeric scalar of latitude in decimal degrees
+ll_ratio <- function(lat) {
+  d_lat <- geosphere::distVincentyEllipsoid(c(0, lat - 0.5), c(0, lat + 0.5))
+  d_lon <- geosphere::distVincentyEllipsoid(c(0, lat), c(1, lat))
+  d_lat/d_lon
+}
