@@ -46,18 +46,27 @@ clip_occ <- function(occ_recs, prop) {
 }
 
 get_wkt <- function(prop) {
-  prop %>% sf::st_convex_hull() %>%
+  wkt_txt <- prop %>%
+    sf::st_convex_hull() %>%
     sf::st_geometry() %>% sf::st_as_text()
+  if (nchar(wkt_txt) > 1500)
+    wkt_txt <- prop %>% prop_bb() %>%
+      sf::st_geometry() %>% sf::st_as_text()
+  wkt_txt
 }
 
-prop_bb_area <- function(prop) {
+prop_bb <- function(prop) {
   stopifnot(sf::st_geometry_type(prop) %in% c("POLYGON", "MULTIPOLYGON"))
   bb <- sf::st_bbox(prop)
   lon_range <- unname(bb[c(1, 3)]); lat_range <- unname(bb[c(2, 4)])
   bb_coords <- cbind(sort(rep(lon_range, 2)), c(lat_range, rev(lat_range)))
-  bb_area <- rbind(bb_coords, bb_coords[1, ]) %>% list() %>%
+  prop_bb <- rbind(bb_coords, bb_coords[1, ]) %>% list() %>%
     sf::st_polygon() %>% sf::st_sfc() %>%
-    sf::st_set_crs(sf::st_crs(prop)$proj4string) %>%
+    sf::st_set_crs(sf::st_crs(prop)$proj4string)
+  prop_bb
+}
+
+prop_bb_area <- function(prop) {
+  prop_bb(prop) %>%
     sf::st_area() %>% as.numeric()
-  bb_area
 }
