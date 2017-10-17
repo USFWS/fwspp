@@ -17,7 +17,7 @@ prep_cadastral <- function() {
     paste("Storing USFWS cadastral geodatabase in a more efficient format.",
           "This will take several additional minutes.")))
   for (l in c("FWSInterest", "FWSApproved")) {
-    message("Processing ", l)
+    message("Processing USFWS ", sub("FWS", "", l), " boundaries.")
     props <- sf::read_sf(gdb, layer = l, stringsAsFactors = FALSE, quiet = TRUE)
     l_nm <- paste0("fws_", tolower(sub("FWS", "", l)))
 
@@ -33,14 +33,16 @@ prep_cadastral <- function() {
     # e.g., ring self-intersections...
     props <- suppressWarnings(sf::st_buffer(props, 0))
 
-    # Dissolve into a single multi-part polygon by property
-    # Include ORGCODE as well to overcome identically-names properties
+    # Dissolve into a single multi-part polygon by property, region, and type
     props <- props %>%
       group_by(.data$ORGNAME, .data$FWSREGION, .data$RSL_TYPE) %>%
-      summarize()
+      summarize() %>% ungroup()
 
     # Put in WGS84 even though GRS80 is practically identical
     props <- sf::st_transform(props, 4326)
+
+    # Again, impose zero width buffer to correct potentially invalid merged geometries
+    props <- suppressWarnings(sf::st_buffer(props, 0))
 
     out_fn <- file.path(system.file("extdata", package = "fwspp"),
                         paste0(l_nm, ".rds"))
