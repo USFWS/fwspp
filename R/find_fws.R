@@ -53,8 +53,7 @@ find_fws <- function(fws = NULL, ptype = "NWR", region = 1:8L)
                                    "See https://www.fws.gov/where for assistance.")
   r <- r %>%
     filter(.data$FWSREGION %in% region,
-           .data$RSL_TYPE %in% ptype) %>%
-    select(-RSL_TYPE)
+           .data$RSL_TYPE %in% ptype)
 
   if (is.null(fws))
     refs <- arrange(r, .data$ORGNAME)
