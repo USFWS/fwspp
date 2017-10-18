@@ -28,7 +28,7 @@ get_GBIF <- function(prop, q_recs, timeout, limit = 200000) {
       n_recs <- try_gbif_count(prop,
                                year = yr_rng)
       if (is_error(n_recs))  {
-        warning("GBIF record count failed.")
+        message("GBIF record count failed.")
         return(n_recs)
       }
       if (n_recs - cutoff > -15000)
@@ -65,7 +65,7 @@ get_GBIF <- function(prop, q_recs, timeout, limit = 200000) {
                           geometry = get_wkt(prop),
                           curlopts = list(timeout = timeout))
   }
-  if (is_error(gbif_recs)) warning("GBIF query failed.")
+  if (is_error(gbif_recs)) message("GBIF query failed.")
   gbif_recs
 }
 
@@ -85,7 +85,7 @@ get_BISON <- function(lat_range, lon_range, timeout) {
   }
 
   if (is_error(con)) {
-    warning("BISON query failed.")
+    message("BISON query failed.")
     return(con)
   }
 
@@ -114,7 +114,7 @@ get_BISON <- function(lat_range, lon_range, timeout) {
 
   errs <- sapply(bison_recs, is_error)
   if (any(errs)) {
-    warning("BISON query failed.")
+    message("BISON query failed.")
     return(bison_recs[[which(errs)[1]]])
   }
   bind_rows(bison_recs)
@@ -135,7 +135,7 @@ get_iDigBio <- function(lat_range, lon_range, timeout) {
   idb_recs <- try_idb(type = "records", mq = FALSE, rq = rq, fields = "all",
                       max_items = 100000, limit = 0, offset = 0, sort = FALSE,
                       httr::config(timeout = timeout))
-  if (is_error(idb_recs)) warning("iDigBio query failed.")
+  if (is_error(idb_recs)) message("iDigBio query failed.")
   idb_recs
 }
 
@@ -149,7 +149,7 @@ get_VertNet <- function(center, radius, timeout, limit = 200000) {
   vn_recs <- try_vn(center[2], center[1], radius, limit, messages = FALSE,
                     callopts = list(timeout = timeout),
                     only_dwc = FALSE)
-  if (is_error(vn_recs)) warning("VertNet query failed.")
+  if (is_error(vn_recs)) message("VertNet query failed.")
   vn_recs
 }
 
@@ -178,7 +178,7 @@ get_EcoEngine <- function(lat_range, lon_range, timeout) {
     message(sprintf(mess, i, wait))
     Sys.sleep(wait)
   }
-  if (is_error(ee_recs)) warning("EcoEngine query failed.")
+  if (is_error(ee_recs)) message("EcoEngine query failed.")
   ee_recs
 }
 
@@ -196,7 +196,7 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
   res <- try_GET(base_url, query = list(bbox = bbox, limit = 2000),
                  httr::timeout(timeout))
   if (is_error(res) || httr::http_error(res)) {
-    warning("AntWeb query failed.")
+    message("AntWeb query failed.")
     return(res)
   }
   res <- jsonlite::fromJSON(httr::content(res, "text", encoding = "UTF-8"), FALSE)

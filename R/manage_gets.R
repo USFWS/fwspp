@@ -27,7 +27,7 @@ manage_gets <- function(prop, grbio, timeout = NULL) {
   if (!is.null(timeout)) {
     prog_recs <- est_nrecs(timeout)
     if (prog_recs < q_recs)
-      warning("Your timeout setting may be too short. Watch for repeated ",
+      message("Your timeout setting may be too short. Watch for repeated ",
               "HTTP timeout errors and adjust accordingly.")
   } else timeout <- est_timeout(min(125000, q_recs))
 
