@@ -10,8 +10,19 @@ retrieve_occ <- function(props, prop, buffer, scrub, itis, grbio,
 
   message("\nProcessing ", short_org)
 
-  occ_recs <- manage_gets(prop, grbio, timeout)
-  if (is_error(occ_recs)) return(occ_recs)
+  # GBIF record count may be used to determine whether a property is
+  # divided into smaller pieces and/or the HTTP request timeout
+  try_gbif_count <- try_verb_n(gbif_count)
+
+  # Split property if it spans International Date Line
+  # and check if the area ratio of a property to its bounding
+  # box, in combination with the number of records, warrants
+  # further division for efficiency
+  prop <- split_prop(prop, try_gbif_count)
+  if (is_error(prop))  {
+    warning("Property splitting failed.")
+    return(prop_split)
+  }
   if (nrow(occ_recs) == 0) return(NULL)
 
   # Filter to boundaries of interest

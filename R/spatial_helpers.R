@@ -76,9 +76,8 @@ split_prop <- function(prop, count_fxn) {
   # Check if spans IDL
   # Not foolproof, but seems safe
   if (diff(range(sf::st_bbox(prop_ch))) > 350)
-    prop <- split_by_idl(prop)
-
-  out <- lapply(seq_len(nrow(prop)), function(i) {
+    prop <- split_at_idl(prop)
+  spl_prop <- lapply(seq_len(nrow(prop)), function(i) {
     tmp_prop <- prop[i, ]
     q_recs <- count_fxn(tmp_prop)
     if (fwspp:::is_error(q_recs)) return(q_recs)
@@ -88,25 +87,16 @@ split_prop <- function(prop, count_fxn) {
     bb_area <- fwspp:::prop_bb_area(tmp_prop)
     # If bounding box is mostly occupied by refuge,
     # not much to be done.
-    if (prop_area / bb_area > 0.1) return(tmp_prop)
-
-    # SLICE AND DICE
+    if (prop_area / bb_area > 0.5) return(tmp_prop)
+    # slice and dice
     tmp_prop <- dice_prop(tmp_prop)
+  })
+  errs <- sapply(spl_prop, fwspp:::is_error)
+  if (any(errs)) return(spl_prop[[which(errs)[1]]])
+  spl_prop <- do.call(rbind, spl_prop)
+}
 
-
-
-})
-
-  errs <- sapply(out, fwspp:::is_error)
-  if (any(errs)) {
-    return(out[[which(errs)[1]]])
-  }
-
-
-
-  }
-
-split_by_idl <- function(prop) {
+split_at_idl <- function(prop) {
   message("Dealing with International Date Line issues")
   west <- list(
     matrix(c(-180, -89.99, -180, 89.99, -90, 89.99,
@@ -127,10 +117,11 @@ split_by_idl <- function(prop) {
   })
 }
 
-#' Do the actual splitting of large properties into more manageable units
-#'
-#' @param prop \code{\link[sf]{sf}} to dice
-dice_prop < function(prop){
+# Do the actual splitting of large properties into more manageable units
+#
+# @param prop \code{\link[sf]{sf}} to dice
+#
+dice_prop <- function(prop){
   message("Splitting property for more efficient queries.")
   stopifnot(all(sf::st_geometry_type(prop) %in% c("POLYGON", "MULTIPOLYGON")))
   bb <- matrix(sf::st_bbox(prop), 2)
@@ -147,8 +138,9 @@ dice_prop < function(prop){
   overlay <- raster::raster(raster::extent(bb), nrow = nr, ncol = nc) %>%
       raster::rasterToPolygons() %>% sf::st_as_sf()
   sf::st_crs(overlay) <- sf::st_crs(prop)
-  out <- suppressWarnings(sf::st_intersection(prop, overlay))
-  out
+  diced_prop <- suppressWarnings(sf::st_intersection(prop, overlay)) %>%
+    select(-.data$layer)
+  diced_prop
 }
 
 # Calculate approximate ratio of latitude:longitude distance	for a given
