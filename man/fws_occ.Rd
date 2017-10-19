@@ -125,10 +125,11 @@ The boundaries specified by the \code{acq} option to the \code{bnd} argument
 
 \section{Query timeout details}{
 
-By default, timeout is calculated based on testing of GBIF queries on a ~ 20 Mbps
- internet connection. GBIF queries are nearly always the slowest request. If
+By default, timeout is calculated based on testing of BISON queries on a ~ 20 Mbps
+ internet connection. BISON queries are nearly always the largest (by # records)
+ *contiguous* requests (GBIF is slower but cut into smaller requests).  If
  timeouts are a recurring problem, however, it may be worth fixing this parameter at
- a large value (e.g., 1.5 h, or \code{timeout = 5400L}.  If queries are regularly
+ a large value (e.g., 20 minutes, or \code{timeout = 1200L}).  If queries are regularly
  timing out, please contact the maintainer with details or, better yet, file an
  issue at \url{https://github.com/adamdsmith/fwspp/issues}.
 }

@@ -5,7 +5,7 @@
 # to proceed to additional properties
 
 #' @noRd
-get_GBIF <- function(prop, q_recs, timeout, limit = 200000) {
+get_GBIF <- function(prop, timeout, limit = 200000) {
 
   message("Querying the Global Biodiversity Information Facility (GBIF)...")
 
@@ -76,28 +76,9 @@ get_BISON <- function(lat_range, lon_range, timeout) {
 
   ## `BISON search with geometry in `spocc` package omits desired metadata (i.e., media info)
   ## Two queries, one to get # records and second to retrieve them, is faster...
-  for (i in 1:3) { # Try up to 3 times to set up SOLR connection
-    con <- try(solrium::solr_connect("https://bison.usgs.gov/solr/occurrences/select/",
-                                     verbose = FALSE),
-               silent = TRUE)
-    if (!is_error(con) || i == 3) break
-    Sys.sleep(stats::runif(1, 5, 10))
-  }
-
-  if (is_error(con)) {
-    message("BISON query failed.")
-    return(con)
-  }
-
-  try_solr <- try_verb_n(solrium::solr_search)
-  q_recs <- try_solr(
-    fq = list(paste0("decimalLatitude:[",
-                     paste(lat_range, collapse = " TO "), "]"),
-              paste0("decimalLongitude:[",
-                     paste(lon_range, collapse = " TO "), "]")),
-    rows = 1, parsetype = "list", callopts = httr::timeout(30))
-
-  q_recs <- attr(q_recs, "numFound")
+  try_bison_count <- try_verb_n(bison_count)
+  q_recs <- try_bison_count(lat_range, lon_range)
+  if (is_error(q_recs)) return(q_recs)
   if (q_recs == 0) return(NULL)
 
   # Splitting very large requests

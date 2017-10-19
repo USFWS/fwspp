@@ -1,4 +1,4 @@
-manage_gets <- function(prop, grbio, timeout = NULL) {
+manage_gets <- function(prop, grbio, timeout) {
 
   # TEST IF FLEXIBILITY IN THESE REQUIREMENTS
   stopifnot(nrow(prop) == 1 &&
@@ -12,18 +12,14 @@ manage_gets <- function(prop, grbio, timeout = NULL) {
   radius <- geosphere::distVincentyEllipsoid(rowMeans(prop_bb), t(prop_bb)) %>%
     ceiling() %>% max()
 
-  #############################################################################
-  ## Retrieve and standardize occurrence records from biodiversity databases ##
-  #############################################################################
+  # BISON record count may be used to determine the HTTP request timeout
+  try_bison_count <- try_verb_n(bison_count)
+  q_recs <- try_bison_count(lat_range, lon_range)
+  if (is_error(q_recs)) return(q_recs)
 
   # Compare and set timeout programmatically, if not specified by user
-  # Timeout is based on GBIF queries, which are typically slowest
-  try_gbif_count <- try_verb_n(gbif_count)
-  q_recs <- try_gbif_count(prop)
-  if (is_error(q_recs))  {
-    warning("GBIF record count failed.")
-    return(q_recs)
-  }
+  # Timeout is based on BISON queries as they are typically the largest
+  # contiguous downloads
   if (!is.null(timeout)) {
     prog_recs <- est_nrecs(timeout)
     if (prog_recs < q_recs)
@@ -31,8 +27,12 @@ manage_gets <- function(prop, grbio, timeout = NULL) {
               "HTTP timeout errors and adjust accordingly.")
   } else timeout <- est_timeout(min(125000, q_recs))
 
+  #############################################################################
+  ## Retrieve and standardize occurrence records from biodiversity databases ##
+  #############################################################################
+
   # GBIF
-  gbif_recs <- get_GBIF(prop, q_recs, timeout)
+  gbif_recs <- get_GBIF(prop, timeout)
   if (is_error(gbif_recs)) return(gbif_recs)
   if (gbif_recs$meta$count > 0) {
     try_clean_GBIF <- try_verb_n(clean_GBIF, 1)

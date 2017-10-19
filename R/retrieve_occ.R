@@ -10,8 +10,8 @@ retrieve_occ <- function(props, prop, buffer, scrub, itis, grbio,
 
   message("\nProcessing ", short_org)
 
-  # GBIF record count may be used to determine whether a property is
-  # divided into smaller pieces and/or the HTTP request timeout
+  # GBIF record count is used to determine whether a property is
+  # divided into smaller pieces
   try_gbif_count <- try_verb_n(gbif_count)
 
   # Split property if it spans International Date Line
