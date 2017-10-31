@@ -199,6 +199,8 @@ clean_AntWeb <- function(aw_recs) {
 #' @noRd
 standardize_occ <- function(clean_recs, coord_tol = NULL) {
 
+  if (is.null(clean_recs)) return(NULL)
+
   nm <- deparse(substitute(clean_recs))
   src <- case_when(
     sub("_.+$", "", nm) == "gbif" ~ "GBIF",
@@ -208,8 +210,6 @@ standardize_occ <- function(clean_recs, coord_tol = NULL) {
     sub("_.+$", "", nm) == "ee" ~ "EcoEngine",
     TRUE ~ "AntWeb"
   )
-
-  if (is.null(clean_recs)) return(NULL)
 
   ## Set column names/order of output data frame
   out_df <- utils::read.csv(text = paste(c("sci_name", "lon", "lat", "loc_unc_m", "year",
