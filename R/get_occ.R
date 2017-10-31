@@ -16,14 +16,16 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
   curr_yr <- as.POSIXlt(Sys.time())$year + 1900
 
   # Hoop-jumping to retrieve more records, if necessary
-  if (q_recs > 100000) {
+  q_recs <- try_gbif_count(prop)
+  if (is_error(q_recs)) return(q_recs)
+  if (q_recs > 125000) {
     message("Splitting the GBIF query temporally to recover all records.")
     # Finding year breaks
-    n_grp <- ceiling(q_recs/100000)
+    n_grp <- ceiling(q_recs/125000)
     yr_bnd_l <- integer(0)
 
     for (yr in curr_yr:1776) {
-      cutoff <- 100000 * (length(yr_bnd_l) + 1)
+      cutoff <- 125000 * (length(yr_bnd_l) + 1)
       yr_rng <- paste(yr, curr_yr, sep = ",")
       n_recs <- try_gbif_count(prop,
                                year = yr_rng)
@@ -31,7 +33,10 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
         message("GBIF record count failed.")
         return(n_recs)
       }
-      if (n_recs - cutoff > -15000)
+
+      ## TO DO: ADD MESSAGE IF SINGLE YEAR RECORDS EXCEED 200K
+
+      if (n_recs > cutoff - 25000)
         yr_bnd_l <- c(yr_bnd_l, yr)
       if (length(yr_bnd_l) == (n_grp - 1)) break
     }
@@ -49,7 +54,6 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
       message("  Processing occurrence records from ", sub(",", " - ", yr_rng))
       tmp <- try_gbif(limit = limit, year = yr_rng,
                       geometry = get_wkt(prop),
-                      # bump timeout
                       curlopts = list(timeout = timeout))
       if (is_error(tmp)) {
         gbif_recs <- tmp
@@ -82,15 +86,16 @@ get_BISON <- function(lat_range, lon_range, timeout) {
   if (q_recs == 0) return(NULL)
 
   # Splitting very large requests
-  starts <- seq(from = 0, by = 100000, length = ceiling(q_recs/100000))
+  starts <- seq(from = 0, by = 125000, length = ceiling(q_recs/125000))
 
+  try_solr <- try_verb_n(solrium::solr_search)
   bison_recs <- lapply(starts, function(start) {
     try_solr(
       fq = list(paste0("decimalLatitude:[",
                        paste(lat_range, collapse = " TO "), "]"),
                 paste0("decimalLongitude:[",
                        paste(lon_range, collapse = " TO "), "]")),
-      start = start, rows = 100000, callopts = httr::timeout(timeout))
+      start = start, rows = 125000, callopts = httr::timeout(timeout))
   })
 
   errs <- sapply(bison_recs, is_error)
