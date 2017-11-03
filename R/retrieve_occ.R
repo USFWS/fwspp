@@ -1,4 +1,4 @@
-retrieve_occ <- function(props, prop, buffer, scrub, itis, grbio,
+retrieve_occ <- function(props, prop, buffer, scrub, itis,
                          timeout = NULL) {
 
   org_name <- prop

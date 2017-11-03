@@ -1,7 +1,7 @@
 # Functions to wrangle returned occurrence records into a consistent structure
 
 #' @noRd
-clean_GBIF <- function(gbif_recs, grbio) {
+clean_GBIF <- function(gbif_recs) {
 
   if (!is.list(gbif_recs)) stop("Expected list from GBIF query.")
 
@@ -26,14 +26,13 @@ clean_GBIF <- function(gbif_recs, grbio) {
                          coordinateUncertaintyInMeters = integer(0),
                          stringsAsFactors = FALSE))
 
-  gbif_recs <- left_join(gbif_recs, grbio, by = c("institutionCode" = "inst_code")) %>%
+  gbif_recs <- gbif_recs %>%
     mutate(
       evidence = case_when(
         !is_missing(.data$bibliographicCitation) ~ .data$bibliographicCitation,
         !is_missing(.data$references) ~ .data$references,
-        !is_missing(.data$inst_url) ~ paste0(sub("/$", "", .data$inst_url),
-                                             "; catalog# ", .data$catalogNumber),
-        TRUE ~ NA_character_),
+        TRUE ~ paste0("www.gbif.org/dataset/", .data$datasetKey,
+                      "; catalog# ", .data$catalogNumber)),
       media_url = ifelse(!is_missing(.data$media_url),
                          paste(.data$evidence, .data$media_url, sep = ", "),
                          .data$media_url))
@@ -108,7 +107,7 @@ clean_iDigBio <- function(idb_recs) {
 }
 
 #' @noRd
-clean_VertNet <- function(vn_recs, grbio) {
+clean_VertNet <- function(vn_recs) {
 
   if (!is.list(vn_recs)) stop("Expected list from VertNet query.")
 
@@ -121,6 +120,8 @@ clean_VertNet <- function(vn_recs, grbio) {
     bind_rows(data.frame(coordinateuncertaintyinmeters = integer(0),
                          associatedmedia = character(0),
                          institutioncode = character(0),
+                         source_url = character(0),
+                         bibliographiccitation = character(0),
                          stringsAsFactors = FALSE))
 
   # Create genus or species if they do not exist
@@ -132,12 +133,12 @@ clean_VertNet <- function(vn_recs, grbio) {
   # Note that some viable link to original records, with media, lie buried
   # in the `references` column, but there's no easy way to get them...
   vn_recs <- vn_recs %>%
-    left_join(grbio, by = c("institutioncode" = "inst_code")) %>%
     mutate(sci_name = create_sci_name(.data$genus, .data$specificepithet),
            evidence = case_when(
              !is_missing(.data$references) ~ .data$references,
-             !is_missing(.data$inst_url) ~ paste0(.data$inst_url, "; catalog# ",
+             !is_missing(.data$source_url) ~ paste0(.data$source_url, "; catalog# ",
                                                   .data$catalognumber),
+             !is_missing(.data$bibliographiccitation) ~ .data$bibliographiccitation,
              TRUE ~ NA_character_))
 
   # Rename relevant columns
@@ -151,25 +152,35 @@ clean_VertNet <- function(vn_recs, grbio) {
 }
 
 #' @noRd
-clean_EcoEngine <- function(ee_recs, grbio) {
+clean_EcoEngine <- function(ee_recs) {
 
   if (!is.list(ee_recs)) stop("Expected list from EcoEngine query.")
 
   ee_recs <- ee_recs$data %>%
     # Extract institution code
     mutate(inst_code = sub(":.*$", "", .data$record),
-           cat_no = sub("^[^:]*:", "", .data$record)) %>%
-    left_join(grbio, by = "inst_code") %>%
-    mutate(evidence = case_when(
-      !is_missing(.data$remote_resource) ~ .data$remote_resource,
-      !is_missing(.data$inst_url) ~ paste0(.data$inst_url, "; ", .data$cat_no),
-      TRUE ~ NA_character_))
+           cat_no = gsub("[^:]+:", "", .data$record))
 
   # Rename relevant columns
   rn <- c("scientific_name", "latitude", "longitude",
           "coordinate_uncertainty_in_meters")
   colnames(ee_recs)[match(rn, colnames(ee_recs))] <-
     c("sci_name", "lat", "lon", "loc_unc_m")
+
+  # Try to add missing evidence
+  ee_meta <- filter(ee_recs, is_missing(.data$remote_resource)) %>%
+    select(.data$source) %>% unique() %>%
+    rowwise() %>%
+    mutate(meta_url = get_ee_metadata(.data$source)) %>%
+    ungroup()
+
+  ee_recs <- ee_recs %>%
+    left_join(ee_meta, by = "source") %>%
+    mutate(evidence = case_when(
+      !is_missing(.data$remote_resource) ~ .data$remote_resource,
+      !is_missing(.data$meta_url) ~ paste0(meta_url, "; catalog# ",
+                                           .data$cat_no),
+      TRUE ~ NA_character_))
 
   standardize_occ(ee_recs)
 

@@ -152,17 +152,14 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
   check_cadastral()
   props <- prep_properties(fws, bnd, verbose)
 
-  # Import global registery of biodiversity repositories
-  grbio <- get_grbio()
-
   # Cycle through properties
   if (verbose)
     out <- lapply(fws$ORGNAME, function(prop) {
-        retrieve_occ(props, prop, buffer, scrub, itis, grbio, timeout)})
+        retrieve_occ(props, prop, buffer, scrub, itis, timeout)})
   else
     out <- pbapply::pblapply(fws$ORGNAME, function(prop) {
       suppressMessages(
-          retrieve_occ(props, prop, buffer, scrub, itis, grbio, timeout))})
+          retrieve_occ(props, prop, buffer, scrub, itis, timeout))})
 
   attributes(out) <- list(names = Cap(shorten_orgnames(fws)),
                           class = "fwspp",

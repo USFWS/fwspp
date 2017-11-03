@@ -65,3 +65,8 @@ est_nrecs <- function(timeout) {
   recs <- round((timeout - 5) / 0.0027)
   100 * (recs %/% 100 + as.logical(recs %% 100))
 }
+
+get_ee_metadata <- function(url) {
+  ee_meta <- jsonlite::fromJSON(url)
+  ee_meta[["metadataurl"]]
+}

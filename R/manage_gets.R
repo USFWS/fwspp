@@ -1,4 +1,4 @@
-manage_gets <- function(prop, grbio, timeout) {
+manage_gets <- function(prop, timeout) {
 
   # TEST IF FLEXIBILITY IN THESE REQUIREMENTS
   stopifnot(nrow(prop) == 1 &&
@@ -36,7 +36,7 @@ manage_gets <- function(prop, grbio, timeout) {
   if (is_error(gbif_recs)) return(gbif_recs)
   if (gbif_recs$meta$count > 0) {
     try_clean_GBIF <- try_verb_n(clean_GBIF, 1)
-    gbif_recs <- try_clean_GBIF(gbif_recs, grbio)
+    gbif_recs <- try_clean_GBIF(gbif_recs)
     if (is_error(gbif_recs)) return(gbif_recs)
   } else gbif_recs <- NULL
 
@@ -63,7 +63,7 @@ manage_gets <- function(prop, grbio, timeout) {
   if (is_error(vn_recs)) return(vn_recs)
   if (!is.null(vn_recs)) {
     try_clean_VertNet <- try_verb_n(clean_VertNet, 1)
-    vn_recs <- try_clean_VertNet(vn_recs, grbio)
+    vn_recs <- try_clean_VertNet(vn_recs)
     if (is_error(vn_recs)) return(vn_recs)
   }
 
@@ -72,7 +72,7 @@ manage_gets <- function(prop, grbio, timeout) {
   if (is_error(ee_recs)) return(ee_recs)
   if (!is.null(ee_recs)) {
     try_clean_EcoEngine <- try_verb_n(clean_EcoEngine, 1)
-    ee_recs <- try_clean_EcoEngine(ee_recs, grbio)
+    ee_recs <- try_clean_EcoEngine(ee_recs)
     if (is_error(ee_recs)) return(ee_recs)
   }
 
