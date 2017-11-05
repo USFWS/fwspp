@@ -5,12 +5,11 @@ check_cadastral <- function() {
   info <- file.exists(system.file("extdata", "fws_info.rds", package = "fwspp"))
 
   if (!all(gdb, info)) {
-    message(paste(strwrap(
-      paste("\nPrior to using `fwspp` you must install the current USFWS",
-            "cadastral geodatabase. To do so, please run",
-            "`install_fws_cadastral()`.  This will take several minutes.",
-            "\n\nWould you like to install now?")),
-      collapse = "\n"))
+    message(
+      wrap_message(paste("\nPrior to using `fwspp` you must install the current USFWS",
+                         "cadastral geodatabase. To do so, please run",
+                         "`install_fws_cadastral()`.  This will take several minutes.",
+                         "\n\nWould you like to install now?")))
     utils::menu(c("Yes", "No")) -> resp
 
     if (resp == 1)
