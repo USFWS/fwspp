@@ -49,19 +49,6 @@ wrap_message <- function(msg) {
   paste(strwrap(msg), collapse = "\n")
 }
 
-create_sci_name <- function(..., sep = " ") {
-  # Thanks http://stackoverflow.com/a/15673180/2726564
-  L <- list(...)
-  L <- lapply(L, function(x) {x[is.na(x) | x == "sp" |
-                                  x == "sp." | x == "None" |
-                                  x == "none"] <- ""; x})
-  ret <-gsub(paste0("(^",sep,"|",sep,"$)"),"",
-             gsub(paste0(sep,sep),sep,
-                  do.call(paste,c(L,list(sep=sep)))))
-  is.na(ret) <- ret == ""
-  Cap(ret, "first")
-}
-
 clean_sci_name <- function(sn_string) {
   sn_miss <- "Undesignated|None|Unknown|Missing"
   spec_epi_miss <- " sp$| sp.$| spp$| spp.$"

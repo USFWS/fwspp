@@ -90,7 +90,7 @@ clean_iDigBio <- function(idb_recs) {
     stop("Expected data frame from iDigBio query.")
 
   idb_recs <- idb_recs %>%
-    mutate(sci_name = create_sci_name(.data$genus, .data$specificepithet),
+    mutate(sci_name = clean_sci_name(.data$scientificname),
            year = strptime(.data$datecollected, format = "%Y-%m-%d")$year + 1900,
            month = strptime(.data$datecollected, format = "%Y-%m-%d")$mon + 1,
            day = strptime(.data$datecollected, format = "%Y-%m-%d")$mday,
@@ -133,7 +133,7 @@ clean_VertNet <- function(vn_recs) {
   # Note that some viable link to original records, with media, lie buried
   # in the `references` column, but there's no easy way to get them...
   vn_recs <- vn_recs %>%
-    mutate(sci_name = create_sci_name(.data$genus, .data$specificepithet),
+    mutate(sci_name = clean_sci_name(.data$scientificname),
            evidence = case_when(
              !is_missing(.data$references) ~ .data$references,
              !is_missing(.data$source_url) ~ paste0(.data$source_url, "; catalog# ",
@@ -193,7 +193,7 @@ clean_AntWeb <- function(aw_recs) {
     stop("Expected data.frame from AntWeb query.")
 
   aw_recs <- aw_recs %>%
-    mutate(sci_name = create_sci_name(.data$genus, .data$specificEpithet),
+    mutate(sci_name = clean_sci_name(.data$scientific_name),
            year = strptime(.data$dateIdentified, format = "%Y-%m-%d")$year + 1900,
            month = strptime(.data$dateIdentified, format = "%Y-%m-%d")$mon + 1,
            day = strptime(.data$dateIdentified, format = "%Y-%m-%d")$mday)
