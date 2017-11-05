@@ -79,7 +79,7 @@ split_prop <- function(prop, count_fxn) {
   spl_prop <- lapply(seq_len(nrow(prop)), function(i) {
     tmp_prop <- prop[i, ]
     q_recs <- count_fxn(tmp_prop)
-    if (fwspp:::is_error(q_recs)) return(q_recs)
+    if (fwspp:::is_error(q_recs)) return(q_recs$error)
     # If relative small number of records, splitting is superfluous
     if (q_recs$result < 125000) return(tmp_prop)
     prop_area <- sf::st_area(tmp_prop) %>% as.numeric()
@@ -90,7 +90,7 @@ split_prop <- function(prop, count_fxn) {
     # slice and dice
     tmp_prop <- dice_prop(tmp_prop)
   })
-  errs <- sapply(spl_prop, fwspp:::is_error)
+  errs <- sapply(spl_prop, is_error)
   if (any(errs)) return(spl_prop[[which(errs)[1]]])
   spl_prop <- do.call(rbind, spl_prop)
 }

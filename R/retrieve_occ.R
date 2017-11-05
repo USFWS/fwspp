@@ -38,7 +38,8 @@ retrieve_occ <- function(props, prop, buffer, scrub, itis,
   if (scrub != "none") {
     try_scrub <- try_verb_n(scrub_occ, 1)
     occ_recs <- try_scrub(occ_recs, scrub)
-    if (is_error(occ_recs)) return(occ_recs)
+    if (is_error(occ_recs)) return(occ_recs$error)
+    occ_recs <- occ_recs$result
   }
 
   occ_recs %>%

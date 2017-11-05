@@ -15,7 +15,7 @@ manage_gets <- function(prop, timeout) {
   # BISON record count may be used to determine the HTTP request timeout
   try_bison_count <- try_verb_n(bison_count)
   q_recs <- try_bison_count(lat_range, lon_range)
-  if (is_error(q_recs)) return(q_recs)
+  if (is_error(q_recs)) return(q_recs$error)
   q_recs <- q_recs$result
 
   # Compare and set timeout programmatically, if not specified by user
@@ -38,7 +38,7 @@ manage_gets <- function(prop, timeout) {
   if (gbif_recs$meta$count > 0) {
     try_clean_GBIF <- try_verb_n(clean_GBIF, 1)
     gbif_recs <- try_clean_GBIF(gbif_recs)
-    if (is_error(gbif_recs)) return(gbif_recs)
+    if (is_error(gbif_recs)) return(gbif_recs$error)
     gbif_recs <- gbif_recs$result
   } else gbif_recs <- NULL
 
@@ -48,7 +48,7 @@ manage_gets <- function(prop, timeout) {
   if (!is.null(bison_recs)) {
     try_clean_BISON <- try_verb_n(clean_BISON, 1)
     bison_recs <- try_clean_BISON(bison_recs)
-    if (is_error(bison_recs)) return(bison_recs)
+    if (is_error(bison_recs)) return(bison_recs$error)
     bison_recs <- bison_recs$result
   }
 
@@ -58,7 +58,7 @@ manage_gets <- function(prop, timeout) {
   if (nrow(idb_recs) > 0) {
     try_clean_iDigBio <- try_verb_n(clean_iDigBio, 1)
     idb_recs <- try_clean_iDigBio(idb_recs)
-    if (is_error(idb_recs)) return(idb_recs)
+    if (is_error(idb_recs)) return(idb_recs$error)
     idb_recs <- idb_recs$result
   } else idb_recs <- NULL
 
@@ -68,7 +68,7 @@ manage_gets <- function(prop, timeout) {
   if (!is.null(vn_recs)) {
     try_clean_VertNet <- try_verb_n(clean_VertNet, 1)
     vn_recs <- try_clean_VertNet(vn_recs)
-    if (is_error(vn_recs)) return(vn_recs)
+    if (is_error(vn_recs)) return(vn_recs$error)
     vn_recs <- vn_recs$result
   }
 
@@ -78,7 +78,7 @@ manage_gets <- function(prop, timeout) {
   if (!is.null(ee_recs)) {
     try_clean_EcoEngine <- try_verb_n(clean_EcoEngine, 1)
     ee_recs <- try_clean_EcoEngine(ee_recs)
-    if (is_error(ee_recs)) return(ee_recs)
+    if (is_error(ee_recs)) return(ee_recs$error)
     ee_recs <- ee_recs$result
   }
 
@@ -88,7 +88,7 @@ manage_gets <- function(prop, timeout) {
   if (!is.null(aw_recs)) {
     try_clean_AntWeb <- try_verb_n(clean_AntWeb, 1)
     aw_recs <- try_clean_AntWeb(aw_recs)
-    if (is_error(aw_recs)) return(aw_recs)
+    if (is_error(aw_recs)) return(aw_recs$error)
     aw_recs <- aw_recs$result
   }
 
