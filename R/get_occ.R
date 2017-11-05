@@ -151,11 +151,11 @@ get_EcoEngine <- function(lat_range, lon_range, timeout) {
 
   # EcoEngine 'errors' when no results so approach slightly differently
   for (i in 1:3) {
-    ee_recs <- try_capture_stack(
-      ecoengine::ee_observations(page_size = 10000, bbox = bbox,
-                                 georeferenced = TRUE, quiet = TRUE,
-                                 foptions = httr::timeout(timeout)))
-    if (!is_error(ee_recs) || i == 3) break
+    safe_get_ee <- purrr::safely(ecoengine::ee_observations)
+    ee_recs <- safe_get_ee(page_size = 10000, bbox = bbox,
+                           georeferenced = TRUE, quiet = TRUE,
+                           foptions = httr::timeout(timeout))
+    if (!is_error(ee_recs$result) || i == 3) break
     if (grepl("count not greater than 0", ee_recs$message))
       return(NULL)
     wait <- stats::runif(1, min(5 ^ i, 120), min(5 ^ (i + 1), 180))
@@ -164,8 +164,8 @@ get_EcoEngine <- function(lat_range, lon_range, timeout) {
     message(sprintf(mess, i, wait))
     Sys.sleep(wait)
   }
-  if (is_error(ee_recs)) message("EcoEngine query failed.")
-  ee_recs
+  if (is_error(ee_recs$result)) message("EcoEngine query failed.")
+  ee_recs$result
 }
 
 #' @noRd
