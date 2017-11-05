@@ -23,7 +23,7 @@ try_verb_n <- function(verb, n = 3, wait = NULL) {
 
 is_error <- function(obj) {
   if (inherits(obj, "list") ||
-      identical(names(response), c("result", "error")))
+      identical(names(obj), c("result", "error")))
     !is.null(obj$error)
   else inherits(obj, "error")
 }

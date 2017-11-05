@@ -18,6 +18,7 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
   # Hoop-jumping to retrieve more records, if necessary
   q_recs <- try_gbif_count(prop)
   if (is_error(q_recs)) return(q_recs)
+  q_recs <- q_recs$result
   if (q_recs > 125000) {
     message("Splitting the GBIF query temporally to recover all records.")
     # Finding year breaks
@@ -33,6 +34,7 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
         message("GBIF record count failed.")
         return(n_recs)
       }
+      n_recs <- n_recs$result
 
       ## TO DO: ADD MESSAGE IF SINGLE YEAR RECORDS EXCEED 200K
 
@@ -59,6 +61,7 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
         gbif_recs <- tmp
         break
       }
+      gbif_recs <- tmp$result
 
       gbif_recs$media <- c(gbif_recs$media, tmp$media)
       gbif_recs$data <- bind_rows(gbif_recs$data, tmp$data)
@@ -70,7 +73,7 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
                           curlopts = list(timeout = timeout))
   }
   if (is_error(gbif_recs)) message("GBIF query failed.")
-  gbif_recs
+  gbif_recs$result
 }
 
 #' @noRd
@@ -83,6 +86,7 @@ get_BISON <- function(lat_range, lon_range, timeout) {
   try_bison_count <- try_verb_n(bison_count)
   q_recs <- try_bison_count(lat_range, lon_range)
   if (is_error(q_recs)) return(q_recs)
+  q_recs <- q_recs$result
   if (q_recs == 0) return(NULL)
 
   # Splitting very large requests
@@ -103,7 +107,7 @@ get_BISON <- function(lat_range, lon_range, timeout) {
     message("BISON query failed.")
     return(bison_recs[[which(errs)[1]]])
   }
-  bind_rows(bison_recs)
+  bind_rows(purrr::map(bison_recs, ~ .$result))
 }
 
 #' @noRd
@@ -122,7 +126,7 @@ get_iDigBio <- function(lat_range, lon_range, timeout) {
                       max_items = 100000, limit = 0, offset = 0, sort = FALSE,
                       httr::config(timeout = timeout))
   if (is_error(idb_recs)) message("iDigBio query failed.")
-  idb_recs
+  idb_recs$result
 }
 
 #' @noRd
@@ -136,7 +140,7 @@ get_VertNet <- function(center, radius, timeout, limit = 200000) {
                     callopts = list(timeout = timeout),
                     only_dwc = FALSE)
   if (is_error(vn_recs)) message("VertNet query failed.")
-  vn_recs
+  vn_recs$result
 }
 
 #' @noRd
@@ -181,11 +185,11 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
   try_GET <- try_verb_n(httr::GET)
   res <- try_GET(base_url, query = list(bbox = bbox, limit = 2000),
                  httr::timeout(timeout))
-  if (is_error(res) || httr::http_error(res)) {
+  if (is_error(res) || httr::http_error(res$result)) {
     message("AntWeb query failed.")
     return(res)
   }
-  res <- jsonlite::fromJSON(httr::content(res, "text", encoding = "UTF-8"), FALSE)
+  res <- jsonlite::fromJSON(httr::content(res$result, "text", encoding = "UTF-8"), FALSE)
 
   if (res$count == 0) return(NULL)
   if (res$count > 2000) message("Only first 2000 matching AntWeb records returned.")
