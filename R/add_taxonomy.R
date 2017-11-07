@@ -8,7 +8,7 @@
 #' @param taxonomy a \code{data.frame} returned by
 #'  \code{\link{retrieve_taxonomy}}; this is meant primarily for internal
 #'  \code{fws_occ} use
-#' @return a \code{\link{fwsspp}} object with added (or updated) basic
+#' @return a \code{\link{fwspp}} object with added (or updated) basic
 #'  taxonomic information
 #' @export
 #' @examples

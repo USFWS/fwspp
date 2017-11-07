@@ -14,7 +14,7 @@ add_taxonomy(fwspp, taxonomy = NULL)
 \code{fws_occ} use}
 }
 \value{
-a \code{\link{fwsspp}} object with added (or updated) basic
+a \code{\link{fwspp}} object with added (or updated) basic
  taxonomic information
 }
 \description{
