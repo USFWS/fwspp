@@ -21,7 +21,7 @@ check_cadastral <- function() {
   }
 }
 
-#' Generate buffer around USFWS property
+# Generate buffer around USFWS property
 buffer_prop <- function(prop, buffer) {
   zone <- get_UTM_zone(mean(sf::st_bbox(prop)[c(1,3)]))
   prop %>% sf::st_transform(crs = as.integer(paste0(326, zone))) %>%
@@ -82,7 +82,7 @@ split_prop <- function(prop, count_fxn) {
     # If relative small number of records, splitting is superfluous
     if (q_recs < 125000) return(tmp_prop)
     prop_area <- sf::st_area(tmp_prop) %>% as.numeric()
-    bb_area <- fwspp:::prop_bb_area(tmp_prop)
+    bb_area <- prop_bb_area(tmp_prop)
     # If bounding box is mostly occupied by refuge,
     # not much to be done.
     if (prop_area / bb_area > 0.5) return(tmp_prop)

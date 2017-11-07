@@ -19,6 +19,7 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   # box, in combination with the number of records, warrants
   # further division for efficiency
   prop <- split_prop(prop, try_gbif_count)
+
   occ_recs <- vector(nrow(prop), mode = "list")
   safe_gets <- purrr::safely(manage_gets)
   for (i in seq_along(occ_recs)) {
