@@ -84,12 +84,25 @@ filter_taxonomy <- function(tax, sci_name) {
   if (nrow(tax) > 1) {
     # Multiple species in different taxa groups
     if (n_distinct(tax$NPSpeciesCategory) > 1)
-      return(empty_tax(sci_name, "Multiple species match"))
+      return(empty_tax(sci_name, "Same scientific name for multiple taxa"))
     else {
-      # Same taxa group may be same species but differnt authorities
-      # See if filtering by accepted name solves problem
+      # Try to identify accepted taxon if all are invalid/unaccepted
+      if (all(!tax$Usage %in% c("valid", "accepted")) &&
+          "AcceptedTaxa" %in% names(tax)) {
+        acc_tax <- tax$AcceptedTaxa %>% purrr::map(pull, .data$ScientificName) %>%
+          purrr::flatten_chr() %>% unique()
+        if (length(acc_tax) == 1)
+          # Single accepted taxon, return first
+          return(tax[1, ])
+        if (length(acc_tax) > 1)
+          # Multiple ambiguous taxa, provide them
+          return(empty_tax(sci_name, paste("Ambiguous accepted taxon:",
+                                           paste(acc_tax, collapse = ", "))))
+      }
+      # Occasionally filtering by accepted name solves problem
       tax <- tax[tax$Usage %in% c("valid", "accepted"), ]
-      if (nrow(tax) != 1)
+      # but if it doesn't
+      if (nrow(tax) < 1)
         return(empty_tax(sci_name, "Multiple species match"))
     }
   }
