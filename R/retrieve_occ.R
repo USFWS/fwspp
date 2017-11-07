@@ -19,24 +19,23 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   # box, in combination with the number of records, warrants
   # further division for efficiency
   prop <- split_prop(prop, try_gbif_count)
-  if (is_error(prop))  {
-    message("Property splitting failed.")
-    return(prop)
-  }
 
   occ_recs <- vector(nrow(prop), mode = "list")
+  safe_gets <- purrr::safely(manage_gets)
   for (i in seq_along(occ_recs)) {
-    i_recs <- manage_gets(prop[i, ], timeout)
+    i_recs <- safe_gets(prop[i, ], timeout)
     if (is_error(i_recs)) {
-      occ_recs[[i]] <- i_recs
+      occ_recs[[i]] <- i_recs$error
       break
     }
+    i_recs <- i_recs$result
     if (nrow(i_recs) == 0) i_recs <- NULL
     occ_recs[[i]] <- i_recs
   }
 
   errs <- sapply(occ_recs, is_error)
-  if (any(errs)) return(occ_recs[[which(errs)[1]]])
+  if (any(errs))
+    return(occ_recs[[which.min(errs)]])
   occ_recs <- bind_rows(occ_recs)
   if (nrow(occ_recs) == 0) return(NULL)
 
@@ -46,8 +45,8 @@ retrieve_occ <- function(props, prop, buffer, scrub,
 
   # Scrubbing, if requested
   if (scrub != "none") {
-    try_scrub <- try_verb_n(scrub_occ, 1)
-    occ_recs <- try_scrub(occ_recs, scrub)
+    safe_scrub <- purrr::safely(scrub_occ)
+    occ_recs <- safe_scrub(occ_recs, scrub)
     if (is_error(occ_recs)) return(occ_recs$error)
     occ_recs <- occ_recs$result
   }

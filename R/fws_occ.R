@@ -178,6 +178,14 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
                           buffer_km = buffer)
 
   # Taxomony linking, if requested
-  if (taxonomy) out <- add_taxonomy(out)
+  if (taxonomy) {
+    safe_tax <- purrr::safely(add_taxonomy)
+    out_tax <- safe_tax(out)
+    if (is_error(out_tax))
+      message("Taxonomy retrieval failed with the following error:\n   ",
+              out_tax$error$message,
+              "\n\nSkipping taxonomy. You may try `fwspp::join_taxonomy` again later.\n")
+    else out <- out_tax$result
+  }
   out
 }

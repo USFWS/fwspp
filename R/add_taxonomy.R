@@ -20,9 +20,9 @@
 add_taxonomy <- function(fwspp, taxonomy = NULL) {
   if(!inherits(fwspp, "fwspp"))
     stop("You must supply a `fwspp` object. See `fwspp::fws_occ`.")
-  if (!is.null(taxonomy)) {
+  if (!is.null(taxonomy))
     join_taxonomy(fwspp, taxonomy)
-  } else {
+  else {
     hold_attr <- attributes(fwspp)
     if (any(sapply(fwspp, function(i) c("tsn", "taxon_code") %in% names(i)))) {
       if (!interactive())
@@ -35,20 +35,12 @@ add_taxonomy <- function(fwspp, taxonomy = NULL) {
         if (resp != 1) return(fwspp)
       }
       ## REMOVE ALREADY PRESENT TAXONOMY
-      fwspp_orig <- fwspp
       fwspp <- strip_taxonomy(fwspp)
     }
     message("Retrieving taxonomic information...")
     all_spp <- pull_sci_names(fwspp)
-    safe_tax <- purrr::safely(retrieve_taxonomy)
-    taxonomy <- safe_tax(all_spp)
-    if (is_error(taxonomy)) {
-      message("Taxonomy retrieval failed with the following error:\n   ",
-              taxonomy$error$message,
-              "\n\nSkipping taxonomy. You may try `fwspp::join_taxonomy` again later.\n")
-      return(fwspp_orig)
-    }
-    fwspp <- join_taxonomy(fwspp, taxonomy$result)
+    tax_info <- retrieve_taxonomy(all_spp)
+    fwspp <- join_taxonomy(fwspp, tax_info)
     attributes(fwspp) <- hold_attr
     fwspp
   }

@@ -18,13 +18,10 @@
 #'                     "Fakus specialus"))
 #' }
 retrieve_taxonomy <- function(sci_name) {
-  try_tax <- try_verb_n(get_taxonomy, wait = 1)
   out <- pbapply::pblapply(sci_name, function(sn) {
     # message(sn)
     acc_sci_name <- sn <- clean_sci_name(sn)
-    tax <- suppressMessages(try_tax(acc_sci_name))
-    if (is_error(tax)) stop(paste0(tax$error$message), " (", sn, ")")
-    tax <- tax$result
+    tax <- suppressMessages(get_taxonomy(acc_sci_name))
 
     # No match
     if (is.null(tax)) return(empty_tax(sn, "No match found; check spelling?"))
@@ -40,9 +37,8 @@ retrieve_taxonomy <- function(sci_name) {
       if (identical(acc_sci_name, character(0)))
         acc_sci_name <- NA_character_
       else {
-        tax <- suppressMessages(try_tax(acc_sci_name))
-        if (is_error(tax)) stop(paste0(tax$error$message), " (", acc_sci_name, ")")
-        tax <- tax$result %>%
+        tax <- suppressMessages(get_taxonomy(acc_sci_name))
+        tax <- tax %>%
           filter_taxonomy(acc_sci_name)
       }
     }
@@ -73,7 +69,8 @@ get_taxonomy <- function(sci_name) {
   base_url <- "http://irmaservices.nps.gov/v2/rest/taxonomy/searchByScientificName/"
   q_sci_name <- utils::URLencode(sci_name)
   q_url <- paste0(base_url, q_sci_name, "?format=json")
-  tax <- jsonlite::fromJSON(q_url)
+  try_JSON <- try_verb_n(jsonlite::fromJSON, 2)
+  tax <- try_JSON(q_url)
   if (identical(tax, list())) return()
   tax
 }
@@ -119,7 +116,6 @@ pull_sci_names <- function(fwspp) {
     purrr::map(pull, .data$sci_name) %>%
     purrr::flatten_chr() %>% unique() %>% sort()
 }
-
 
 join_taxonomy <- function(fwspp, taxonomy) {
   lapply(fwspp, function(i) {

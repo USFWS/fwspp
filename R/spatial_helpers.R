@@ -38,8 +38,8 @@ clip_occ <- function(occ_recs, prop) {
     sf::st_sfc(crs = sf::st_crs(prop)$proj4string) %>%
     sf::st_cast("POINT")
   suppressMessages(
-    keep <- sapply(sf::st_intersects(occ_pts, prop), function(z) {
-      if (length(z)==0) FALSE else TRUE})
+    keep <- sapply(sf::st_intersects(occ_pts, prop),
+                   function(z) {as.logical(length(z))})
   )
   occ_recs[keep, ]
 }
@@ -79,9 +79,8 @@ split_prop <- function(prop, count_fxn) {
   spl_prop <- lapply(seq_len(nrow(prop)), function(i) {
     tmp_prop <- prop[i, ]
     q_recs <- count_fxn(tmp_prop)
-    if (fwspp:::is_error(q_recs)) return(q_recs$error)
     # If relative small number of records, splitting is superfluous
-    if (q_recs$result < 125000) return(tmp_prop)
+    if (q_recs < 125000) return(tmp_prop)
     prop_area <- sf::st_area(tmp_prop) %>% as.numeric()
     bb_area <- fwspp:::prop_bb_area(tmp_prop)
     # If bounding box is mostly occupied by refuge,
@@ -90,8 +89,6 @@ split_prop <- function(prop, count_fxn) {
     # slice and dice
     tmp_prop <- dice_prop(tmp_prop)
   })
-  errs <- sapply(spl_prop, is_error)
-  if (any(errs)) return(spl_prop[[which(errs)[1]]])
   spl_prop <- do.call(rbind, spl_prop)
 }
 

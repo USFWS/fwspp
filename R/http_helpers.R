@@ -4,14 +4,15 @@
 # errors until timeouts, brief server errors, and non-negotiable errors can be better
 # differentiated. Note that this function is also used to capture errors for
 # non-HTTP related functions (e.g., cleaning and scrubbing)
-try_verb_n <- function(verb, n = 3, wait = NULL) {
+try_verb_n <- function(verb, n = 3) {
   function(...) {
-    safe_verb <- purrr::safely(verb)
     for (i in seq_len(n)) {
-      out <- safe_verb(...)
-      if (!is.null(out$result) || i == n) break
-      if (is.null(wait))
-        wait <- stats::runif(1, min(5 ^ i, 120), min(5 ^ (i + 1), 180))
+      if (i == n)
+        out <- verb(...)
+      else
+        out <- try(verb(...), silent = TRUE)
+      if (!is_error(out) || i == n) break
+      wait <- stats::runif(1, min(5 ^ i, 120), min(5 ^ (i + 1), 180))
       mess <- paste("HTTP timeout or error on attempt %d.",
                     "Retrying in %0.0f s.")
       message(sprintf(mess, i, wait))
@@ -22,10 +23,10 @@ try_verb_n <- function(verb, n = 3, wait = NULL) {
 }
 
 is_error <- function(obj) {
-  if (inherits(obj, "list") ||
+  if (inherits(obj, "list") &&
       identical(names(obj), c("result", "error")))
     !is.null(obj$error)
-  else inherits(obj, "error")
+  else inherits(obj, "error") | inherits(obj, "try-error")
 }
 
 fws_url <- function() "https://ecos.fws.gov/ServCat/DownloadFile/126665"

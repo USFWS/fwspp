@@ -17,8 +17,6 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
 
   # Hoop-jumping to retrieve more records, if necessary
   q_recs <- try_gbif_count(prop)
-  if (is_error(q_recs)) return(q_recs$error)
-  q_recs <- q_recs$result
   if (q_recs > 125000) {
     message("Splitting the GBIF query temporally to recover all records.")
     # Finding year breaks
@@ -30,11 +28,6 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
       yr_rng <- paste(yr, curr_yr, sep = ",")
       n_recs <- try_gbif_count(prop,
                                year = yr_rng)
-      if (is_error(n_recs))  {
-        message("GBIF record count failed.")
-        return(n_recs$error)
-      }
-      n_recs <- n_recs$result
 
       ## TO DO: ADD MESSAGE IF SINGLE YEAR RECORDS EXCEED 200K
 
@@ -57,12 +50,6 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
       tmp <- try_gbif(limit = limit, year = yr_rng,
                       geometry = get_wkt(prop),
                       curlopts = list(timeout = timeout))
-      if (is_error(tmp)) {
-        message("GBIF query failed.")
-        gbif_recs <- tmp
-        break
-      }
-      tmp <- tmp$result
       gbif_recs$media <- c(gbif_recs$media, tmp$media)
       gbif_recs$data <- bind_rows(gbif_recs$data, tmp$data)
     }
@@ -70,10 +57,6 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
     gbif_recs <- try_gbif(limit = limit,
                           geometry = get_wkt(prop),
                           curlopts = list(timeout = timeout))
-    if (is_error(gbif_recs)) {
-      message("GBIF query failed.")
-      gbif_recs <- gbif_recs$error
-    } else gbif_recs <- gbif_recs$result
   }
   gbif_recs$meta$count <- q_recs
   gbif_recs
@@ -88,13 +71,10 @@ get_BISON <- function(lat_range, lon_range, timeout) {
   ## Two queries, one to get # records and second to retrieve them, is faster...
   try_bison_count <- try_verb_n(bison_count)
   q_recs <- try_bison_count(lat_range, lon_range)
-  if (is_error(q_recs)) return(q_recs$error)
-  q_recs <- q_recs$result
   if (q_recs == 0) return(NULL)
 
   # Splitting very large requests
   starts <- seq(from = 0, by = 125000, length = ceiling(q_recs/125000))
-
   try_solr <- try_verb_n(solrium::solr_search)
   bison_recs <- lapply(starts, function(start) {
     try_solr(
@@ -104,13 +84,7 @@ get_BISON <- function(lat_range, lon_range, timeout) {
                        paste(lon_range, collapse = " TO "), "]")),
       start = start, rows = 125000, callopts = httr::timeout(timeout))
   })
-
-  errs <- sapply(bison_recs, is_error)
-  if (any(errs)) {
-    message("BISON query failed.")
-    return(bison_recs[[which(errs)[1]]]$error)
-  }
-  bind_rows(purrr::map(bison_recs, ~ .$result))
+  bind_rows(bison_recs)
 }
 
 #' @noRd
@@ -128,11 +102,6 @@ get_iDigBio <- function(lat_range, lon_range, timeout) {
   idb_recs <- try_idb(type = "records", mq = FALSE, rq = rq, fields = "all",
                       max_items = 100000, limit = 0, offset = 0, sort = FALSE,
                       httr::config(timeout = timeout))
-  if (is_error(idb_recs)) {
-    message("iDigBio query failed.")
-    return(idb_recs$error)
-  }
-  idb_recs$result
 }
 
 #' @noRd
@@ -145,11 +114,7 @@ get_VertNet <- function(center, radius, timeout, limit = 200000) {
   vn_recs <- try_vn(center[2], center[1], radius, limit, messages = FALSE,
                     callopts = list(timeout = timeout),
                     only_dwc = FALSE)
-  if (is_error(vn_recs)) {
-    message("VertNet query failed.")
-    return(vn_recs$error)
-  }
-  vn_recs$result
+  vn_recs
 }
 
 #' @noRd
@@ -163,11 +128,11 @@ get_EcoEngine <- function(lat_range, lon_range, timeout) {
                 collapse = ",")
 
   # EcoEngine 'errors' when no results so approach slightly differently
-  safe_get_ee <- purrr::safely(ecoengine::ee_observations)
+  safe_ee <-purrr::safely(ecoengine::ee_observations)
   for (i in 1:3) {
-    ee_recs <- safe_get_ee(page_size = 10000, bbox = bbox,
-                           georeferenced = TRUE, quiet = TRUE,
-                           foptions = httr::timeout(timeout))
+    ee_recs <- safe_ee(page_size = 10000, bbox = bbox,
+                       georeferenced = TRUE, quiet = TRUE,
+                       foptions = httr::timeout(timeout))
     if (!is_error(ee_recs) || i == 3) break
     if (grepl("count not greater than 0", ee_recs$error$message))
       return(NULL)
@@ -177,10 +142,8 @@ get_EcoEngine <- function(lat_range, lon_range, timeout) {
     message(sprintf(mess, i, wait))
     Sys.sleep(wait)
   }
-  if (is_error(ee_recs)) {
-    message("EcoEngine query failed.")
-    return(ee_recs$error)
-  }
+  if (is_error(ee_recs))
+    stop(ee_recs$error$message)
   ee_recs$result
 }
 
@@ -197,11 +160,7 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
   try_GET <- try_verb_n(httr::GET)
   res <- try_GET(base_url, query = list(bbox = bbox, limit = 2000),
                  httr::timeout(timeout))
-  if (is_error(res) || httr::http_error(res$result)) {
-    message("AntWeb query failed.")
-    return(res)
-  }
-  res <- jsonlite::fromJSON(httr::content(res$result, "text", encoding = "UTF-8"), FALSE)
+  res <- jsonlite::fromJSON(httr::content(res, "text", encoding = "UTF-8"), FALSE)
 
   if (res$count == 0) return(NULL)
   if (res$count > 2000) message("Only first 2000 matching AntWeb records returned.")
@@ -213,7 +172,6 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
     aw_recs$evidence <- paste0("https://www.antweb.org/specimen/", aw_recs$catalogNumber)
     aw_recs
   })
-  aw_recs <- bind_rows(aw_recs)
-  aw_recs
+  bind_rows(aw_recs)
 }
 
