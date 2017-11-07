@@ -31,6 +31,7 @@ options include "WPA" (Waterfowl Production Areas), "WMA" (Wildlife Management A
 Find USFWS properties available for query.
 }
 \examples{
+\dontrun{
 # Get all National Wildlife Refuges
 all_refs <- find_fws()
 
@@ -51,4 +52,9 @@ r4 <- find_fws(region = 4)
 
 # Return all mountain-prairie (region 6) refuges and waterfowl production areas
 r6 <- find_fws(ptype = c("NWR", "WPA"), region = 6)
+
+# All refuges
+# Issues a warning due to duplicate organizational names
+nwr <- find_fws()
+}
 }

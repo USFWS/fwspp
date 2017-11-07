@@ -4,9 +4,9 @@
 \alias{fws_occ}
 \title{Species occurrence records on U.S. Fish and Wildlife properties}
 \usage{
-fws_occ(fws = NULL, bnd = c("admin", "acq"), scrub = c("strict",
-  "moderate", "none"), taxonomy = TRUE, buffer = 0, verbose = TRUE,
-  timeout = NULL)
+fws_occ(fws = NULL, bnd = c("admin", "acq"), buffer = 0,
+  scrub = c("strict", "moderate", "none"), taxonomy = TRUE,
+  verbose = TRUE, timeout = NULL)
 }
 \arguments{
 \item{fws}{\code{data.frame} of organizational names (ORGNAME) and
@@ -19,15 +19,15 @@ by \code{\link{find_fws}} to ensure proper content and formatting. See examples.
 Default ("admin") uses the current administrative boundary.  The approved
 acquisition boundary ("acq") is another option.}
 
+\item{buffer}{numeric scalar; distance (km) from the \code{fws} \code{bnd} to
+include in the search for species occurrence records. Default is no buffer.}
+
 \item{scrub}{character; one of "strict" (default), "moderate", or "none",
 indicating the extent to which to reduce the number of records returned for
 a given \code{fws}.  See details.}
 
 \item{taxonomy}{logical (default TRUE); attempt to link occurrence records to
 standardized taxon information? See details.}
-
-\item{buffer}{numeric scalar; distance (km) from the \code{fws} \code{bnd} to
-include in the search for species occurrence records. Default is no buffer.}
 
 \item{verbose}{logical (default TRUE); print messages during species occurrence
 queries?}
@@ -37,19 +37,12 @@ process. By default (\code{timeout = NULL}), query timeout is set
 programmatically and conservatively.  See details.}
 }
 \value{
-Nothing. But generates a \code{rds} for each property in \code{export_dir}
- with the following columns if \code{itis = TRUE} (default).  If \code{itis = FALSE},
- only a subset of these columns is returned, and the scientific name (\code{sci_name})
- is that associated with the observation from the \code{bio_repo} source, **not** from
- ITIS:
+an \code{list} of class \code{fwspp} with observations for each property with
+ the following columns if taxonomic information is requested (\code{taxonomy = TRUE};
+  default). If \code{taxonomy = FALSE}, only a subset of these columns is returned.
  \describe{
    \item{org_name}{official organizational name of USFWS property}
-   \item{class}{Taxonomic class of observation, from ITIS, if available.}
-   \item{taxon_rank}{Taxonomic rank of observation, from ITIS, if available.}
-   \item{sci_name}{Accepted scientific name, from ITIS, if available. Note, however,
-         that if \code{taxon_rank} is available and is not 'Species', this scientific
-         name is likely **not** accepted by ITIS.}
-   \item{com_name}{Presumed most "accepted" vernacular name, from ITIS, if available.}
+   \item{sci_name}{Scientific name associated with the observation.}
    \item{lon}{Longitude (WGS84) of observation.}
    \item{lat}{Latitude (WGS84) of observation.}
    \item{loc_unc_m}{Locational uncertainty (m) of observation coordinates; typically
@@ -65,8 +58,15 @@ Nothing. But generates a \code{rds} for each property in \code{export_dir}
          with catalog number.}
    \item{bio_repo}{Biodiversity database source of the observation, currently one of
          GBIF, BISON, iDigBio, VertNet, EcoEngine, or AntWeb.}
+   \item{acc_sci_name}{Accepted/valid scientific name from ITIS, if available.}
+   \item{com_name}{Regularly used vernacular names, if available.}
+   \item{taxon_rank}{Taxonomic rank of observation.}
+   \item{category}{Generic taxonomic grouping for taxa used in NPSpecies database
+         (\url{https://irma.nps.gov/npspecies}).}
+   \item{tsn}{Accepted/valid Taxonomic Serial Number from ITIS, if available.}
    \item{note}{Additional notes on the observation, currently restricted to indicating
-         that a matching taxon was not found in ITIS.}
+         that a matching taxon was not found in ITIS or trouble singling out a taxon
+         from NPSpecies.}
  }
 }
 \description{
@@ -140,7 +140,7 @@ The boundaries specified by the "acq" option to the \code{bnd} argument
 
 By default, timeout is calculated based on testing of BISON queries on a ~ 20 Mbps
  internet connection. BISON queries are nearly always the largest (by # records)
- *contiguous* requests (GBIF is slower but cut into smaller requests).  If
+ *contiguous* requests (GBIF is slower but requests occur in smaller chunks).  If
  timeouts are a recurring problem, however, it may be worth fixing this parameter at
  a large value (e.g., 20 minutes, or \code{timeout = 1200L}).  If queries are regularly
  timing out, please contact the maintainer with details or, better yet, file an
@@ -151,7 +151,7 @@ By default, timeout is calculated based on testing of BISON queries on a ~ 20 Mb
 
 This function exists strictly to extract occurrence data for a given
  \code{fws} property. Attempts at estimating or inferring relative abundance
- are most strongly discouraged and most likely meaningless.
+ are most strongly discouraged and almost certainly meaningless.
 
 The extraction of records occurs on a property-by-property basis so the same
  record may occur in multiple polygons depending on buffer specifications.
@@ -161,20 +161,18 @@ The extraction of records occurs on a property-by-property basis so the same
 \dontrun{
 # Single refuge, administrative boundary, no buffer
 # By default, records are scrubbed very strictly (see Details)
- # Mountain Longleaf National Wildlife Refuge
+# Mountain Longleaf National Wildlife Refuge
 ml <- find_fws("longleaf")
-fws_occ(fws = ml)
+ml_occ <- fws_occ(fws = ml)
 
-# Multiple refuges, acquisition boundary with 5 km buffer, moderate scrubbing
+# Multiple refuges, acquisition boundary with 5 km buffer, moderate scrubbing,
+# no taxonomy info added
 multi <- find_fws(c("longleaf", "romain"))
-fws_occ(fws = multi, bnd = "acq", scrub = "moderate", buffer = 5)
+multi_occ <- fws_occ(fws = multi, bnd = "acq", buffer = 5, scrub = "moderate",
+                     taxonomy = FALSE)
 
 # All Region 4 (southeast) refuges, with defaults
 r4 <- find_fws(region = 4)
-fw_spp(r4)
-
-# All refuges
-# Issues a warning due to duplicate organizational names
-nwr <- find_fws()
+r4_occ <- fw_spp(r4)
 }
 }

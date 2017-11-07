@@ -17,6 +17,7 @@
 #'  meeting the search criteria and their associate USFWS region.  This output can be
 #'  passed directly to \code{\link{fws_occ}} as the \code{fws} argument.
 #' @examples
+#' \dontrun{
 #' # Get all National Wildlife Refuges
 #' all_refs <- find_fws()
 #'
@@ -37,9 +38,13 @@
 #'
 #' # Return all mountain-prairie (region 6) refuges and waterfowl production areas
 #' r6 <- find_fws(ptype = c("NWR", "WPA"), region = 6)
+#'
+#' # All refuges
+#' # Issues a warning due to duplicate organizational names
+#' nwr <- find_fws()
+#' }
 
-find_fws <- function(fws = NULL, ptype = "NWR", region = 1:8L)
-{
+find_fws <- function(fws = NULL, ptype = "NWR", region = 1:8L) {
 
   if (!any(ptype %in% c("NWR", "WPA", "WMA", "FSA", "NFH")))
     stop("Unknown property type (`ptype`).\n",
