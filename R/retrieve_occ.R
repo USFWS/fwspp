@@ -20,9 +20,24 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   # further division for efficiency
   prop <- split_prop(prop, try_gbif_count)
   if (is_error(prop))  {
-    warning("Property splitting failed.")
-    return(prop_split)
+    message("Property splitting failed.")
+    return(prop)
   }
+
+  occ_recs <- vector(nrow(prop), mode = "list")
+  for (i in seq_along(occ_recs)) {
+    i_recs <- manage_gets(prop[i, ], timeout)
+    if (is_error(i_recs)) {
+      occ_recs[[i]] <- i_recs
+      break
+    }
+    if (nrow(i_recs) == 0) i_recs <- NULL
+    occ_recs[[i]] <- i_recs
+  }
+
+  errs <- sapply(occ_recs, is_error)
+  if (any(errs)) return(occ_recs[[which(errs)[1]]])
+  occ_recs <- bind_rows(occ_recs)
   if (nrow(occ_recs) == 0) return(NULL)
 
   # Filter to boundaries of interest
