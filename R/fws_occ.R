@@ -149,9 +149,9 @@
 #' }
 
 fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
-                      scrub = c("strict", "moderate", "none"),
-                      itis = TRUE, buffer = 0, verbose = TRUE,
-                      timeout = NULL) {
+                    scrub = c("strict", "moderate", "none"),
+                    taxonomy = TRUE, buffer = 0, verbose = TRUE,
+                    timeout = NULL) {
 
   if (is.null(fws) || !is.data.frame(fws))
     stop("You must provide valid property names to query.",
