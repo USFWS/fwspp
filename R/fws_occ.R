@@ -10,13 +10,13 @@
 #'  the API requires spatial searches using a lat/lon coordinate and search
 #'  radius.  We calculate the radius needed to fully capture the desired
 #'  geometry.  Records are subsequently filtered based on the exact geometry.
+#'
 #'  Additionally, we provide the options to:
 #'  \itemize{
 #'    \item scrub records to reduce the number of returned records for each
 #'       \code{fws} (details below);
-#'    \item attempt to link each observation with an Integrated Taxonomic Information
-#'       System (ITIS) record. Note that if ITIS linking is attempted, and a match found,
-#'       the scientific name will be converted to this 'accepted' name identified by ITIS.
+#'    \item attempt to link each observation to some standardized taxonomic information
+#'       (details below)
 #'  }
 #'
 #' @section Scrubbing details:
@@ -30,6 +30,17 @@
 #'  catalog numbers) and redundant observations (i.e., multiple individuals of the same
 #'  species recorded on the same date at a single location). All records can be
 #'  returned with (\code{scrub = "none"}).
+#'
+#' @section Taxonomy information details:
+#' By default (\code{taxonomy = TRUE}), \code{fwspp} attempts to check the validity of
+#'  scientific names against the Integrated Taxonomic Information System (ITIS). It does
+#'  this not by connecting to ITIS directly, but by requesting information from a web
+#'  service maintained by the National Park Service as part of their NPSpecies database
+#'  (\url{https://irma.nps.gov/npspecies}). Note that this means if taxonomy information
+#'  is requested, and an ITIS match found, the scientific name will be converted to the
+#'  "accepted" ITIS scientific name, and the corresponding ITIS Taxonomic Serial Number,
+#'  an NPS-specific taxon code, a common name used by NPS, and a general organism
+#'  "category" (e.g., Mammals, Birds, Fungi) are returned.
 #'
 #' @section Additional boundary information:
 #' The boundaries specified by the \code{admin} option to the \code{bnd} argument
@@ -75,8 +86,8 @@
 #' @param scrub character; one of 'strict' (default), 'moderate', or 'none',
 #'  indicating the extent to which to reduce the number of records returned for
 #'  a given \code{fws}.  See details.
-#' @param itis logical (default TRUE); attempt to link occurrence records to
-#'  ITIS information?
+#' @param taxonomy logical (default TRUE); attempt to link occurrence records to
+#'  standardized taxon information? See details.
 #' @param buffer numeric scalar; distance (km) from the \code{fws} \code{bnd} to
 #'  include in the search for species occurrence records. Default is no buffer.
 #' @param verbose logical (default TRUE); print messages during species occurrence
@@ -155,16 +166,18 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
   # Cycle through properties
   if (verbose)
     out <- lapply(fws$ORGNAME, function(prop) {
-        retrieve_occ(props, prop, buffer, scrub, itis, timeout)})
+        retrieve_occ(props, prop, buffer, scrub, timeout)})
   else
     out <- pbapply::pblapply(fws$ORGNAME, function(prop) {
       suppressMessages(
-          retrieve_occ(props, prop, buffer, scrub, itis, timeout))})
+          retrieve_occ(props, prop, buffer, scrub, timeout))})
 
-  attributes(out) <- list(names = Cap(shorten_orgnames(fws)),
+  attributes(out) <- list(names = Cap(shorten_orgnames(fws$ORGNAME)),
                           class = "fwspp",
                           boundary = bnd, scrubbing = scrub,
-                          itis = itis, buffer_km = buffer)
+                          buffer_km = buffer)
 
+  # Taxomony linking, if requested
+  if (taxonomy) out <- add_taxonomy(out)
   out
 }

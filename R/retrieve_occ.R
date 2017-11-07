@@ -1,4 +1,4 @@
-retrieve_occ <- function(props, prop, buffer, scrub, itis,
+retrieve_occ <- function(props, prop, buffer, scrub,
                          timeout = NULL) {
 
   org_name <- prop
@@ -29,12 +29,7 @@ retrieve_occ <- function(props, prop, buffer, scrub, itis,
   occ_recs <- clip_occ(occ_recs, prop)
   if (nrow(occ_recs) == 0) return(NULL)
 
-  # ITIS joining and scrubbing, if requested
-  if (itis) {
-    occ_recs <- join_itis(occ_recs)
-    if (is_error(occ_recs)) return(occ_recs)
-  }
-
+  # Scrubbing, if requested
   if (scrub != "none") {
     try_scrub <- try_verb_n(scrub_occ, 1)
     occ_recs <- try_scrub(occ_recs, scrub)
@@ -45,7 +40,6 @@ retrieve_occ <- function(props, prop, buffer, scrub, itis,
   occ_recs %>%
     mutate(org_name = org_name) %>%
     select(.data$org_name, everything(), -.data$media_url, -.data$cat_no) %>%
-    arrange(.data$class, .data$sci_name, .data$com_name, .data$year,
-            .data$month, .data$day)
+    arrange(.data$sci_name, .data$year, .data$month, .data$day)
 
 }

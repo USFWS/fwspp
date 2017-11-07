@@ -5,7 +5,7 @@
 \title{Species occurrence records on U.S. Fish and Wildlife properties}
 \usage{
 fws_occ(fws = NULL, bnd = c("admin", "acq"), scrub = c("strict",
-  "moderate", "none"), itis = TRUE, buffer = 0, verbose = TRUE,
+  "moderate", "none"), taxonomy = TRUE, buffer = 0, verbose = TRUE,
   timeout = NULL)
 }
 \arguments{
@@ -19,12 +19,12 @@ by \code{\link{find_fws}} to ensure proper content and formatting. See examples.
 Default ("admin") uses the current administrative boundary.  The approved
 acquisition boundary ("acq") is another option.}
 
-\item{scrub}{character; one of 'strict' (default), 'moderate', or 'none',
+\item{scrub}{character; one of "strict" (default), "moderate", or "none",
 indicating the extent to which to reduce the number of records returned for
 a given \code{fws}.  See details.}
 
-\item{itis}{logical (default TRUE); attempt to link occurrence records to
-ITIS information?}
+\item{taxonomy}{logical (default TRUE); attempt to link occurrence records to
+standardized taxon information? See details.}
 
 \item{buffer}{numeric scalar; distance (km) from the \code{fws} \code{bnd} to
 include in the search for species occurrence records. Default is no buffer.}
@@ -81,33 +81,46 @@ The basic process is to query GBIF, BISON, iDigBio, the Berkeley
  the API requires spatial searches using a lat/lon coordinate and search
  radius.  We calculate the radius needed to fully capture the desired
  geometry.  Records are subsequently filtered based on the exact geometry.
+
  Additionally, we provide the options to:
  \itemize{
    \item scrub records to reduce the number of returned records for each
       \code{fws} (details below);
-   \item attempt to link each observation with an Integrated Taxonomic Information
-      System (ITIS) record. Note that if ITIS linking is attempted, and a match found,
-      the scientific name will be converted to this 'accepted' name identified by ITIS.
+   \item attempt to link each observation to some standardized taxonomic information
+      (details below)
  }
 }
 
 \section{Scrubbing details}{
 
-By default (\code{scrub = "strict"}), this function scrubs a lot of records.
- Specifically, it retains a single record for each species, giving preference to
- records with associated media (e.g., photo, audio) within a given property.  The
- retained record is typically the most recent with evidence to support the
+By default (\code{scrub = "strict"}), \code{fws_occ} scrubs a lot of records.
+ Specifically, within a given property, it retains a single record for each
+ species, giving preference to records with associated media (e.g., photo, audio).
+ The retained record is typically the most recent with evidence to support the
  identification. Records for which evidence was not available (i.e., no associated
  collection or catalog number) are removed.  Moderate scrubbing
- (\code{scrub = "moderate"}) attempts only to duplicate records (i.e., identical
+ (\code{scrub = "moderate"}) attempts only to remove duplicate records (i.e., identical
  catalog numbers) and redundant observations (i.e., multiple individuals of the same
  species recorded on the same date at a single location). All records can be
  returned with (\code{scrub = "none"}).
 }
 
+\section{Taxonomy information details}{
+
+By default (\code{taxonomy = TRUE}), \code{fwspp} attempts to check the validity of
+ scientific names against the Integrated Taxonomic Information System (ITIS). It does
+ this not by connecting to ITIS directly, but by requesting information from a web
+ service maintained by the National Park Service as part of their NPSpecies database
+ (\url{https://irma.nps.gov/npspecies}). Note that this means if taxonomy information
+ is requested, and an ITIS match found, the scientific name will be converted to the
+ "accepted" ITIS scientific name, and the corresponding ITIS Taxonomic Serial Number,
+ an NPS-specific taxon code, a common name used by NPS, and a general organism
+ "category" (e.g., Mammals, Birds, Fungi) are returned.
+}
+
 \section{Additional boundary information}{
 
-The boundaries specified by the \code{admin} option to the \code{bnd} argument
+The boundaries specified by the "admin" option to the \code{bnd} argument
  delineates those lands and waters administered by the USFWS in North
  America, U.S. Trust Territories and Possessions. It may also include
  inholdings that are not administered by the USFWS. The primary source
@@ -115,7 +128,7 @@ The boundaries specified by the \code{admin} option to the \code{bnd} argument
  \url{https://ecos.fws.gov/ServCat/Reference/Profile/60739} for more
  information.
 
-The boundaries specified by the \code{acq} option to the \code{bnd} argument
+The boundaries specified by the "acq" option to the \code{bnd} argument
  delineates the external boundaries of lands and waters that are approved
  for acquisition by the USFWS in North America, U.S. Trust Territories and
  Possessions. The primary source for this information is the USFWS Realty
