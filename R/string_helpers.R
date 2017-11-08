@@ -58,13 +58,16 @@ clean_sci_name <- function(sn_string) {
     gsub(sn_miss, NA_character_, .) %>%
     # Replace generic species with blanks...
     sub(spec_epi_miss, "", .) %>%
-    # Drop trinomials, if present
-    sub("^(\\S*\\s+\\S+).*", "\\1", .) %>%
-    # Drop improper characters (e.g., multiply sign for hybrids)
-    iconv(., "UTF-8", "ascii", sub = "") %>%
-    # Proper capitalization
+    # Replace multiply sign for hybrids; assumes no other unicode slips in...
+    iconv("UTF-8", "ascii", sub = "x")
+
+  # Drop trinomials, if present, but preserve *properly* formatted hybrids
+  # e.g., Aronia X prunifolia, Aronia x prunifolia
+  n_words <- sapply(gregexpr("\\S+", sn_string), function(x) sum(x > 0))
+  if (n_words == 3 && grepl(" X | x ", sn_string))
+    return(Cap(sn_string, "first"))
+  sn_string %>% sub("^(\\S*\\s+\\S+).*", "\\1", .) %>%
     Cap("first")
-  sn_string
 }
 
 clean_loc_unc <- function(x) {
