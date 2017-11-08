@@ -168,10 +168,14 @@ clean_EcoEngine <- function(ee_recs) {
 
   # Try to add missing evidence
   ee_meta <- filter(ee_recs, is_missing(.data$remote_resource)) %>%
-    select(.data$source) %>% unique() %>%
-    rowwise() %>%
-    mutate(meta_url = get_ee_metadata(.data$source)) %>%
-    ungroup()
+    select(.data$source) %>% unique()
+
+  if (nrow(ee_meta) > 0)
+    ee_meta <- ee_meta %>%
+      rowwise() %>%
+      mutate(meta_url = get_ee_metadata(.data$source)) %>%
+      ungroup()
+  else ee_meta <- tibble(source = character(0), meta_url = character(0))
 
   ee_recs <- ee_recs %>%
     left_join(ee_meta, by = "source") %>%
