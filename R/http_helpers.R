@@ -51,11 +51,11 @@ bison_count <- function(lat_range, lon_range) {
 }
 
 est_timeout <- function(n_recs) {
-  ceiling(5 + 0.0027 * n_recs)
+  ceiling(15 + 0.003 * n_recs)
 }
 
 est_nrecs <- function(timeout) {
-  recs <- round((timeout - 5) / 0.0027)
+  recs <- round((timeout - 15) / 0.003)
   100 * (recs %/% 100 + as.logical(recs %% 100))
 }
 
