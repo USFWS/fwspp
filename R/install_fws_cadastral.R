@@ -15,28 +15,26 @@
 
 install_fws_cadastral <- function() {
 
-
   if (!(curl::has_internet()))
     stop(wrap_message(
       paste("No internet connection detected.  Please try again later when a stable",
             "connection is available.  Sorry for the inconvenience.")))
 
   tmp <- tempfile(fileext = ".zip")
-  dl <- try(utils::download.file(fws_url(), tmp, mode = "wb",
-                                 quiet = TRUE, cacheOK = FALSE),
-            silent = TRUE)
-  if (inherits(dl, "try-error")) {
+  dl <- try(httr::GET(fwspp:::fws_url(), httr::write_disk(tmp),
+                      httr::progress()), silent = TRUE)
+  if (is_error(dl)) {
     utils::browseURL(fws_url())
     stop(wrap_message(
       paste("Automatic cadastral installation failed. Unzip the contents of",
             "the currently downloading file (i.e., 'FWSCadastral.gdb') into",
-            system.file("extdata", package = "fwspp"))))
+            system.file("extdata", package = "fwspp"), "and then run",
+            "`prep_cadastral`. Sorry for the inconvenience.")))
+  } else {
+    utils::unzip(tmp, overwrite = TRUE,
+                 exdir = system.file("extdata", package = "fwspp"))
+    message("USFWS Cadastral Database downloaded and installed successfully.")
   }
-
-  utils::unzip(tmp, overwrite = TRUE,
-               exdir = system.file("extdata", package = "fwspp"))
-
-  message("USFWS Cadastral Database downloaded and installed successfully.")
 
   prep_cadastral()
 
