@@ -3,6 +3,15 @@
 #' Geographic query of biodiversity databases based on U.S. Fish and Wildlife
 #'  Service (USFWS) property boundaries
 #'
+#' **Important usage limitations**: This function exists strictly to extract
+#'  occurrence data for a given \code{fws} property. Attempts at estimating
+#'  or inferring relative abundance are most strongly discouraged and almost
+#'  certainly meaningless.
+#'
+#' Also note that the extraction of records occurs on a property-by-property
+#'  basis so the same record may occur in multiple polygons depending on
+#'  buffer specifications.
+#'
 #' @section General overview:
 #' The basic process is to query GBIF, BISON, iDigBio, the Berkeley
 #'  'Ecoinformatics' Engine, and AntWeb based on the bounding box
@@ -11,7 +20,13 @@
 #'  radius.  We calculate the radius needed to fully capture the desired
 #'  geometry.  Records are subsequently filtered based on the exact geometry.
 #'
-#'  Additionally, we provide the options to:
+#' Properties that occupy a relatively small area compared to the corresponding
+#'  bounding box will be split into smaller pieces to avoid unnecessarily large
+#'  queries. Likewise, queries (typically GBIF and BISON) that contain many
+#'  records (> 125000) are split to improve efficiency (both) and recover all
+#'  records (GBIF).
+#'
+#' We provide the options to:
 #'  \itemize{
 #'    \item scrub records to reduce the number of returned records for each
 #'       \code{fws} (details below);
@@ -66,14 +81,6 @@
 #'  a large value (e.g., 20 minutes, or \code{timeout = 1200L}).  If queries are regularly
 #'  timing out, please contact the maintainer with details or, better yet, file an
 #'  issue at \url{https://github.com/adamdsmith/fwspp/issues}.
-#'
-#' @section Important usage limitations/notes:
-#' This function exists strictly to extract occurrence data for a given
-#'  \code{fws} property. Attempts at estimating or inferring relative abundance
-#'  are most strongly discouraged and almost certainly meaningless.
-#'
-#' The extraction of records occurs on a property-by-property basis so the same
-#'  record may occur in multiple polygons depending on buffer specifications.
 #'
 #' @param fws \code{data.frame} of organizational names (ORGNAME) and
 #'  type (RSL_TYPE) of USFWS properties and their associated USFWS region
