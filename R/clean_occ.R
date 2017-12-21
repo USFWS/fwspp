@@ -3,7 +3,7 @@
 #' @noRd
 clean_GBIF <- function(gbif_recs) {
 
-  if (!is.list(gbif_recs)) stop("Expected list from GBIF query.")
+  stopifnot(inherits(gbif_recs, "gbif"))
 
   # If necessary, associate media information into data frame
   media <- Filter(length, gbif_recs$media)
@@ -49,8 +49,7 @@ clean_GBIF <- function(gbif_recs) {
 #' @noRd
 clean_BISON <- function(bison_recs) {
 
-  if (!is.data.frame(bison_recs))
-    stop("Expected data frame from BISON query.")
+  stopifnot(inherits(bison_recs, "tbl_df"))
 
   # Add *missing* columns if necessary
   bison_recs <- bison_recs %>%
@@ -86,8 +85,7 @@ clean_BISON <- function(bison_recs) {
 #' @noRd
 clean_iDigBio <- function(idb_recs) {
 
-  if (!is.data.frame(idb_recs))
-    stop("Expected data frame from iDigBio query.")
+  stopifnot(inherits(idb_recs, "data.frame"))
 
   idb_recs <- idb_recs %>%
     mutate(sci_name = clean_sci_name(.data$scientificname),
@@ -108,7 +106,7 @@ clean_iDigBio <- function(idb_recs) {
 #' @noRd
 clean_VertNet <- function(vn_recs) {
 
-  if (!is.list(vn_recs)) stop("Expected list from VertNet query.")
+  stopifnot(inherits(vn_recs, "list"))
 
   vn_recs <- vn_recs$data %>%
     # `rvertnet` seems to return everything as a character; guess data types
@@ -153,7 +151,7 @@ clean_VertNet <- function(vn_recs) {
 #' @noRd
 clean_EcoEngine <- function(ee_recs) {
 
-  if (!is.list(ee_recs)) stop("Expected list from EcoEngine query.")
+  stopifnot(inherits(ee_recs, "data.frame"))
 
   ee_recs <- ee_recs$data %>%
     # Extract institution code
