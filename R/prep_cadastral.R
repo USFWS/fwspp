@@ -31,7 +31,7 @@ prep_cadastral <- function() {
 
     # Impose zero width buffer to correct potentially invalid geometries
     # e.g., ring self-intersections...
-    props <- suppressWarnings(sf::st_buffer(props, 0))
+    props <- suppressMessages(suppressWarnings(sf::st_buffer(props, 0)))
 
     # Dissolve into a single multi-part polygon by property, region, and type
     props <- props %>%
@@ -42,7 +42,7 @@ prep_cadastral <- function() {
     props <- sf::st_transform(props, 4326)
 
     # Again, impose zero width buffer to correct potentially invalid merged geometries
-    props <- suppressWarnings(sf::st_buffer(props, 0))
+    props <- suppressMessages(suppressWarnings(sf::st_buffer(props, 0)))
 
     out_fn <- file.path(system.file("extdata", package = "fwspp"),
                         paste0(l_nm, ".rds"))
