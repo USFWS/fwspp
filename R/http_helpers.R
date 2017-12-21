@@ -63,3 +63,15 @@ get_ee_metadata <- function(url) {
   ee_meta <- jsonlite::fromJSON(url)
   ee_meta[["metadataurl"]]
 }
+
+get_unit_codes <- function(orgnames = NULL) {
+  base_url <- "https://ecos.fws.gov/primr/api/refuge/geo.json"
+  try_JSON <- try_verb_n(jsonlite::fromJSON, 2)
+  prop_info <- try_JSON(base_url)
+  prop_info <- prop_info$features$properties %>%
+    mutate(org_name = toupper(.data$orgnameabbr)) %>%
+    select(org_name, UnitCode = .data$costCenterCode)
+  if (is.null(orgnames)) return(prop_info)
+  filter(prop_info,
+         grepl(paste(orgnames, collapse = "|"), .data$org_name, ignore.case = TRUE))
+}
