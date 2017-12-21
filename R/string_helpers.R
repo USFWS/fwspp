@@ -61,6 +61,8 @@ clean_sci_name <- function(sn_string) {
     # Replace multiply sign for hybrids; assumes no other unicode slips in...
     iconv("UTF-8", "ascii", sub = "x")
 
+  if (identical(sn_string, character(0))) return(sn_string)
+
   # Drop trinomials, if present, but preserve *properly* formatted hybrids
   # e.g., Aronia X prunifolia, Aronia x prunifolia
   n_words <- sapply(gregexpr("\\S+", sn_string), function(x) sum(x > 0))
