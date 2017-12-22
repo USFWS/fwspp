@@ -31,7 +31,7 @@ Imports:
     rvertnet (>= 0.6),
     R.utils (>= 2.5),
     sf (>= 0.5-4),
-    solrium (>= 0.4.0),
+    solrium (>= 1.0.0),
     stats,
     utils
 Copyright: This software is in the public domain because it contains materials

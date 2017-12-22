@@ -75,14 +75,18 @@ get_BISON <- function(lat_range, lon_range, timeout) {
 
   # Splitting very large requests
   starts <- seq(from = 0, by = 125000, length = ceiling(q_recs/125000))
+  con <- solrium::SolrClient$new(host = "bison.usgs.gov", scheme = "https",
+                                 path = "solr/occurrences/select", port = NULL)
   try_solr <- try_verb_n(solrium::solr_search)
   bison_recs <- lapply(starts, function(start) {
     try_solr(
-      fq = list(paste0("decimalLatitude:[",
-                       paste(lat_range, collapse = " TO "), "]"),
-                paste0("decimalLongitude:[",
-                       paste(lon_range, collapse = " TO "), "]")),
-      start = start, rows = 125000, callopts = httr::timeout(timeout))
+      conn = con,
+      params = list(q = '*:*',
+                    fq = list(paste0("decimalLatitude:[",
+                                     paste(lat_range, collapse = " TO "), "]"),
+                              paste0("decimalLongitude:[",
+                                     paste(lon_range, collapse = " TO "), "]"))),
+      start = start, rows = 125000, callopts = list(timeout = timeout))
   })
   bind_rows(bison_recs)
 }

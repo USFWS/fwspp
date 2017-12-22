@@ -39,14 +39,16 @@ gbif_count <- function(prop, ...) {
 }
 
 bison_count <- function(lat_range, lon_range) {
-  con <- solrium::solr_connect("https://bison.usgs.gov/solr/occurrences/select/",
-                               verbose = FALSE)
+  con <- solrium::SolrClient$new(host = "bison.usgs.gov", scheme = "https",
+                                 path = "solr/occurrences/select", port = NULL)
   q_recs <- solrium::solr_search(
-    fq = list(paste0("decimalLatitude:[",
-                     paste(lat_range, collapse = " TO "), "]"),
-              paste0("decimalLongitude:[",
-                     paste(lon_range, collapse = " TO "), "]")),
-    rows = 1, parsetype = "list", callopts = httr::timeout(10))
+    conn = con,
+    params = list(q = '*:*',
+                  fq = list(paste0("decimalLatitude:[",
+                                   paste(lat_range, collapse = " TO "), "]"),
+                            paste0("decimalLongitude:[",
+                                   paste(lon_range, collapse = " TO "), "]"))),
+    rows = 1, callopts = list(timeout = 10))
   attr(q_recs, "numFound")
 }
 
