@@ -58,6 +58,8 @@ clean_sci_name <- function(sn_string) {
     gsub(sn_miss, NA_character_, .) %>%
     # Replace generic species with blanks...
     sub(spec_epi_miss, "", .) %>%
+    # Replace periods (e.g., abbreviated scientific names)
+    gsub("\\.","", .) %>%
     # Replace multiply sign for hybrids; assumes no other unicode slips in...
     iconv("UTF-8", "ascii", sub = "x")
 
