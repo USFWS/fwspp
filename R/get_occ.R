@@ -59,6 +59,7 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
                           curlopts = list(timeout = timeout))
   }
   gbif_recs$meta$count <- q_recs
+  class(gbif_recs) <- "gbif"
   gbif_recs
 }
 
