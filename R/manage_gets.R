@@ -14,7 +14,7 @@ manage_gets <- function(prop, timeout) {
 
   # BISON record count may be used to determine the HTTP request timeout
   try_bison_count <- try_verb_n(bison_count)
-  q_recs <- try_bison_count(lat_range, lon_range)
+  q_recs <- try_bison_count(prop)
 
   # Compare and set timeout programmatically, if not specified by user
   # Timeout is based on BISON queries as they are typically the largest
@@ -38,7 +38,7 @@ manage_gets <- function(prop, timeout) {
     gbif_recs <- NULL
 
   ## BISON
-  bison_recs <- get_BISON(lat_range, lon_range, timeout)
+  bison_recs <- get_BISON(prop, q_recs, timeout)
   if (!is.null(bison_recs))
     bison_recs <- clean_BISON(bison_recs)
 

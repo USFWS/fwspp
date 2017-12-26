@@ -38,7 +38,10 @@ gbif_count <- function(prop, ...) {
   pull(n, count)
 }
 
-bison_count <- function(lat_range, lon_range) {
+bison_count <- function(prop) {
+  prop_bb <- matrix(sf::st_bbox(prop), 2)
+  lat_range <- prop_bb[2, ] + c(-0.00006, 0.00006)
+  lon_range <- prop_bb[1, ] + c(-0.00006, 0.00006)
   con <- solrium::SolrClient$new(host = "bison.usgs.gov", scheme = "https",
                                  path = "solr/occurrences/select", port = NULL)
   q_recs <- solrium::solr_search(

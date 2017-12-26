@@ -64,15 +64,23 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
 }
 
 #' @noRd
-get_BISON <- function(lat_range, lon_range, timeout) {
+get_BISON <- function(prop, q_recs = NULL, timeout) {
 
   message("Querying Biodiversity Information Serving Our Nation (BISON)...")
 
   ## `BISON search with geometry in `spocc` package omits desired metadata (i.e., media info)
   ## Two queries, one to get # records and second to retrieve them, is faster...
-  try_bison_count <- try_verb_n(bison_count)
-  q_recs <- try_bison_count(lat_range, lon_range)
+  if (is.null(q_recs)) {
+    try_bison_count <- try_verb_n(bison_count)
+    q_recs <- try_bison_count(prop)
+  }
+
   if (q_recs == 0) return(NULL)
+
+  # Retrieve spatial paraameters for query
+  prop_bb <- matrix(sf::st_bbox(prop), 2)
+  lat_range <- prop_bb[2, ] + c(-0.00006, 0.00006)
+  lon_range <- prop_bb[1, ] + c(-0.00006, 0.00006)
 
   # Splitting very large requests
   starts <- seq(from = 0, by = 125000, length = ceiling(q_recs/125000))
