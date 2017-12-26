@@ -10,15 +10,17 @@ retrieve_occ <- function(props, prop, buffer, scrub,
 
   message("\nProcessing ", short_org)
 
-  # GBIF record count is used to determine whether a property is
-  # divided into smaller pieces
+  # Maximum of GBIF and BISON record count is used to determine whether
+  # a property is divided into smaller pieces
   try_gbif_count <- try_verb_n(gbif_count)
+  try_bison_count <- try_verb_n(bison_count)
 
   # Split property if it spans International Date Line
   # and check if the area ratio of a property to its bounding
   # box, in combination with the number of records, warrants
   # further division for efficiency
-  prop <- split_prop(prop, try_gbif_count)
+  if (max(try_gbif_count(prop), try_bison_count(prop)) > 125000)
+    prop <- split_prop(prop)
 
   occ_recs <- vector(nrow(prop), mode = "list")
   safe_gets <- purrr::safely(manage_gets)
