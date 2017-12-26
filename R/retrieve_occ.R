@@ -37,7 +37,7 @@ retrieve_occ <- function(props, prop, buffer, scrub,
 
   errs <- sapply(occ_recs, is_error)
   if (any(errs))
-    return(occ_recs[[which.min(errs)]])
+    return(occ_recs[[min(which(errs))]])
   occ_recs <- bind_rows(occ_recs)
   if (nrow(occ_recs) == 0) return(NULL)
 
