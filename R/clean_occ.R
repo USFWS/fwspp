@@ -151,7 +151,7 @@ clean_VertNet <- function(vn_recs) {
 #' @noRd
 clean_EcoEngine <- function(ee_recs) {
 
-  stopifnot(inherits(ee_recs, "data.frame"))
+  stopifnot(inherits(ee_recs, "ecoengine"))
 
   ee_recs <- ee_recs$data %>%
     # Extract institution code
