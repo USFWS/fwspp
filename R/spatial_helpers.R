@@ -71,17 +71,11 @@ prop_bb_area <- function(prop) {
 }
 
 split_prop <- function(prop) {
-  prop_ch <- sf::st_convex_hull(prop)
-  # Check if spans IDL
-  # Not foolproof, but seems safe
-  if (diff(range(sf::st_bbox(prop_ch))) > 350)
-    prop <- split_at_idl(prop)
   spl_prop <- lapply(seq_len(nrow(prop)), function(i) {
     tmp_prop <- prop[i, ]
     prop_area <- sf::st_area(tmp_prop) %>% as.numeric()
     bb_area <- prop_bb_area(tmp_prop)
-    # If bounding box is mostly occupied by refuge,
-    # not much to be done.
+    # If bounding box is mostly occupied by refuge, not much to be done.
     if (prop_area / bb_area > 0.5) return(tmp_prop)
     # slice and dice
     tmp_prop <- dice_prop(tmp_prop)

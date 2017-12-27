@@ -16,9 +16,14 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   try_bison_count <- try_verb_n(bison_count)
 
   # Split property if it spans International Date Line
-  # and check if the area ratio of a property to its bounding
-  # box, in combination with the number of records, warrants
-  # further division for efficiency
+  # Check is likely not foolproof, but seems safe for USFWS props
+  prop_ch <- sf::st_convex_hull(prop)
+  if (diff(range(sf::st_bbox(prop_ch))) > 350)
+    prop <- split_at_idl(prop)
+
+  # If substantial # of records, check if the area ratio of a property
+  # to its bounding box is small enough to warrant further division
+  # for efficiency
   if (max(try_gbif_count(prop), try_bison_count(prop)) > 125000)
     prop <- split_prop(prop)
 
