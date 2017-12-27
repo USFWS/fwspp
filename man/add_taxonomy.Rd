@@ -2,7 +2,7 @@
 % Please edit documentation in R/add_taxonomy.R
 \name{add_taxonomy}
 \alias{add_taxonomy}
-\title{Retrieve and add taxonomic information to a \code{fwspp} object}
+\title{Add or update taxonomic information to a \code{fwspp} object}
 \usage{
 add_taxonomy(fwspp, taxonomy = NULL)
 }
@@ -20,7 +20,7 @@ a \code{\link{fwspp}} object with added (or updated) basic
 \description{
 Use this function to add or update basic taxonomic information to an
  \code{fwspp} object; see \code{\link{retrieve_taxonomy}} for
- a description of the information.
+ a description of the information returned and its source.
 }
 \examples{
 \dontrun{
