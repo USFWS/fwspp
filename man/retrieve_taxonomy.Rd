@@ -25,6 +25,6 @@ Retrieves very basic taxonomic information for a given taxa, if available,
 \dontrun{
 retrieve_taxonomy(c("GULo gulo", "Lampropeltis getuLA HOLBrookI",
                     "Lampropeltis holbrooki", "Pseudemys scripta",
-                    "Fakus specialus"))
+                    "Fakus speciesus", "Salsola iberica"))
 }
 }

@@ -15,13 +15,13 @@
 #' \dontrun{
 #' retrieve_taxonomy(c("GULo gulo", "Lampropeltis getuLA HOLBrookI",
 #'                     "Lampropeltis holbrooki", "Pseudemys scripta",
-#'                     "Fakus specialus"))
+#'                     "Fakus speciesus", "Salsola iberica"))
 #' }
 retrieve_taxonomy <- function(sci_name) {
   out <- pbapply::pblapply(sci_name, function(sn) {
     # message(sn)
     acc_sci_name <- sn <- clean_sci_name(sn)
-    tax <- suppressMessages(get_taxonomy(acc_sci_name))
+    tax <- get_taxonomy(acc_sci_name)
 
     # No match
     if (is.null(tax)) return(empty_tax(sn, "No match found; check spelling?"))
@@ -30,79 +30,118 @@ retrieve_taxonomy <- function(sci_name) {
     tax <- filter_taxonomy(tax, sn)
     if (identical(names(tax), names(empty_tax()))) return(tax)
 
+    # Running track of common names (useful when tracking down valid taxon)
+    cnames <- ifelse(is.na(tax$com_name), NA_character_, strsplit(tax$com_name, ";")[[1]])
+
     # Attempt to retrieve valid/accepted scientific name
-    if (is.na(tax$Usage) || !(tax$Usage %in% c("accepted", "valid"))) {
-      acc_sci_name <- tax$AcceptedTaxa[[1]]$ScientificName %>%
-        clean_sci_name()
-      if (identical(acc_sci_name, character(0)))
+    if (is.na(tax$usage) || !(tax$usage %in% c("accepted", "valid"))) {
+      acc_tc <- NA_integer_
+      if ("acc_taxon_code" %in% names(tax))
+        acc_tc <- tax$acc_taxon_code
+      if (is.na(acc_tc))
         acc_sci_name <- NA_character_
       else {
-        tax <- suppressMessages(get_taxonomy(acc_sci_name))
-        tax <- tax %>%
-          filter_taxonomy(acc_sci_name)
+        tax <- get_taxonomy_by_code(acc_tc)
+        acc_sci_name <- tax$sci_name
+        if (!is.na(tax$com_name)) {
+          # add new unique common names
+          new_cn <- strsplit(tax$com_name, ";")[[1]]
+          is_new <- !(tolower(new_cn) %in% tolower(cnames))
+          cnames <- c(cnames, new_cn[is_new])
+        }
       }
     }
 
-    # Extract basic ITIS and common name
-    taxonomy <- pull(tax, .data$ClassificationSource) %>%
-      jsonlite::flatten() %>%
-      mutate(tsn = ifelse(.data$Detail.Code < 0, NA_integer_, as.integer(.data$Detail.Code)),
-             note = ifelse(is.na(.data$tsn), "Present in NPSpecies, but no ITIS match", NA_character_)) %>%
-      select(.data$tsn, .data$note)
-    com_name <- paste(unlist(tax$CommonNames), collapse = ", ")
+    # Round into final consolidated format
     tax <- tax %>%
-      select(.data$TaxonCode:.data$CommonNames) %>%
       mutate(sci_name = clean_sci_name(sn),
              acc_sci_name = acc_sci_name,
-             com_name = ifelse(is.null(com_name), NA_character_, com_name),
-             taxon_code = as.integer(.data$TaxonCode)) %>%
-      bind_cols(taxonomy) %>%
-      select(.data$sci_name, .data$acc_sci_name, .data$com_name, rank = .data$Rank,
-             category = .data$NPSpeciesCategory, .data$taxon_code, .data$tsn, .data$note)
+             com_name = ifelse(all(is.na(cnames)), NA_character_,
+                               paste(cnames, collapse = ", ")),
+             tsn = ifelse(.data$tsn < 0, NA_integer_, .data$tsn),
+             note = ifelse(is.na(.data$tsn),
+                           "Present in NPSpecies, but no ITIS match", NA_character_)) %>%
+      select(.data$sci_name, .data$acc_sci_name, .data$com_name, rank = .data$rank,
+             category = .data$category, taxon_code = .data$taxon_code, .data$tsn, .data$note)
     tax
   })
   bind_rows(out)
 }
 
-# Get NPS taxoncode using Scientific Name
+# Get NPS taxonomy using Scientific Name
 get_taxonomy <- function(sci_name) {
   base_url <- "http://irmaservices.nps.gov/v2/rest/taxonomy/searchByScientificName/"
   q_sci_name <- utils::URLencode(sci_name)
   q_url <- paste0(base_url, q_sci_name, "?format=json")
   try_JSON <- try_verb_n(jsonlite::fromJSON, 2)
-  tax <- try_JSON(q_url)
-  if (identical(tax, list())) return()
+  tmp <- try_JSON(q_url)
+  if (identical(tmp, list())) return()
+
+  tax <- data.frame(
+    taxon_code = as.integer(tmp$TaxonCode),
+    rank = tmp$Rank,
+    sci_name = tmp$ScientificName,
+    com_name = ifelse(is.na(tmp$CommonNames), NA_character_,
+                      sapply(tmp$CommonNames, paste, collapse = ";")),
+    category = tmp$NPSpeciesCategory,
+    usage = tmp$Usage,
+    tsn = as.integer(tmp$ClassificationSource$Detail$Code),
+    stringsAsFactors = FALSE)
+
+  if ("AcceptedTaxa" %in% names(tmp))
+    tax <- mutate(tax,
+                  acc_taxon_code = sapply(tmp$AcceptedTaxa, function(i) {
+                    ifelse(is.null(i), NA_integer_, as.integer(i$TaxonCode))}))
+  tax
+}
+
+# Get NPS taxonomy using NPS Taxon Code
+get_taxonomy_by_code <- function(taxon_code) {
+  base_url <- "http://irmaservices.nps.gov/v2/rest/taxonomy/"
+  q_url <- paste0(base_url, taxon_code, "?codeType=taxoncode&format=json")
+  tax <- jsonlite::fromJSON(q_url)
+
+  tax <- data.frame(
+    taxon_code = as.integer(tax$TaxonCode),
+    rank = tax$Rank,
+    sci_name = tax$ScientificName,
+    com_name = ifelse(is.null(tax$CommonNames), NA_character_,
+                      paste(tax$CommonNames, collapse = ";")),
+    category = tax$NPSpeciesCategory,
+    usage = tax$Usage,
+    tsn = as.integer(tax$ClassificationSource$Detail$Code),
+    stringsAsFactors = FALSE)
   tax
 }
 
 filter_taxonomy <- function(tax, sci_name) {
-  tax <- tax[which(tax$Rank == "Species" &
-                   grepl(paste0(tolower(sci_name), "$"), tolower(tax$ScientificName))), ]
+  tax <- tax[tax$rank == "Species" &
+               grepl(paste0("^", tolower(sci_name), "$"), tolower(tax$sci_name)), ]
   # None remaining means all were subspecies (generally)
   if (nrow(tax) == 0)
     return(empty_tax(sci_name, "No species rank match found"))
   if (nrow(tax) > 1) {
     # Multiple species in different taxa groups
-    if (n_distinct(tax$NPSpeciesCategory) > 1)
+    if (n_distinct(tax$category) > 1)
       return(empty_tax(sci_name, "Same scientific name for multiple taxa"))
     else {
       # Try to identify accepted taxon if all are invalid/unaccepted
-      if (all(!tax$Usage %in% c("valid", "accepted")) &&
-          "AcceptedTaxa" %in% names(tax)) {
-        acc_tax <- tax$AcceptedTaxa %>% purrr::map(pull, .data$ScientificName) %>%
-          purrr::flatten_chr() %>% unique()
-        if (length(acc_tax) == 1)
-          # Single accepted taxon, return first
+      if (all(!tax$usage %in% c("valid", "accepted")) &&
+          "acc_taxon_code" %in% names(tax)) {
+        acc_tax <- unique(tax$acc_taxon_code)
+        if (length(acc_tax) == 1) {
+          # Single accepted taxon, return first match
+          tax <- filter(tax, .data$acc_taxon_code == acc_tax)
           return(tax[1, ])
-        if (length(acc_tax) > 1)
-          # Multiple ambiguous taxa, provide them
-          return(empty_tax(sci_name, paste("Ambiguous accepted taxon:",
-                                           paste(acc_tax, collapse = ", "))))
+        }
+        # Multiple ambiguous taxa, provide them
+        return(empty_tax(sci_name, paste("Ambiguous accepted taxon:",
+                                         paste(acc_tax, collapse = ", "))))
       }
       # Occasionally filtering by accepted name solves problem
-      tax <- tax[tax$Usage %in% c("valid", "accepted"), ]
+      tax <- tax[tax$usage %in% c("valid", "accepted"), ]
       # but if it doesn't
-      if (nrow(tax) < 1)
+      if (nrow(tax) != 1)
         return(empty_tax(sci_name, "Multiple species match"))
     }
   }
@@ -123,11 +162,10 @@ empty_tax <- function(sci_name = NA_character_, note = NA_character_) {
 }
 
 pull_sci_names <- function(fwspp) {
-  fwspp %>%
-    purrr::modify_if(is_error, as.null) %>%
-    purrr::compact() %>%
-    purrr::map(pull, .data$sci_name) %>%
-    purrr::flatten_chr() %>% unique() %>% sort()
+  valid_fwspp <- fwspp[sapply(fwspp, function(i) !is_error(i) && !is.null(i))]
+  sn_list <- lapply(valid_fwspp, pull, .data$sci_name)
+  sn <- sort(unique(utils::stack(sn_list)$values))
+  sn
 }
 
 join_taxonomy <- function(fwspp, taxonomy) {
@@ -135,7 +173,8 @@ join_taxonomy <- function(fwspp, taxonomy) {
     if (!is.null(i) && !is_error(i))
       left_join(i, taxonomy, by = "sci_name") %>%
       mutate(sci_name = ifelse(is.na(.data$acc_sci_name),
-                               .data$sci_name, .data$acc_sci_name))
+                               .data$sci_name, .data$acc_sci_name)) %>%
+      select(-.data$acc_sci_name)
     else i
   })
 }
