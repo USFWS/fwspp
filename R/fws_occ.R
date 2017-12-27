@@ -186,10 +186,14 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
   if (taxonomy) {
     safe_tax <- purrr::safely(add_taxonomy)
     out_tax <- safe_tax(out)
-    if (is_error(out_tax))
+    if (is_error(out_tax)) {
       message("Taxonomy retrieval failed with the following error:\n   ",
-              out_tax$error$message,
-              "\n\nSkipping taxonomy. You may try `fwspp::join_taxonomy` again later.\n")
+              out_tax$error$message)
+      message(
+        wrap_message(paste("Skipping taxonomy. Please send the resulting `fwspp` object",
+                           "to the maintainer of the `fwspp` package.",
+                           "You may also try again later using `fwspp::add_taxonomy`.")))
+    }
     else out <- out_tax$result
   }
   out
