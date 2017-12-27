@@ -1,10 +1,9 @@
-# Helper to run function up to 3 times with increasing backoff times (unless wait
-# is set) if request produces any error (modified from `VERB_n` in googlesheets package);
-# errors (after n attempts) are kept and passed along.  Currently retrying on all
-# errors until timeouts, brief server errors, and non-negotiable errors can be better
-# differentiated. Note that this function is also used to capture errors for
-# non-HTTP related functions (e.g., cleaning and scrubbing)
-try_verb_n <- function(verb, n = 3) {
+# Helper to run function up a function a user-specified number of times with increasing
+# backoff times (modified from `VERB_n` in googlesheets package); errors (after n
+# attempts) are kept and passed along.  Currently retrying on all errors until timeouts,
+# brief server errors, and non-negotiable errors can be better differentiated. This
+# function is also used to capture errors for non-HTTP related functions (e.g., cleaning
+# and scrubbing)
   function(...) {
     for (i in seq_len(n)) {
       if (i == n)
@@ -12,9 +11,8 @@ try_verb_n <- function(verb, n = 3) {
       else
         out <- try(verb(...), silent = TRUE)
       if (!is_error(out) || i == n) break
-      wait <- stats::runif(1, min(5 ^ i, 120), min(5 ^ (i + 1), 180))
-      mess <- paste("HTTP timeout or error on attempt %d.",
-                    "Retrying in %0.0f s.")
+      wait <- stats::runif(1, min(5 ^ i, 120), min(5 ^ (i + 1), 240))
+      mess <- "Timeout or error on attempt %d. Retrying in %0.0f s."
       message(sprintf(mess, i, wait))
       Sys.sleep(wait)
     }
