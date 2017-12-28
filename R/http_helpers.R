@@ -4,6 +4,7 @@
 # brief server errors, and non-negotiable errors can be better differentiated. This
 # function is also used to capture errors for non-HTTP related functions (e.g., cleaning
 # and scrubbing)
+try_verb_n <- function(verb, n = 3) {
   function(...) {
     for (i in seq_len(n)) {
       if (i == n)
@@ -73,7 +74,7 @@ get_unit_codes <- function(orgnames = NULL) {
   prop_info <- try_JSON(base_url)
   prop_info <- prop_info$features$properties %>%
     mutate(org_name = toupper(.data$orgnameabbr)) %>%
-    select(org_name, UnitCode = .data$costCenterCode)
+    select(.data$org_name, UnitCode = .data$costCenterCode)
   if (is.null(orgnames)) return(prop_info)
   filter(prop_info,
          grepl(paste(orgnames, collapse = "|"), .data$org_name, ignore.case = TRUE))
