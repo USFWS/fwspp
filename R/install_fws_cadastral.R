@@ -21,7 +21,7 @@ install_fws_cadastral <- function() {
             "connection is available.  Sorry for the inconvenience.")))
 
   tmp <- tempfile(fileext = ".zip")
-  dl <- try(httr::GET(fwspp:::fws_url(), httr::write_disk(tmp),
+  dl <- try(httr::GET(fws_url(), httr::write_disk(tmp),
                       httr::progress()), silent = TRUE)
   if (is_error(dl)) {
     utils::browseURL(fws_url())
