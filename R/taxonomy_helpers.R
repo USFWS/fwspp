@@ -179,6 +179,11 @@ join_taxonomy <- function(fwspp, taxonomy) {
   })
 }
 
+has_taxonomy <- function(fwspp) {
+  tax_vec <- sapply(fwspp, function(i) "taxon_code" %in% names(i))
+  as.logical(sum(tax_vec))
+}
+
 strip_taxonomy <- function(fwspp) {
   to_drop <- names(empty_tax())[-1]
   lapply(fwspp, function(i) {

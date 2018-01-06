@@ -24,9 +24,9 @@ add_taxonomy <- function(fwspp, taxonomy = NULL) {
   if (!is.null(taxonomy))
     fwspp <- join_taxonomy(fwspp, taxonomy)
   else {
-    if (any(sapply(fwspp, function(i) c("tsn", "taxon_code") %in% names(i)))) {
+    if (has_taxonomy(fwspp)) {
       if (!interactive())
-        message("Taxonomy may already be present. Updating...")
+        message("Taxonomy is already present. Updating...")
       else {
         message(
           wrap_message(paste("\nIt appears taxonomy is already present.",
