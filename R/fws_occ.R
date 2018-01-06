@@ -168,6 +168,8 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
   check_cadastral()
   props <- prep_properties(fws, bnd, verbose)
 
+  start_time <- Sys.time()
+
   # Cycle through properties
   if (verbose)
     out <- lapply(fws$ORGNAME, function(prop) {
@@ -177,10 +179,11 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
       suppressMessages(
           retrieve_occ(props, prop, buffer, scrub, timeout))})
 
-  attributes(out) <- list(names = Cap(shorten_orgnames(fws$ORGNAME)),
+  attributes(out) <- list(names = fws$ORGNAME,
                           class = "fwspp",
                           boundary = bnd, scrubbing = scrub,
-                          buffer_km = buffer)
+                          buffer_km = buffer,
+                          query_dt = start_time)
 
   # Taxomony linking, if requested
   if (taxonomy) {
