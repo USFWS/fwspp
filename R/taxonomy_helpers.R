@@ -47,7 +47,7 @@ retrieve_taxonomy <- function(sci_name) {
           # add new unique common names
           new_cn <- strsplit(tax$com_name, ";")[[1]]
           is_new <- !(tolower(new_cn) %in% tolower(cnames))
-          cnames <- c(cnames, new_cn[is_new])
+          cnames <- as.character(na.omit(c(cnames, new_cn[is_new])))
         }
       }
     }
