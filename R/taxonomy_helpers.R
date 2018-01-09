@@ -21,7 +21,7 @@ retrieve_taxonomy <- function(sci_name) {
   out <- pbapply::pblapply(sci_name, function(sn) {
     # message(sn)
     acc_sci_name <- sn <- clean_sci_name(sn)
-    tax <- get_taxonomy(acc_sci_name)
+    tax <- nps_taxonomy(acc_sci_name)
 
     # No match
     if (is.null(tax)) return(empty_tax(sn, "No match found; check spelling?"))
@@ -41,7 +41,7 @@ retrieve_taxonomy <- function(sci_name) {
       if (is.na(acc_tc))
         acc_sci_name <- NA_character_
       else {
-        tax <- get_taxonomy_by_code(acc_tc)
+        tax <- nps_taxonomy_by_code(acc_tc)
         acc_sci_name <- tax$sci_name
         if (!is.na(tax$com_name)) {
           # add new unique common names
@@ -68,8 +68,38 @@ retrieve_taxonomy <- function(sci_name) {
   bind_rows(out)
 }
 
-# Get NPS taxonomy using Scientific Name
-get_taxonomy <- function(sci_name) {
+#' Retrieve raw NPS taxonomic information matching scientific name query
+#'
+#' Queries National Park Service taxonomy records by scientific name,
+#'  returning all records that match the input \code{sci_name} parameter
+#'  (including partial matches; see Details). Returns basic taxonomic
+#'  information, if available, including ITIS Taxonomic Serial Number
+#'  (\code{tsn}), the \code{taxon_code} assigned by the National Park
+#'  Service (and used also by the US Fish & Wildlife Service),
+#'  \code{common_name}(s), a generic taxon group, whether the taxon is
+#'  valid according to ITIS and, if not, the accepted \code{taxon_code}
+#'  if a match is found.
+#'
+#' It is somewhat unclear how the NPS records are filtered. The best guess
+#'  is that it parses the unique words in the query string (\code{sci_name})
+#'  and returns all records that match that set of unique words. The order
+#'  of query words is not strictly enforced. See examples.
+#'
+#' @param sci_name scientific name character scalar (case-insensitive) for
+#'  which to retrieve basic taxonomic information. Unlike
+#'  \code{\link{retrieve_taxonomy}}, matches are not restricted to the
+#'  species level; that is, subspecies may be returned.
+#' @return a \code{data.frame} of basic taxonomic infomration or \code{NULL}
+#'  if there are no matching records
+#' @export
+#' @examples
+#' \dontrun{
+#' nps_taxonomy("GULo gulo")
+#' nps_taxonomy("Lampropeltis holbrooki")
+#' nps_taxonomy("holBRooki lampropeltis")
+#' }
+
+nps_taxonomy <- function(sci_name) {
   base_url <- "http://irmaservices.nps.gov/v2/rest/taxonomy/searchByScientificName/"
   q_sci_name <- utils::URLencode(sci_name)
   q_url <- paste0(base_url, q_sci_name, "?format=json")
@@ -96,7 +126,7 @@ get_taxonomy <- function(sci_name) {
 }
 
 # Get NPS taxonomy using NPS Taxon Code
-get_taxonomy_by_code <- function(taxon_code) {
+nps_taxonomy_by_code <- function(taxon_code) {
   base_url <- "http://irmaservices.nps.gov/v2/rest/taxonomy/"
   q_url <- paste0(base_url, taxon_code, "?codeType=taxoncode&format=json")
   tax <- jsonlite::fromJSON(q_url)
