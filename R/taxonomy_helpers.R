@@ -179,6 +179,11 @@ join_taxonomy <- function(fwspp, taxonomy) {
   })
 }
 
+#' Check if \code{fwspp} object has taxonomic information attached
+#'
+#' @param fwspp an \code{fwspp} object returned by \code{\link{fws_occ}}
+#' @export
+
 has_taxonomy <- function(fwspp) {
   tax_vec <- sapply(fwspp, function(i) "taxon_code" %in% names(i))
   as.logical(sum(tax_vec))
