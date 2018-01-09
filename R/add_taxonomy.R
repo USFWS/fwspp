@@ -37,8 +37,8 @@ add_taxonomy <- function(fwspp, taxonomy = NULL) {
       ## REMOVE ALREADY PRESENT TAXONOMY
       fwspp <- strip_taxonomy(fwspp)
     }
-    message("Retrieving taxonomic information...")
     all_spp <- pull_sci_names(fwspp)
+    message("Retrieving taxonomic information for ", length(all_spp), " taxa...")
     tax_info <- retrieve_taxonomy(all_spp)
     fwspp <- join_taxonomy(fwspp, tax_info)
   }
