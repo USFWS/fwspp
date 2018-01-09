@@ -25,9 +25,8 @@ construct_wb <- function(org, fwspp, overwrite, verbose, dir) {
   if (file.exists(fn) && !overwrite) {
     warning("File exists and overwrite = FALSE. Skipping ", org, call. = FALSE)
   } else {
-    if (verbose) cat("Processing", paste0(org, "...  "))
     saveWorkbook(wb, fn, overwrite = overwrite)
-    if (verbose) cat("Export successful.\n")
+    if (verbose) cat("Exported", paste0(org, "\n"))
   }
   return()
 }
