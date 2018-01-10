@@ -1,4 +1,4 @@
-construct_wb <- function(org, fwspp, overwrite, verbose, dir) {
+construct_wb <- function(org, fwspp, overwrite, verbose, out_dir) {
   org_dat <- fwspp[[org]] %>%
     mutate(occurrence = "Probably present",
            nativeness = NA_character_,
@@ -21,7 +21,7 @@ construct_wb <- function(org, fwspp, overwrite, verbose, dir) {
 
   # Write and save it
   writeData(wb, 1, org_dat, withFilter = TRUE)
-  fn <- file.path(dir, construct_fn(org))
+  fn <- file.path(out_dir, construct_fn(org))
   if (file.exists(fn) && !overwrite) {
     warning("File exists and overwrite = FALSE. Skipping ", org, call. = FALSE)
   } else {

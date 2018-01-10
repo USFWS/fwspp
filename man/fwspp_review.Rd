@@ -5,15 +5,15 @@
 \title{Export species occurrence records in an \code{fwspp} object to separate
  files for review}
 \usage{
-fwspp_review(fwspp, dir = "./fwspp_review", overwrite = FALSE,
+fwspp_review(fwspp, out_dir = "./fwspp_review", overwrite = FALSE,
   verbose = TRUE)
 }
 \arguments{
 \item{fwspp}{a \code{fwspp} object returned by \code{\link{fws_occ}},
-**with taxonomy information added** (see Details). An output file will be created in \code{dir}
+**with taxonomy information added** (see Details). An output file will be created in \code{out_dir}
 for each property in \code{fwspp}.}
 
-\item{dir}{a non-empty character scalar of path to store an output file for
+\item{out_dir}{a non-empty character scalar of path to store an output file for
 each USFWS property in \code{fwspp}. The default is to use or create a
 \code{fwspp_review} directory in the current working directory.}
 
@@ -24,7 +24,7 @@ with the same name?}
 export process?}
 }
 \value{
-\code{NULL}; Exports individual Excel file(s) to \code{dir} for
+\code{NULL}; Exports individual Excel file(s) to \code{out_dir} for
  the review of species occurrence observations
 }
 \description{
