@@ -53,8 +53,8 @@ fwspp_review <- function(fwspp, out_dir = "./fwspp_review",
 
   if (verbose)
     invisible(
-      lapply(orgs, construct_wb, fwspp, overwrite, verbose, out_dir))
+      lapply(orgs, construct_review, fwspp, overwrite, verbose, out_dir))
   else
     invisible(
-      pbapply::pblapply(orgs, construct_wb, fwspp, overwrite, verbose, out_dir))
+      pbapply::pblapply(orgs, construct_review, fwspp, overwrite, verbose, out_dir))
 }

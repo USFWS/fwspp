@@ -1,8 +1,10 @@
-construct_wb <- function(org, fwspp, overwrite, verbose, out_dir) {
+construct_review <- function(org, fwspp, overwrite, verbose, out_dir) {
   org_dat <- fwspp[[org]] %>%
     mutate(occurrence = "Probably present",
            nativeness = NA_character_,
-           accept_record = "Yes") %>%
+           accept_record = ifelse(is.na(.data$accept_record) |
+                                    grepl("NPSpecies", .data$accept_record),
+                                  "Yes", "No")) %>%
     select(.data$org_name, .data$category, .data$taxon_code,
            .data$sci_name, .data$com_name,
            .data$occurrence:.data$accept_record,
@@ -16,7 +18,7 @@ construct_wb <- function(org, fwspp, overwrite, verbose, out_dir) {
   freezePane(wb, 1, firstRow = TRUE)
 
   # Add tags and data validation
-  construct_tags(wb)
+  create_tag_ws(wb)
   add_validation(wb, end_row = nrow(org_dat) + 1)
 
   # Write and save it
@@ -31,7 +33,7 @@ construct_wb <- function(org, fwspp, overwrite, verbose, out_dir) {
   return()
 }
 
-construct_tags <- function(wb) {
+create_tag_ws <- function(wb) {
   addWorksheet(wb, "tags")
   occurrence <- c("Present", "Present-Adjacent", "Probably Present",
                   "Probably Present-Adjacent",
@@ -39,7 +41,7 @@ construct_tags <- function(wb) {
   nativeness <- c("Native", "Native-Restoration", "Native-Cultivated",
                   "Native-Noxious", "NonNative", "NonNative-Cultivated",
                   "NonNative-Invasive", "NonNative-Noxious")
-  accept_record = c("Yes", "No")
+  accept_record = c("Yes", "Modify", "No")
   writeData(wb, 2, occurrence, startCol = 1)
   writeData(wb, 2, nativeness, startCol = 2)
   writeData(wb, 2, accept_record, startCol = 3)
@@ -51,7 +53,7 @@ add_validation <- function(wb, end_row) {
   dataValidation(wb, 1, col = 7, rows = 2:end_row,
                  type = "list", value = "'tags'!$B$1:$B$8")
   dataValidation(wb, 1, col = 8, rows = 2:end_row,
-                 type = "list", value = "'tags'!$C$1:$C$2")
+                 type = "list", value = "'tags'!$C$1:$C$3")
 }
 
 construct_fn <- function(x) {
