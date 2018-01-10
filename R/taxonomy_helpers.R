@@ -129,7 +129,11 @@ nps_taxonomy <- function(sci_name) {
 nps_taxonomy_by_code <- function(taxon_code) {
   base_url <- "http://irmaservices.nps.gov/v2/rest/taxonomy/"
   q_url <- paste0(base_url, taxon_code, "?codeType=taxoncode&format=json")
-  tax <- jsonlite::fromJSON(q_url)
+  tax <- try(jsonlite::fromJSON(q_url), silent = TRUE)
+  if (is_error(tax)) {
+    warning("Taxonomy retrieval failed for taxon code ", taxon_code, call. = FALSE)
+    return()
+  }
 
   tax <- data.frame(
     taxon_code = as.integer(tax$TaxonCode),
@@ -138,8 +142,9 @@ nps_taxonomy_by_code <- function(taxon_code) {
     com_name = ifelse(is.null(tax$CommonNames), NA_character_,
                       paste(tax$CommonNames, collapse = ";")),
     category = tax$NPSpeciesCategory,
-    usage = tax$Usage,
-    tsn = as.integer(tax$ClassificationSource$Detail$Code),
+    usage = ifelse(is.null(tax$Usage), NA_character_, tax$Usage),
+    tsn = ifelse(is.null(tax$ClassificationSource$Detail$Code), NA_integer_,
+                 as.integer(tax$ClassificationSource$Detail$Code)),
     stringsAsFactors = FALSE)
   tax
 }
