@@ -103,8 +103,11 @@ nps_taxonomy <- function(sci_name) {
   base_url <- "http://irmaservices.nps.gov/v2/rest/taxonomy/searchByScientificName/"
   q_sci_name <- utils::URLencode(sci_name)
   q_url <- paste0(base_url, q_sci_name, "?format=json")
-  try_JSON <- try_verb_n(jsonlite::fromJSON, 2)
-  tmp <- try_JSON(q_url)
+  tmp <- try(jsonlite::fromJSON(q_url), silent = TRUE)
+  if (is_error(tax)) {
+    warning("Taxonomy retrieval failed for ", sci_name, call. = FALSE)
+    return()
+  }
   if (identical(tmp, list())) return()
 
   tax <- data.frame(
