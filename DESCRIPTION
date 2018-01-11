@@ -9,9 +9,12 @@ Description: Functions to query multiple biodiversity databases (e.g., GBIF, BIS
   iDigBio, VertNet, Berkeley Ecoengine, AntWeb) based on the current ownership or 
   approved acquisition boundary of US Fish & Wildlife Service (USFWS) properties, including
   National Wildlife Refuges, Waterfowl Production Areas, National Fish Hatcheries, and 
-  others. The output of these queries is intended for easy incorporation into the FWSpecies 
-  database.  This package benefits immensely from the outstanding work of the rOpenSci 
-  community (https://ropensci.org).
+  others. The output of these queries can then be exported to spreadsheets for expert review
+  of species occurrence records. Review spreadsheets modified according to specific 
+  guidelines can then be imported, updated, and exported to spreadsheets ready for 
+  incorporation into the FWSpecies database 
+  (https://sites.google.com/a/fws.gov/fwspecies/home-1). This package benefits immensely 
+  from the outstanding work of the rOpenSci community (https://ropensci.org).
 License: CC0
 Depends:
     R (>= 3.4.0)
