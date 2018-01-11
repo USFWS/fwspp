@@ -66,7 +66,10 @@ fwspp_submission <- function(in_dir = "./fwspp_review",
     message("Output directory created at ", normalizePath(out_dir))
   }
 
-  xlsx <- list.files(path = in_dir, pattern = ".*.xlsx$", full.names = TRUE)
+  if (is.null(xlsx))
+    xlsx <- list.files(path = in_dir, pattern = ".*.xlsx$", full.names = TRUE)
+  else if (!all(sapply(xlsx, file.exists)))
+    stop("At least one input xlsx file was not found. Check file names?")
 
   all_reviews <- lapply(xlsx, import_review, verbose) %>%
     bind_rows()
