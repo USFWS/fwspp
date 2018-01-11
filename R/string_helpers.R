@@ -78,3 +78,12 @@ clean_loc_unc <- function(x) {
   x <- iconv(x, "latin1", "ASCII", "-")
   as.integer(round(as.numeric(gsub(" *|.*-|[mM]|meters|Meters|NA", "", x))))
 }
+
+clean_com_name <- function(cn_string) {
+  cnames <- cn_string %>%
+    strsplit(", ") %>% unlist() %>%
+    unique() %>% na.omit() %>%
+    paste(collapse = ", ")
+  if (cnames == "") return(NA_character_)
+  cnames
+}

@@ -45,13 +45,17 @@ process_review <- function(df) {
   revised_codes <- pbapply::pblapply(revised_codes, nps_taxonomy_by_code) %>%
     bind_rows() %>%
     mutate(acc_sci_name = .data$sci_name) %>%
-    select(.data$taxon_code, .data$category, .data$acc_sci_name, .data$com_name)
+    select(.data$taxon_code, .data$category, .data$acc_sci_name,
+           upd_com_name = .data$com_name)
 
   # Join updated taxonomy to modified records
-  mods <- select(mods, -.data$com_name, -.data$category) %>%
+  mods <- select(mods, -.data$category) %>%
     left_join(revised_codes, by = "taxon_code") %>%
+    rowwise() %>%
     mutate(sci_name = ifelse(is.na(.data$acc_sci_name),
-                             .data$sci_name, .data$acc_sci_name))
+                             .data$sci_name, .data$acc_sci_name),
+           com_name = clean_com_name(c(.data$com_name, .data$upd_com_name))) %>%
+    ungroup()
   acc_recs <- bind_rows(acc_recs, mods)
 
   # Add cost center
