@@ -2,7 +2,8 @@
 #'  files for review
 #'
 #' Use this function to export species occurrence records into spreadsheets
-#'  for review prior to parsing for inclusing into the FWSpecies database.
+#'  for review prior to parsing for inclusing into the FWSpecies database
+#'  (\url{https://sites.google.com/a/fws.gov/fwspecies/home-1})
 #'
 #' This function **requires** that the \code{fwspp} object have taxonomy
 #'  added (either via the \code{taxonomy = TRUE} argument during the call
@@ -30,7 +31,7 @@
 #' \dontrun{
 #' lowcountry <- find_fws(c("romain", "santee", "ace basin", "waccamaw"))
 #' lc <- fws_occ(fws = lowcountry)
-#' review_fwspp(lc)
+#' fwspp_review(lc)
 #' }
 
 fwspp_review <- function(fwspp, out_dir = "./fwspp_review",
@@ -53,8 +54,10 @@ fwspp_review <- function(fwspp, out_dir = "./fwspp_review",
 
   if (verbose)
     invisible(
-      lapply(orgs, construct_review, fwspp, overwrite, verbose, out_dir))
-  else
+      lapply(orgs, xlsx_review, fwspp, overwrite, verbose, out_dir))
+  else {
+    message("Exporting files for review.")
     invisible(
-      pbapply::pblapply(orgs, construct_review, fwspp, overwrite, verbose, out_dir))
+      pbapply::pblapply(orgs, xlsx_review, fwspp, overwrite, verbose, out_dir))
+  }
 }

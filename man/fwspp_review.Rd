@@ -29,7 +29,8 @@ export process?}
 }
 \description{
 Use this function to export species occurrence records into spreadsheets
- for review prior to parsing for inclusing into the FWSpecies database.
+ for review prior to parsing for inclusing into the FWSpecies database
+ (\url{https://sites.google.com/a/fws.gov/fwspecies/home-1})
 }
 \details{
 This function **requires** that the \code{fwspp} object have taxonomy
@@ -42,6 +43,6 @@ This function **requires** that the \code{fwspp} object have taxonomy
 \dontrun{
 lowcountry <- find_fws(c("romain", "santee", "ace basin", "waccamaw"))
 lc <- fws_occ(fws = lowcountry)
-review_fwspp(lc)
+fwspp_review(lc)
 }
 }
