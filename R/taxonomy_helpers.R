@@ -104,7 +104,7 @@ nps_taxonomy <- function(sci_name) {
   q_sci_name <- utils::URLencode(sci_name)
   q_url <- paste0(base_url, q_sci_name, "?format=json")
   tmp <- try(jsonlite::fromJSON(q_url), silent = TRUE)
-  if (is_error(tax)) {
+  if (is_error(tmp)) {
     warning("Taxonomy retrieval failed for ", sci_name, call. = FALSE)
     return()
   }
