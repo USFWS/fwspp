@@ -82,7 +82,7 @@ clean_loc_unc <- function(x) {
 clean_com_name <- function(cn_string) {
   cnames <- cn_string %>%
     strsplit(", ") %>% unlist() %>%
-    unique() %>% na.omit() %>%
+    unique() %>% stats::na.omit() %>%
     paste(collapse = ", ")
   if (cnames == "") return(NA_character_)
   cnames

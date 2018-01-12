@@ -29,6 +29,7 @@ Imports:
     pbapply (>= 1.3-3),
     purrr (>= 0.2.3),
     raster (>= 2.5.8),
+    readxl (>= 1.0.0),
     rgbif (>= 0.9.8),
     ridigbio (>= 0.3.5),
     rlang (>= 0.1.2),

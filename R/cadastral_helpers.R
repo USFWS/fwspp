@@ -35,7 +35,7 @@ stash_cadastral <- function() {
                                mustWork = TRUE), silent = TRUE)
   stash_list <- list(gdb, approved, interest)
 
-  if (any(sapply(stash_list, fwspp:::is_error)))
+  if (any(sapply(stash_list, is_error)))
     stop("At least one cadastral files is missing. Run `install_fws_cadastral()`",
          " after the re-install.")
 
