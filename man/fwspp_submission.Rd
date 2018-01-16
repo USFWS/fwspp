@@ -19,9 +19,9 @@ file for each USFWS property formatted for submission to NRPC. The
 default is to use or create a \code{fwspp_submission} directory within
 the \code{in_dir}}
 
-\item{xlsx}{optional character string of xlsx files to import from
-\code{in_dir}. The default (NULL) is to import all xlsx files in
-\code{in_dir}. Non-conforming xlsx files are skipped.}
+\item{xlsx}{optional character string of xlsx files, including extension,
+to import from \code{in_dir}. The default (NULL) is to import all xlsx
+files in \code{in_dir}. Non-conforming xlsx files are skipped.}
 
 \item{overwrite}{logical (default \code{FALSE}); overwrite existing files
 with the same name?}

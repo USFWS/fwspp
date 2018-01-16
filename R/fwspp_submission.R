@@ -35,9 +35,9 @@
 #'  file for each USFWS property formatted for submission to NRPC. The
 #'  default is to use or create a \code{fwspp_submission} directory within
 #'  the \code{in_dir}
-#' @param xlsx optional character string of xlsx files to import from
-#'  \code{in_dir}. The default (NULL) is to import all xlsx files in
-#'  \code{in_dir}. Non-conforming xlsx files are skipped.
+#' @param xlsx optional character string of xlsx files, including extension,
+#'  to import from \code{in_dir}. The default (NULL) is to import all xlsx
+#'  files in \code{in_dir}. Non-conforming xlsx files are skipped.
 #' @param overwrite logical (default \code{FALSE}); overwrite existing files
 #'  with the same name?
 #' @param verbose logical (default \code{TRUE}); provide detailed messaging
@@ -68,8 +68,11 @@ fwspp_submission <- function(in_dir = "./fwspp_review",
 
   if (is.null(xlsx))
     xlsx <- list.files(path = in_dir, pattern = ".*.xlsx$", full.names = TRUE)
-  else if (!all(sapply(xlsx, file.exists)))
-    stop("At least one input xlsx file was not found. Check file names?")
+  else {
+    if (!all(sapply(file.path(in_dir, xlsx), file.exists)))
+      stop("At least one input xlsx file was not found. Check file names?")
+    xlsx <- file.path(in_dir, xlsx)
+  }
 
   all_reviews <- lapply(xlsx, import_review, verbose) %>%
     bind_rows()
