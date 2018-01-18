@@ -1,4 +1,8 @@
 xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
+  if (is.null(org)) {
+    if (verbose) cat("No records for", paste0(org, ". Skipping...\n"))
+    return()
+  }
   org_dat <- fwspp[[org]] %>%
     mutate(occurrence = "Probably present",
            nativeness = NA_character_,
