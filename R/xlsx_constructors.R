@@ -1,9 +1,10 @@
 xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
-  if (is.null(org)) {
+  dat <- fwspp[[org]]
+  if (is.null(dat)) {
     if (verbose) cat("No records for", paste0(org, ". Skipping...\n"))
     return()
   }
-  org_dat <- fwspp[[org]] %>%
+  org_dat <- dat %>%
     mutate(occurrence = "Probably present",
            nativeness = NA_character_,
            accept_record = ifelse(is.na(.data$note) | grepl("NPSpecies", .data$note),
