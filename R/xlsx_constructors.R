@@ -65,8 +65,9 @@ xlsx_review_tags <- function(wb) {
                   "Probably Present-Historical")
   nativeness <- c("Native", "Native-Restoration", "Native-Cultivated",
                   "Native-Noxious", "NonNative", "NonNative-Cultivated",
-                  "NonNative-Invasive", "NonNative-Noxious")
-  accept_record = c("Yes", "Modify", "No")
+                  "NonNative-Invasive", "NonNative-Noxious",
+                  "Unknown", "Unknown-Cultivated", "Unknown-Noxious")
+  accept_record = c("Yes", "ModifiedTaxonCode", "No")
   writeData(wb, 2, occurrence, startCol = 1)
   writeData(wb, 2, nativeness, startCol = 2)
   writeData(wb, 2, accept_record, startCol = 3)

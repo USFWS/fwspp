@@ -2,7 +2,7 @@ add_review_validation <- function(wb, end_row) {
   openxlsx::dataValidation(wb, 1, col = 6, rows = 2:end_row,
                  type = "list", value = "'tags'!$A$1:$A$5")
   openxlsx::dataValidation(wb, 1, col = 7, rows = 2:end_row,
-                 type = "list", value = "'tags'!$B$1:$B$8")
+                 type = "list", value = "'tags'!$B$1:$B$11")
   openxlsx::dataValidation(wb, 1, col = 8, rows = 2:end_row,
                  type = "list", value = "'tags'!$C$1:$C$3")
 }
@@ -38,10 +38,10 @@ process_review <- function(df) {
 
   # Pull modified records
   acc_recs <- filter(df, .data$accept_record == "Yes")
-  mods <- filter(df, .data$accept_record == "Modify" & !is.na(.data$taxon_code))
+  mods <- filter(df, .data$accept_record == "ModifiedTaxonCode" & !is.na(.data$taxon_code))
 
   revised_codes <- unique(mods$taxon_code)
-  message("Retrieving taxonomy for modified records.")
+  message("Retrieving updated taxonomic information.")
   revised_codes <- pbapply::pblapply(revised_codes, nps_taxonomy_by_code) %>%
     bind_rows() %>%
     mutate(acc_sci_name = .data$sci_name) %>%
@@ -69,7 +69,9 @@ process_review <- function(df) {
            ExternalLinks = .data$evidence, Occurrence = .data$occurrence,
            Nativeness = .data$nativeness, ORGNAME = .data$org_name) %>%
     mutate(RecordStatus = "Approved",
-           RefugeAccepted = "Yes")
+           RefugeAccepted = "Yes",
+           Nativeness = ifelse(is.na(.data$Nativeness), "Unknown",
+                               .data$Nativeness))
 
   ## Set column names/order of output data frame
   out_df <- utils::read.csv(
