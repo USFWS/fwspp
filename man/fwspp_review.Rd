@@ -39,6 +39,41 @@ This function **requires** that the \code{fwspp} object have taxonomy
  Reviewing records without additional taxonomic information (such as common
  name and general taxonomic groupings) is likely to be frustrating.
 }
+\section{Regarding review of output spreadsheets}{
+
+During review, users may modify the values for any observation from the
+ \code{taxon_code} to \code{evidence} columns. Two columns in particular,
+ however, will demand the most attention - \code{accept_record} and
+ \code{taxon_code}.
+
+Records without adequate documentation for inclusion in the FWSpecies
+ database should have \code{accept_record = No}. Some observations may
+ be set to \code{accept_record = No} by default because of ambiguous
+ or misspelled scientific names.
+
+Should a valid taxonomic match be found (e.g., by retrieving the
+ appropriate \code{taxon_code} for the correct scientific name with
+ \code{\link{nps_taxonomy}}), update the \code{taxon_code} in the
+ spreadsheet and set \code{accept_record = ModifiedTaxonCode}. Setting
+ \code{accept_record = ModifiedTaxonCode}
+ means any taxonomic changes will be incorporated, and the record accepted,
+ in the file subsequently created for submission to the FWSpecies database.
+
+Changes to species taxonomy (\code{taxon_code} and \code{sci_name}) will
+ be incorporated ONLY if \code{taxon_code} is corrected and
+ \code{accept_record = ModifiedTaxonCode}.
+
+Changes or additions to common names (\code{com_name}) will be accepted
+ ONLY if \code{accept_record = ModifiedTaxonCode}, but \code{taxon_code}
+ need not be changed for changes only to common name.
+
+Changes to other columns (\code{occurrence} to \code{evidence}) will be
+ incorporated as-is so long as \code{accept_record = Yes} or
+ \code{accept_record = ModifiedTaxonCode}.
+
+Records with \code{accept_record = No} are excluded.
+}
+
 \examples{
 \dontrun{
 lowcountry <- find_fws(c("romain", "santee", "ace basin", "waccamaw"))
