@@ -38,7 +38,7 @@ process_review <- function(df) {
 
   # Pull modified records
   acc_recs <- filter(df, .data$accept_record == "Yes")
-  mods <- filter(df, .data$accept_record == "ModifiedTaxonCode" & !is.na(.data$taxon_code))
+  mods <- filter(df, grepl("Modif", .data$accept_record) & !is.na(.data$taxon_code))
 
   revised_codes <- unique(mods$taxon_code)
   message("Retrieving updated taxonomic information.")
