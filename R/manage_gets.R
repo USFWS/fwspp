@@ -19,12 +19,13 @@ manage_gets <- function(prop, timeout) {
   # Compare and set timeout programmatically, if not specified by user
   # Timeout is based on BISON queries as they are typically the largest
   # contiguous downloads
-  if (!is.null(timeout)) {
-    prog_recs <- est_nrecs(timeout)
-    if (prog_recs < q_recs)
-      message("Your timeout setting may be too short. Watch for repeated ",
-              "HTTP timeout errors and adjust accordingly.")
-  } else timeout <- est_timeout(min(125000, q_recs))
+  tox <- timeout
+  timeout <- est_timeout(min(125000, q_recs))
+  if (!is.null(tox)) timeout <- timeout * tox
+  prog_recs <- est_nrecs(timeout)
+  if (prog_recs < q_recs)
+    message("Your timeout setting may be too short. Watch for repeated HTTP ",
+            "timeout\nerrors and adjust the timeout parameter accordingly.")
 
   #############################################################################
   ## Retrieve and standardize occurrence records from biodiversity databases ##

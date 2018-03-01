@@ -32,9 +32,10 @@ standardized taxon information? See details.}
 \item{verbose}{logical (default TRUE); print messages during species occurrence
 queries?}
 
-\item{timeout}{integer; time, in seconds, to allow for HTTP requests to
-process. By default (\code{timeout = NULL}), query timeout is set
-programmatically and conservatively.  See details.}
+\item{timeout}{numeric; if specified, serves as a multiplier for the timeout
+value calculated internally (e.g., \code{timeout = 2} doubles the amount of
+time to allow for HTTP requests to process. By default (\code{timeout = NULL}),
+the query timeout is set programmatically and conservatively.  See details.}
 }
 \value{
 an \code{list} of class \code{fwspp} with observations for each property with
@@ -157,10 +158,14 @@ The boundaries specified by the "acq" option to the \code{bnd} argument
 By default, timeout is calculated based on testing of BISON queries on a ~ 20 Mbps
  internet connection. BISON queries are nearly always the largest (by # records)
  *contiguous* requests (GBIF is slower but requests occur in smaller chunks).  If
- timeouts are a recurring problem, however, it may be worth fixing this parameter at
- a large value (e.g., 20 minutes, or \code{timeout = 1200L}).  If queries are regularly
- timing out, please contact the maintainer with details or, better yet, file an
- issue at \url{https://github.com/adamdsmith/fwspp/issues}.
+ timeouts are a recurring problem, however, it may be worth checking your download
+ speed (e.g. \url{http://www.speedtest.net}) and setting this parameter if your
+ speeds are considerably below ~ 20 Mbps to allow more time for HTTP requests to
+ process. For example, if your download speed is estimated at 5 Mbps, you might
+ consider setting this parameter to \code{timeout = 4} or so. If regular timeout
+ persist after adjusting this parameter, however, please contact the maintainer
+ with details or, better yet, file an issue at
+ \url{https://github.com/adamdsmith/fwspp/issues}.
 }
 
 \examples{
