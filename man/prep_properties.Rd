@@ -4,7 +4,7 @@
 \alias{prep_properties}
 \title{Filter USFWS properties for query}
 \usage{
-prep_properties(prop_df, bnd, verbose)
+prep_properties(prop_df, bnd = "admin", verbose = FALSE)
 }
 \arguments{
 \item{prop_df}{\code{data.frame} of organizational names (ORGNAME) and

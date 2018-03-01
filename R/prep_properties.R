@@ -12,7 +12,7 @@
 #' @param verbose logical; suppress messaging? See \code{\link{fws_occ}}
 #'  during species occurrence queries
 #' @export
-prep_properties <- function(prop_df, bnd, verbose) {
+prep_properties <- function(prop_df, bnd = "admin", verbose = FALSE) {
 
   l <- case_when(
     bnd == "admin" ~ "fws_interest.rds",
