@@ -55,9 +55,9 @@ clean_sci_name <- function(sn_string) {
   # Trim any leading/trailing blank spaces
   sn_string <- gsub("^\\s+|\\s+$", "", sn_string) %>%
     # Replace any "missing" values with actual missing values
-    gsub(sn_miss, NA_character_, .) %>%
+    gsub(sn_miss, NA_character_, ., ignore.case = TRUE) %>%
     # Replace generic species with blanks...
-    sub(spec_epi_miss, "", .) %>%
+    gsub(spec_epi_miss, "", .) %>%
     # Replace periods (e.g., abbreviated scientific names)
     gsub("\\.","", .) %>%
     # Replace multiply sign for hybrids; assumes no other unicode slips in...
