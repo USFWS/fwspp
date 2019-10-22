@@ -80,10 +80,12 @@ clean_loc_unc <- function(x) {
 }
 
 clean_com_name <- function(cn_string) {
-  cnames <- cn_string %>%
-    strsplit(", ") %>% unlist() %>%
-    unique() %>% stats::na.omit() %>%
-    paste(collapse = ", ")
-  if (cnames == "") return(NA_character_)
-  cnames
+  out <- sapply(cn_string, function(i) {
+    cnames <- i %>%
+      strsplit(", ") %>% unlist() %>%
+      unique() %>% gsub("NA|NA_character_", NA_character_, .) %>%
+      stats::na.omit() %>% paste(collapse = ", ")
+    cnames
+  })
+  unname(out)
 }
