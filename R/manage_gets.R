@@ -55,7 +55,7 @@ manage_gets <- function(prop, timeout) {
   if (!is.null(vn_recs))
     vn_recs <- clean_VertNet(vn_recs)
 
-  ## Berkeley 'Ecoinformatics' Eengine
+  ## Berkeley 'Ecoinformatics' Engine
   ee_recs <- get_EcoEngine(lat_range, lon_range, timeout)
   if (!is.null(ee_recs))
     ee_recs <- clean_EcoEngine(ee_recs)

@@ -8,7 +8,7 @@ clean_GBIF <- function(gbif_recs) {
   # If necessary, associate media information into data frame
   media <- Filter(length, gbif_recs$media)
   if (length(media)) {
-    keys <- vapply(media, function(i) i[[1]][["key"]], integer(1))
+    keys <- vapply(media, function(i) i[[1]][["key"]], character(1))
     urls <- sapply(media, function(i) {
       id <- i[[1]][[1]][["identifier"]]
       id <- ifelse(is.null(id), NA_character_, id)
@@ -54,7 +54,7 @@ clean_BISON <- function(bison_recs) {
   # Add *missing* columns if necessary
   bison_recs <- bison_recs %>%
     bind_rows(data.frame(catalogNumber = character(0),
-                         coordinateUncertaintyInMeters = integer(0),
+                         coordinateUncertaintyInMeters = character(0),
                          collectionID = character(0),
                          eventDate = character(0),
                          stringsAsFactors = FALSE)) %>%
@@ -70,7 +70,8 @@ clean_BISON <- function(bison_recs) {
              !is_missing(.data$ownerInstitutionCollectionCode) ~
                paste0(sub("/$", "", .data$ownerInstitutionCollectionCode),
                       "; catalog# ", .data$cat_no),
-             TRUE ~ NA_character_))
+             TRUE ~ NA_character_),
+           coordinateUncertaintyInMeters = as.double(coordinateUncertaintyInMeters))
 
   # Rename relevant columns
   rn <- c("scientificName", "decimalLatitude", "decimalLongitude",
@@ -124,8 +125,8 @@ clean_VertNet <- function(vn_recs) {
   # Create genus or species if they do not exist
   if (!(any("genus" %in% colnames(vn_recs), "specificepithet" %in% colnames(vn_recs))))
     vn_recs <- vn_recs %>%
-      mutate(genus = sapply(strsplit(.data$scientificname, " "), function(i) i[1]),
-             specificepithet = sapply(strsplit(.data$scientificname, " "), function(i) i[2]))
+    mutate(genus = sapply(strsplit(.data$scientificname, " "), function(i) i[1]),
+           specificepithet = sapply(strsplit(.data$scientificname, " "), function(i) i[2]))
 
   # Note that some viable link to original records, with media, lie buried
   # in the `references` column, but there's no easy way to get them...
@@ -134,9 +135,14 @@ clean_VertNet <- function(vn_recs) {
            evidence = case_when(
              !is_missing(.data$references) ~ .data$references,
              !is_missing(.data$source_url) ~ paste0(.data$source_url, "; catalog# ",
-                                                  .data$catalognumber),
+                                                    .data$catalognumber),
              !is_missing(.data$bibliographiccitation) ~ .data$bibliographiccitation,
-             TRUE ~ NA_character_))
+             TRUE ~ NA_character_),
+           month = as.integer(month),
+           month = case_when(
+             (month < 13 & month > 0) ~ month,
+             (month > 12 | month < 1)  ~ NA_integer_)
+    )
 
   # Rename relevant columns
   rn <- c("decimallatitude", "decimallongitude", "catalognumber",
@@ -170,9 +176,9 @@ clean_EcoEngine <- function(ee_recs) {
 
   if (nrow(ee_meta) > 0)
     ee_meta <- ee_meta %>%
-      rowwise() %>%
-      mutate(meta_url = get_ee_metadata(.data$source)) %>%
-      ungroup()
+    rowwise() %>%
+    mutate(meta_url = get_ee_metadata(.data$source)) %>%
+    ungroup()
   else ee_meta <- tibble(source = character(0), meta_url = character(0))
 
   ee_recs <- ee_recs %>%
@@ -181,7 +187,11 @@ clean_EcoEngine <- function(ee_recs) {
       !is_missing(.data$remote_resource) ~ .data$remote_resource,
       !is_missing(.data$meta_url) ~ paste0(meta_url, "; catalog# ",
                                            .data$cat_no),
-      TRUE ~ NA_character_))
+      TRUE ~ NA_character_),
+      loc_unc_m = as.double(loc_unc_m),
+      year = lubridate::year(begin_date),
+      month = lubridate::month(begin_date),
+      day = lubridate::day(begin_date))
 
   standardize_occ(ee_recs)
 
@@ -224,9 +234,20 @@ standardize_occ <- function(clean_recs, coord_tol = NULL) {
   )
 
   ## Set column names/order of output data frame
-  out_df <- utils::read.csv(text = paste(c("sci_name", "lon", "lat", "loc_unc_m", "year",
-                                           "month", "day", "cat_no", "media_url", "evidence"),
-                                         collapse = ", "))
+  # out_df <- utils::read.csv(text = paste(c("sci_name", "lon", "lat", "loc_unc_m", "year",
+  #                                          "month", "day", "cat_no", "media_url", "evidence"),
+  #                                        collapse = ", "))
+
+  out_df <- data.frame(sci_name = character(),
+                       lon = numeric(),
+                       lat = numeric(),
+                       loc_unc_m = double(),
+                       year = integer(),
+                       month = integer(),
+                       day = integer(),
+                       cat_no = character(),
+                       media_url = character(),
+                       evidence = character())
   out_df <- bind_rows(out_df, clean_recs)
 
   # coord_tol not yet accessible to user
