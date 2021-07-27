@@ -34,7 +34,7 @@ gbif_count <- function(prop, ...) {
   n <- rgbif::occ_search(limit = 0, ...,
                          geometry = get_wkt(prop),
                          return = "meta")
-  pull(n, count)
+  n$meta$count
 }
 
 bison_count <- function(prop) {
