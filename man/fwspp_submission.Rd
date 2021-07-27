@@ -6,7 +6,8 @@
  files ready for submission to FWSpecies database}
 \usage{
 fwspp_submission(in_dir = "./fwspp_review", out_dir = file.path(in_dir,
-  "fwspp_submission"), xlsx = NULL, overwrite = FALSE, verbose = TRUE)
+  "fwspp_submission"), xlsx = NULL, overwrite = FALSE,
+  verbose = TRUE)
 }
 \arguments{
 \item{in_dir}{a non-empty scalar character path to directory containing
