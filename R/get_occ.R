@@ -169,14 +169,13 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
   # that can query AntWeb with geometry, but it tosses any links to documenting images
   # This function borrows (steals) heavily from that function but saves the links
   bbox <- paste(c(lat_range[2], lon_range[2], lat_range[1], lon_range[1]), collapse = ",")
-  base_url <- "https://www.antweb.org/api/v3.1/specimens"
+  base_url <- "https://antweb.org/v3.1/specimens"
   try_GET <- try_verb_n(httr::GET)
-  res <- try_GET(base_url, query = list(bbox = bbox, limit = 2000),
-                 httr::timeout(timeout))
+  res <- try_GET(base_url, query = list(bbox = bbox, up = 1), httr::timeout(timeout))
   res <- jsonlite::fromJSON(httr::content(res, "text", encoding = "UTF-8"), FALSE)  # problem lies here...
 
-  if (res$count == 0) return(NULL)
-  if (res$count > 2000) message("Only first 2000 matching AntWeb records returned.")
+  if (res$metaData$count == 0) return(NULL)
+  if (res$metaData$count > 10000) message("Only first 10000 matching AntWeb records returned.")
 
   aw_recs <- lapply(res$specimens, function(x) {
     has_image <- "images" %in% names(x)

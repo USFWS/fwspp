@@ -204,13 +204,13 @@ clean_AntWeb <- function(aw_recs) {
     stop("Expected data.frame from AntWeb query.")
 
   aw_recs <- aw_recs %>%
-    mutate(sci_name = clean_sci_name(.data$scientific_name),
-           year = strptime(.data$dateIdentified, format = "%Y-%m-%d")$year + 1900,
-           month = strptime(.data$dateIdentified, format = "%Y-%m-%d")$mon + 1,
-           day = strptime(.data$dateIdentified, format = "%Y-%m-%d")$mday)
+    mutate(sci_name = clean_sci_name(.data$scientificName),
+           year = strptime(.data$dateCollectedStart, format = "%Y-%m-%d")$year + 1900,
+           month = strptime(.data$dateCollectedStart, format = "%Y-%m-%d")$mon + 1,
+           day = strptime(.data$dateCollectedStart, format = "%Y-%m-%d")$mday)
 
   # Rename relevant columns
-  rn <- c("geojson.coord1", "geojson.coord2", "catalogNumber")
+  rn <- c("decimalLatitude", "decimalLongitude", "specimenCode")
   colnames(aw_recs)[match(rn, colnames(aw_recs))] <-
     c("lat", "lon", "cat_no")
 
