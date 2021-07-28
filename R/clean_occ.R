@@ -23,7 +23,7 @@ clean_GBIF <- function(gbif_recs) {
                          institutionCode = character(0),
                          bibliographicCitation = character(0),
                          references = character(0),
-                         coordinateUncertaintyInMeters = integer(0),
+                         coordinateUncertaintyInMeters = double(0),
                          stringsAsFactors = FALSE))
 
   gbif_recs <- gbif_recs %>%
@@ -70,8 +70,7 @@ clean_BISON <- function(bison_recs) {
              !is_missing(.data$ownerInstitutionCollectionCode) ~
                paste0(sub("/$", "", .data$ownerInstitutionCollectionCode),
                       "; catalog# ", .data$cat_no),
-             TRUE ~ NA_character_),
-           coordinateUncertaintyInMeters = as.double(coordinateUncertaintyInMeters))
+             TRUE ~ NA_character_))
 
   # Rename relevant columns
   rn <- c("scientificName", "decimalLatitude", "decimalLongitude",
@@ -138,11 +137,8 @@ clean_VertNet <- function(vn_recs) {
                                                     .data$catalognumber),
              !is_missing(.data$bibliographiccitation) ~ .data$bibliographiccitation,
              TRUE ~ NA_character_),
-           month = as.integer(month),
-           month = case_when(
-             (month < 13 & month > 0) ~ month,
-             (month > 12 | month < 1)  ~ NA_integer_)
-    )
+           month = suppressWarnings(as.integer(month)),
+           month = ifelse(between(month, 1, 12), month, NA_integer_))
 
   # Rename relevant columns
   rn <- c("decimallatitude", "decimallongitude", "catalognumber",
@@ -233,22 +229,14 @@ standardize_occ <- function(clean_recs, coord_tol = NULL) {
     TRUE ~ "AntWeb"
   )
 
-  ## Set column names/order of output data frame
-  # out_df <- utils::read.csv(text = paste(c("sci_name", "lon", "lat", "loc_unc_m", "year",
-  #                                          "month", "day", "cat_no", "media_url", "evidence"),
-  #                                        collapse = ", "))
+  ## Ensure necessary columns are present and, if not, add them
+  #Set column names/order of output data frame
+  needed_nms <- c("sci_name", "lon", "lat", "loc_unc_m", "year",
+                  "month", "day", "cat_no", "media_url", "evidence")
+  needed_nms <- needed_nms[!needed_nms %in% names(clean_recs)]
+  out_df <- utils::read.csv(text = paste(needed_nms, collapse = ", "))
 
-  out_df <- data.frame(sci_name = character(),
-                       lon = numeric(),
-                       lat = numeric(),
-                       loc_unc_m = double(),
-                       year = integer(),
-                       month = integer(),
-                       day = integer(),
-                       cat_no = character(),
-                       media_url = character(),
-                       evidence = character())
-  out_df <- bind_rows(out_df, clean_recs)
+  out_df <- bind_rows(clean_recs, out_df)
 
   # coord_tol not yet accessible to user
   if (!is.null(coord_tol))
@@ -271,7 +259,8 @@ standardize_occ <- function(clean_recs, coord_tol = NULL) {
            evidence = gsub("; catalog# NA", "",
                            ifelse(!is_missing(.data$media_url), .data$media_url,
                                   .data$evidence)),
-           bio_repo = src)
+           bio_repo = src,
+           media_url = as.character(media_url))
 
   # Thin fields
   out_df[, c("sci_name", "lon", "lat", "loc_unc_m", "cat_no", "year", "month",
