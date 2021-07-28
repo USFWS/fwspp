@@ -32,8 +32,7 @@ fws_url <- function() "https://ecos.fws.gov/ServCat/DownloadFile/126665"
 
 gbif_count <- function(prop, ...) {
   n <- rgbif::occ_search(limit = 0, ...,
-                         geometry = get_wkt(prop),
-                         return = "meta")
+                         geometry = get_wkt(prop))
   n$meta$count
 }
 
