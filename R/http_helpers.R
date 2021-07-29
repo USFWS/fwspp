@@ -54,11 +54,11 @@ bison_count <- function(prop) {
 }
 
 est_timeout <- function(n_recs) {
-  ceiling(0.003 * n_recs)
+  ceiling(0.005 * n_recs)
 }
 
 est_nrecs <- function(timeout) {
-  recs <- round((timeout - 15) / 0.003)
+  recs <- round(timeout / 0.005)
   100 * (recs %/% 100 + as.logical(recs %% 100))
 }
 
