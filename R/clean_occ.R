@@ -234,9 +234,10 @@ standardize_occ <- function(clean_recs, coord_tol = NULL) {
   needed_nms <- c("sci_name", "lon", "lat", "loc_unc_m", "year",
                   "month", "day", "cat_no", "media_url", "evidence")
   needed_nms <- needed_nms[!needed_nms %in% names(clean_recs)]
-  out_df <- utils::read.csv(text = paste(needed_nms, collapse = ", "))
-
-  out_df <- bind_rows(clean_recs, out_df)
+  if (length(needed_nms)) {
+    out_df <- utils::read.csv(text = paste(needed_nms, collapse = ", "))
+    out_df <- bind_rows(clean_recs, out_df)
+  } else out_df <- clean_recs
 
   # coord_tol not yet accessible to user
   if (!is.null(coord_tol))
