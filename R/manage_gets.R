@@ -51,7 +51,7 @@ manage_gets <- function(prop, timeout) {
     idb_recs <- NULL
 
   ## VertNet
-  vn_recs <- get_VertNet(rowMeans(prop_bb), radius, timeout)
+  vn_recs <- get_VertNet(rowMeans(prop_bb), radius, timeout, prop = prop)
   if (!is.null(vn_recs))
     vn_recs <- clean_VertNet(vn_recs)
 

@@ -118,17 +118,47 @@ get_iDigBio <- function(lat_range, lon_range, timeout) {
 }
 
 #' @noRd
-get_VertNet <- function(center, radius, timeout, limit = 200000) {
+get_VertNet <- function(center, radius, timeout, limit = 10000, prop) {
 
   message("Querying VertNet...")
+  try_vertnet_count <- try_verb_n(vertnet_count)
+  # VertNet balks on large requests sometimes, returning no matches for a good query
+  # Try up to three times to be sure...
+  i <- 1
+  q_recs <- 0
+  while (i <= 3 | q_recs == 0) {
+    q_recs <- try_vertnet_count(center, radius)
+    i <- i + 1
+  }
 
   # `spocc` doesn't currently allow geographic searches with VertNet while `rvertnet` does
   try_vn <- try_verb_n(rvertnet::spatialsearch)
-  vn_recs <- try_vn(center[2], center[1], radius, limit, messages = FALSE,
-                    callopts = list(timeout = timeout),
-                    only_dwc = FALSE)
+
+  if (q_recs < 5000) {
+    vn_recs <- try_vn(center[2], center[1], radius, limit, messages = FALSE,
+                      callopts = list(timeout = timeout),
+                      only_dwc = FALSE)
+    if (!is.null(vn_recs)) vn_recs <- vn_recs$data
+  } else {
+    # Chop it up
+    diced <- dice_prop(prop)
+    vn_recs <- pbapply::pblapply(seq_len(nrow(diced)), function(d) {
+      tmp <- diced[d, ]
+      tmp_bb <- matrix(sf::st_bbox(tmp), 2)
+      tmp_cent <- rowMeans(tmp_bb)
+      tmp_radius <- geosphere::distVincentyEllipsoid(tmp_cent, t(tmp_bb)) %>%
+        ceiling() %>% max()
+      tmp_recs <- try_vn(tmp_cent[2], tmp_cent[1], tmp_radius, messages = FALSE,
+                         callopts = list(timeout = timeout),
+                         only_dwc = FALSE)
+      if (!is.null(tmp_recs)) tmp_recs <- tmp_recs$data
+      tmp_recs
+    })
+    vn_recs <- bind_rows(vn_recs) %>% distinct()
+  }
   vn_recs
 }
+
 
 #' @noRd
 get_EcoEngine <- function(lat_range, lon_range, timeout) {

@@ -53,6 +53,18 @@ bison_count <- function(prop) {
   attr(q_recs, "numFound")
 }
 
+vertnet_count <- function(center, radius) {
+  args <- list(lat = center[2], long = center[1], radius = radius)
+  cli <- crul::HttpClient$new(url = "http://api.vertnet-portal.appspot.com", opts = list())
+  tt <- cli$get("api/search",
+                query = list(q = rvertnet:::make_q("spatialsearch", args)))
+  tt$raise_for_status()
+  txt <- tt$parse("UTF-8")
+  out <- jsonlite::fromJSON(txt)
+  avail <- out$matching_records
+  as.numeric(regmatches(avail, regexpr("[0-9]+", avail)))
+}
+
 est_timeout <- function(n_recs) {
   ceiling(0.005 * n_recs)
 }

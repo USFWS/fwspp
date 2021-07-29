@@ -106,9 +106,7 @@ clean_iDigBio <- function(idb_recs) {
 #' @noRd
 clean_VertNet <- function(vn_recs) {
 
-  stopifnot(inherits(vn_recs, "list"))
-
-  vn_recs <- vn_recs$data %>%
+  vn_recs <- vn_recs %>%
     # `rvertnet` seems to return everything as a character; guess data types
     mutate_if(is.character, utils::type.convert, as.is = TRUE)
 
