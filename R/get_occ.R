@@ -17,6 +17,11 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
 
   # Hoop-jumping to retrieve more records, if necessary
   q_recs <- try_gbif_count(prop)
+  if (q_recs == 0) {
+    message("No records found.")
+    return(NULL)
+  }
+  message("Retrieving ", q_recs, " records.")
   if (q_recs > 125000) {
     message("Splitting the GBIF query temporally to recover all records.")
     # Finding year breaks
@@ -54,7 +59,7 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
       gbif_recs$data <- bind_rows(gbif_recs$data, tmp$data)
     }
   } else {
-    gbif_recs <- try_gbif(limit = limit,
+    gbif_recs <- try_gbif(limit = min(limit, q_recs),
                           geometry = get_wkt(prop),
                           curlopts = list(timeout = timeout))
   }
@@ -75,7 +80,11 @@ get_BISON <- function(prop, q_recs = NULL, timeout) {
     q_recs <- try_bison_count(prop)
   }
 
-  if (q_recs == 0) return(NULL)
+  if (q_recs == 0) {
+    message("No records found.")
+    return(NULL)
+  }
+  message("Retrieving ", q_recs, " records.")
 
   # Retrieve spatial parameters for query
   prop_bb <- matrix(sf::st_bbox(prop), 2)
@@ -83,7 +92,7 @@ get_BISON <- function(prop, q_recs = NULL, timeout) {
   lon_range <- prop_bb[1, ] + c(-0.00006, 0.00006)
 
   # Splitting very large requests
-  starts <- seq(from = 0L, by = 125000L, length = ceiling(q_recs/125000))
+  starts <- seq(from = 0L, by = 10000L, length = ceiling(q_recs/10000L))
   rows <- c(diff(starts), q_recs - max(starts))
   con <- solrium::SolrClient$new(host = "bison.usgs.gov", scheme = "https",
                                  path = "solr/occurrences/select", port = NULL)
@@ -96,7 +105,8 @@ get_BISON <- function(prop, q_recs = NULL, timeout) {
                                      paste(lat_range, collapse = " TO "), "]"),
                               paste0("decimalLongitude:[",
                                      paste(lon_range, collapse = " TO "), "]"))),
-      start = starts[i], rows = rows[i], callopts = list(timeout = timeout * 2))
+      # Even paged, BISON can be slow, so bump timeout
+      start = starts[i], rows = rows[i], callopts = list(timeout = timeout * 4))
   })
   bind_rows(bison_recs)
 }
@@ -112,10 +122,18 @@ get_iDigBio <- function(lat_range, lon_range, timeout) {
                              bottom_right = list(
                                lat = lat_range[1], lon = lon_range[2])))
 
+  try_idb_count <- try_verb_n(ridigbio::idig_count_records)
   try_idb <- try_verb_n(ridigbio::idig_search)
+  q_recs <- try_idb_count(rq = rq)
+  if (q_recs == 0) {
+    message("No records found.")
+    return(NULL)
+  }
+  message("Retrieving ", q_recs, " records.")
   idb_recs <- try_idb(type = "records", mq = FALSE, rq = rq, fields = "all",
                       max_items = 100000, limit = 0, offset = 0, sort = FALSE,
                       httr::config(timeout = timeout))
+  idb_recs
 }
 
 #' @noRd
@@ -131,6 +149,11 @@ get_VertNet <- function(center, radius, timeout, limit = 10000, prop) {
     q_recs <- try_vertnet_count(center, radius)
     i <- i + 1
   }
+  if (q_recs == 0) {
+    message("No records found.")
+    return(NULL)
+  }
+  message("Retrieving ", q_recs, " records.")
 
   # `spocc` doesn't currently allow geographic searches with VertNet while `rvertnet` does
   try_vn <- try_verb_n(rvertnet::spatialsearch)
@@ -174,12 +197,16 @@ get_EcoEngine <- function(lat_range, lon_range, timeout) {
   # EcoEngine 'errors' when no results so approach slightly differently
   safe_ee <-purrr::safely(ecoengine::ee_observations)
   for (i in 1:3) {
-    ee_recs <- safe_ee(page_size = 10000, bbox = bbox,
-                       georeferenced = TRUE, quiet = TRUE,
-                       foptions = httr::timeout(timeout))
+    suppressMessages(
+      ee_recs <- safe_ee(page_size = 10000, bbox = bbox,
+                         georeferenced = TRUE, quiet = TRUE,
+                         foptions = httr::timeout(timeout))
+    )
     if (!is_error(ee_recs) || i == 3) break
-    if (grepl("count not greater than 0", ee_recs$error$message))
+    if (grepl("count not greater than 0", ee_recs$error$message)) {
+      message("No records found.")
       return(NULL)
+    }
     wait <- stats::runif(1, min(5 ^ i, 120), min(5 ^ (i + 1), 180))
     mess <- paste("HTTP timeout or error on attempt %d.",
                   "Retrying in %0.0f s.")
@@ -188,6 +215,7 @@ get_EcoEngine <- function(lat_range, lon_range, timeout) {
   }
   if (is_error(ee_recs))
     stop(ee_recs$error$message)
+  message("Retrieving ", ee_recs$result$results, " records.")
   ee_recs$result
 }
 
@@ -205,8 +233,12 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
   res <- try_GET(base_url, query = list(bbox = bbox, up = 1), httr::timeout(timeout))
   res <- jsonlite::fromJSON(httr::content(res, "text", encoding = "UTF-8"), FALSE)  # problem lies here...
 
-  if (res$metaData$count == 0) return(NULL)
+  if (res$metaData$count == 0) {
+    message("No records found.")
+    return(NULL)
+  }
   if (res$metaData$count > 10000) message("Only first 10000 matching AntWeb records returned.")
+  message("Retrieving ", min(res$metaData$count, 10000), " records.")
 
   aw_recs <- lapply(res$specimens, function(x) {
     has_image <- "images" %in% names(x)
