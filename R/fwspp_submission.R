@@ -21,7 +21,7 @@
 #'
 #' Should a valid taxonomic match be found (e.g., by retrieving the
 #'  appropriate \code{taxon_code} for the correct scientific name with
-#'  \code{\link{nps_taxonomy}}), update the \code{taxon_code} in the
+#'  \code{\link{fws_taxonomy}}), update the \code{taxon_code} in the
 #'  spreadsheet and set \code{accept_record = ModifiedTaxonCode}. Setting
 #'  \code{accept_record = ModifiedTaxonCode}
 #'  means any taxonomic changes will be incorporated, and the record accepted,
