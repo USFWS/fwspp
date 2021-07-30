@@ -38,19 +38,12 @@ gbif_count <- function(prop, ...) {
 
 bison_count <- function(prop) {
   prop_bb <- matrix(sf::st_bbox(prop), 2)
-  lat_range <- prop_bb[2, ] + c(-0.00006, 0.00006)
-  lon_range <- prop_bb[1, ] + c(-0.00006, 0.00006)
-  con <- solrium::SolrClient$new(host = "bison.usgs.gov", scheme = "https",
-                                 path = "solr/occurrences/select", port = NULL)
-  q_recs <- solrium::solr_search(
-    conn = con,
-    params = list(q = '*:*',
-                  fq = list(paste0("decimalLatitude:[",
-                                   paste(lat_range, collapse = " TO "), "]"),
-                            paste0("decimalLongitude:[",
-                                   paste(lon_range, collapse = " TO "), "]"))),
-    rows = 1, callopts = list(timeout = 10))
-  attr(q_recs, "numFound")
+  aoi_bb <- as.vector(prop_bb + matrix(rep(c(-0.00006, 0.00006), 2), nrow = 2, byrow = TRUE)) %>%
+    paste(collapse = ",")
+  url <- paste0("https://bison.usgs.gov/api/search.json?count=1&aoibbox=", aoi_bb)
+  try_JSON <- try_verb_n(jsonlite::fromJSON, 2)
+  prop_info <- try_JSON(url)
+  prop_info$total
 }
 
 vertnet_count <- function(center, radius) {
