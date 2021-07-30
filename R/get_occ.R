@@ -77,17 +77,18 @@ get_BISON <- function(prop, q_recs = NULL, timeout) {
 
   if (q_recs == 0) return(NULL)
 
-  # Retrieve spatial paraameters for query
+  # Retrieve spatial parameters for query
   prop_bb <- matrix(sf::st_bbox(prop), 2)
   lat_range <- prop_bb[2, ] + c(-0.00006, 0.00006)
   lon_range <- prop_bb[1, ] + c(-0.00006, 0.00006)
 
   # Splitting very large requests
   starts <- seq(from = 0L, by = 125000L, length = ceiling(q_recs/125000))
+  rows <- c(diff(starts), q_recs - max(starts))
   con <- solrium::SolrClient$new(host = "bison.usgs.gov", scheme = "https",
                                  path = "solr/occurrences/select", port = NULL)
   try_solr <- try_verb_n(solrium::solr_search)
-  bison_recs <- lapply(starts, function(start) {
+  bison_recs <- lapply(seq_along(starts), function(i) {
     try_solr(
       conn = con,
       params = list(q = '*:*',
@@ -95,7 +96,7 @@ get_BISON <- function(prop, q_recs = NULL, timeout) {
                                      paste(lat_range, collapse = " TO "), "]"),
                               paste0("decimalLongitude:[",
                                      paste(lon_range, collapse = " TO "), "]"))),
-      start = start, rows = 125000, callopts = list(timeout = timeout))
+      start = starts[i], rows = rows[i], callopts = list(timeout = timeout * 2))
   })
   bind_rows(bison_recs)
 }
