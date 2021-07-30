@@ -146,8 +146,8 @@ get_VertNet <- function(center, radius, timeout, limit = 10000, prop) {
       tmp <- diced[d, ]
       tmp_bb <- matrix(sf::st_bbox(tmp), 2)
       tmp_cent <- rowMeans(tmp_bb)
-      tmp_radius <- geosphere::distVincentyEllipsoid(tmp_cent, t(tmp_bb)) %>%
-        ceiling() %>% max()
+      tmp_radius <- geosphere::distVincentyEllipsoid(tmp_cent, t(tmp_bb))
+      tmp_radius <- ceiling(max(tmp_radius))
       tmp_recs <- try_vn(tmp_cent[2], tmp_cent[1], tmp_radius, messages = FALSE,
                          callopts = list(timeout = timeout),
                          only_dwc = FALSE)

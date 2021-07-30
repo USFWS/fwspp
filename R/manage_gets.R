@@ -9,8 +9,8 @@ manage_gets <- function(prop, timeout) {
   # Ensure very small properties are queried
   lat_range <- prop_bb[2, ] + c(-0.00006, 0.00006)
   lon_range <- prop_bb[1, ] + c(-0.00006, 0.00006)
-  radius <- geosphere::distVincentyEllipsoid(rowMeans(prop_bb), t(prop_bb)) %>%
-    ceiling() %>% max()
+  radius <- geosphere::distVincentyEllipsoid(rowMeans(prop_bb), t(prop_bb))
+  radius <- ceiling(max(radius) /100) * 100
 
   # BISON record count may be used to determine the HTTP request timeout
   try_bison_count <- try_verb_n(bison_count)
