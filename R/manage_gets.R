@@ -12,16 +12,17 @@ manage_gets <- function(prop, timeout) {
   radius <- geosphere::distVincentyEllipsoid(rowMeans(prop_bb), t(prop_bb))
   radius <- ceiling(max(radius) /100) * 100
 
-  # BISON record count may be used to determine the HTTP request timeout
+  # BISON record count used to determine the HTTP request timeout
+  # BISON is slower but we page the request to avoid timeouts
   try_bison_count <- try_verb_n(bison_count)
   q_recs <- try_bison_count(prop)
 
   # Compare and set timeout programmatically, if not specified by user
-  # Timeout is based on BISON queries as they are typically the largest
-  # contiguous downloads
+  # Timeout is based on BSION queries as they are typically the largest
   tox <- timeout
-  timeout <- est_timeout(min(125000, q_recs))
+  timeout <- est_timeout(q_recs)
   if (!is.null(tox)) timeout <- timeout * tox
+  message("Server request timeout set to ", timeout, " seconds (x4 for BISON).")
   prog_recs <- est_nrecs(timeout)
   if (prog_recs < q_recs)
     message("Your timeout setting may be too short. Watch for repeated HTTP ",
