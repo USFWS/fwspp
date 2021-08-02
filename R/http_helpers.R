@@ -50,7 +50,7 @@ vertnet_count <- function(center, radius) {
   args <- list(lat = center[2], long = center[1], radius = radius)
   cli <- crul::HttpClient$new(url = "http://api.vertnet-portal.appspot.com", opts = list())
   tt <- cli$get("api/search",
-                query = list(q = rvertnet:::make_q("spatialsearch", args, limit = 1)))
+                query = list(q = rvertnet:::make_q("spatialsearch", args, limit = 0)))
   tt$raise_for_status()
   txt <- tt$parse("UTF-8")
   out <- jsonlite::fromJSON(txt)
