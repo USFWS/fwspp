@@ -97,7 +97,7 @@ get_BISON <- function(prop, q_recs = NULL, timeout) {
   con <- solrium::SolrClient$new(host = "bison.usgs.gov", scheme = "https",
                                  path = "solr/occurrences/select", port = NULL)
   try_solr <- try_verb_n(solrium::solr_search)
-  bison_recs <- lapply(seq_along(starts), function(i) {
+  bison_recs <- pbapply::pblapply(seq_along(starts), function(i) {
     try_solr(
       conn = con,
       params = list(q = '*:*',
