@@ -31,6 +31,7 @@ clean_GBIF <- function(gbif_recs) {
       evidence = case_when(
         !is_missing(.data$bibliographicCitation) ~ .data$bibliographicCitation,
         !is_missing(.data$references) ~ .data$references,
+        !is_missing(.data$occurrenceID) ~ .data$occurrenceID,
         TRUE ~ paste0("www.gbif.org/dataset/", .data$datasetKey,
                       "; catalog# ", .data$catalogNumber)),
       media_url = ifelse(!is_missing(.data$media_url),
