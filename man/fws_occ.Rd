@@ -4,9 +4,15 @@
 \alias{fws_occ}
 \title{Species occurrence records on U.S. Fish and Wildlife properties}
 \usage{
-fws_occ(fws = NULL, bnd = c("admin", "acq"), buffer = 0,
-  scrub = c("strict", "moderate", "none"), taxonomy = TRUE,
-  verbose = TRUE, timeout = NULL)
+fws_occ(
+  fws = NULL,
+  bnd = c("admin", "acq"),
+  buffer = 0,
+  scrub = c("strict", "moderate", "none"),
+  taxonomy = TRUE,
+  verbose = TRUE,
+  timeout = NULL
+)
 }
 \arguments{
 \item{fws}{\code{data.frame} of organizational names (ORGNAME) and
