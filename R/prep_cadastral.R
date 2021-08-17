@@ -10,6 +10,8 @@ prep_cadastral <- function() {
 
   check_cadastral()
 
+  sf::sf_use_s2(FALSE)  # Turn off s2 processing to prevent the invalid geometry errors
+
   # Get requested features
   gdb <- system.file("extdata", "FWSCadastral.gdb", package = "fwspp")
 
@@ -27,7 +29,7 @@ prep_cadastral <- function() {
                     ORGNAME = gsub("([A-Z])(\\.)([A-Z])", "\\1\\2 \\3", .data$ORGNAME))
 
     # Cast to MULTIPOLYGON to avoide issues with MULTISURFACE geometries
-    props <- sf::st_cast(props, to = "MULTIPOLYGON")
+    props <- suppressMessages(suppressWarnings(sf::st_cast(props, to = "MULTIPOLYGON")))
 
     # Impose zero width buffer to correct potentially invalid geometries
     # e.g., ring self-intersections...
@@ -35,11 +37,12 @@ prep_cadastral <- function() {
 
     # Dissolve into a single multi-part polygon by property, region, and type
     props <- props %>%
-      group_by(.data$ORGNAME, .data$FWSREGION, .data$RSL_TYPE) %>%
-      summarize() %>% ungroup()
+      suppressMessages(suppressWarnings(group_by(.data$ORGNAME, .data$FWSREGION, .data$RSL_TYPE))) %>%
+      suppressMessages(suppressWarnings(summarize())) %>%
+      suppressMessages(suppressWarnings(ungroup()))
 
     # Put in WGS84 even though GRS80 is practically identical
-    props <- sf::st_transform(props, 4326)
+    props <- suppressMessages(suppressWarnings(sf::st_transform(props, 4326)))
 
     # Again, impose zero width buffer to correct potentially invalid merged geometries
     props <- suppressMessages(suppressWarnings(sf::st_buffer(props, 0)))
@@ -48,5 +51,8 @@ prep_cadastral <- function() {
                         paste0(l_nm, ".rds"))
     saveRDS(props, file = out_fn)
   }
+
+  sf::sf_use_s2(TRUE) # Default back to using s2
+
   message("Finished!")
 }

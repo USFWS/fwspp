@@ -40,8 +40,7 @@ install_fws_cadastral <- function() {
 
   # Update list of properties
   fws_interest <- system.file("extdata", "fws_interest.rds", package = "fwspp")
-  r <- readRDS(fws_interest) %>% as.data.frame() %>%
-    select(-.data$geometry)
+  r <- readRDS(fws_interest) %>% as.data.frame()
   saveRDS(r, file = file.path(system.file("extdata", package = "fwspp"),
                               "fws_info.rds"))
   invisible()
