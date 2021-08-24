@@ -24,7 +24,7 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   # If substantial # of records, check if the area ratio of a property
   # to its bounding box is small enough to warrant further division
   # for efficiency
-  if (max(try_gbif_count(prop), try_bison_count(prop)) > 125000)
+  if (max(try_gbif_count(prop), try_bison_count(prop)) > 100000)
     prop <- split_prop(prop)
 
   occ_recs <- vector(nrow(prop), mode = "list")
