@@ -22,14 +22,14 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
     return(NULL)
   }
   message("Retrieving ", q_recs, " records.")
-  if (q_recs > 125000) {
+  if (q_recs > 90000) {
     message("Splitting the GBIF query temporally to recover all records.")
     # Finding year breaks
-    n_grp <- ceiling(q_recs/125000)
+    n_grp <- ceiling(q_recs/90000)
     yr_bnd_l <- integer(0)
 
     for (yr in curr_yr:1776) {
-      cutoff <- 125000 * (length(yr_bnd_l) + 1)
+      cutoff <- 90000 * (length(yr_bnd_l) + 1)
       yr_rng <- paste(yr, curr_yr, sep = ",")
       n_recs <- try_gbif_count(prop,
                                year = yr_rng)
