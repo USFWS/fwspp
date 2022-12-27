@@ -39,7 +39,7 @@ clean_GBIF <- function(gbif_recs) {
                          .data$media_url))
 
   # Rename relevant columns
-  rn <- c("name", "decimalLatitude", "decimalLongitude", "catalogNumber", "coordinateUncertaintyInMeters")
+  rn <- c("species", "decimalLatitude", "decimalLongitude", "catalogNumber", "coordinateUncertaintyInMeters")
   colnames(gbif_recs)[match(rn, colnames(gbif_recs))] <-
     c("sci_name", "lat", "lon", "cat_no", "loc_unc_m")
 

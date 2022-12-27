@@ -60,6 +60,8 @@ clean_sci_name <- function(sn_string) {
     gsub(spec_epi_miss, "", .) %>%
     # Replace periods (e.g., abbreviated scientific names)
     gsub("\\.","", .) %>%
+    # Remove numeric values
+    gsub('[[:digit:]]+', '', .) %>%
     # Remove authorities (assumed format: Name, Year)
     gsub(" [A-Z][a-zA-Z]*, \\d{4}", "", .) %>%
     # Replace multiply sign for hybrids; assumes no other unicode slips in...

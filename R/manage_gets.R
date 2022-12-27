@@ -61,15 +61,21 @@ manage_gets <- function(prop, timeout) {
   if (!is.null(ee_recs))
     ee_recs <- clean_EcoEngine(ee_recs)
 
-  ## AntWeb
-  aw_recs <- get_AntWeb(lat_range, lon_range, timeout)
-  if (!is.null(aw_recs))
-    aw_recs <- clean_AntWeb(aw_recs)
+  ## AntWeb  (not working for Alaska, so commented out)
+  # aw_recs <- get_AntWeb(lat_range, lon_range, timeout)
+  # if (!is.null(aw_recs))
+  #   aw_recs <- clean_AntWeb(aw_recs)
 
   #############################################################################
   ## Consolidate standardized occurrence records from biodiversity databases ##
   #############################################################################
-  bind_rows(gbif_recs, bison_recs, idb_recs, vn_recs, ee_recs, aw_recs) %>%
+  bind_rows(gbif_recs,
+            bison_recs,
+            idb_recs,
+            vn_recs,
+            ee_recs,
+            # aw_recs  # AntWeb is not working in Alaska
+            ) %>%
     # Drop records with no species ID or monomials (e.g., genus only)
     filter(!is.na(.data$sci_name),
            vapply(strsplit(.data$sci_name, "\\W+"), length, integer(1)) == 2)
