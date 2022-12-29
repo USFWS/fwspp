@@ -39,5 +39,5 @@ prep_properties <- function(prop_df, bnd = "admin", verbose = FALSE) {
                             indent = 4, exdent = 4)),
                   collapse = "\n"))
   }
-  props
+  sf::st_make_valid(props)
 }

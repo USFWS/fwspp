@@ -10,6 +10,8 @@ prep_cadastral <- function() {
 
   check_cadastral()
 
+  sf::sf_use_s2(FALSE)  # Turn off s2 processing to prevent the invalid geometry errors
+
   # Get requested features
   gdb <- system.file("extdata", "FWSCadastral.gdb", package = "fwspp")
 
@@ -48,5 +50,8 @@ prep_cadastral <- function() {
                         paste0(l_nm, ".rds"))
     saveRDS(props, file = out_fn)
   }
+
+  sf::sf_use_s2(TRUE)  # Turn off s2 processing to prevent the invalid geometry errors
+
   message("Finished!")
 }

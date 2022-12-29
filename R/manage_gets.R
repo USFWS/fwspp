@@ -9,19 +9,20 @@ manage_gets <- function(prop, timeout) {
   # Ensure very small properties are queried
   lat_range <- prop_bb[2, ] + c(-0.00006, 0.00006)
   lon_range <- prop_bb[1, ] + c(-0.00006, 0.00006)
-  radius <- geosphere::distVincentyEllipsoid(rowMeans(prop_bb), t(prop_bb)) %>%
-    ceiling() %>% max()
+  radius <- geosphere::distVincentyEllipsoid(rowMeans(prop_bb), t(prop_bb))
+  radius <- ceiling(max(radius) /100) * 100
 
-  # BISON record count may be used to determine the HTTP request timeout
+  # BISON record count used to determine the HTTP request timeout
+  # BISON is slower but we page the request to avoid timeouts
   try_bison_count <- try_verb_n(bison_count)
   q_recs <- try_bison_count(prop)
 
   # Compare and set timeout programmatically, if not specified by user
-  # Timeout is based on BISON queries as they are typically the largest
-  # contiguous downloads
+  # Timeout is based on BSION queries as they are typically the largest
   tox <- timeout
-  timeout <- est_timeout(min(125000, q_recs))
+  timeout <- est_timeout(q_recs)
   if (!is.null(tox)) timeout <- timeout * tox
+  message("Server request timeout set to ", timeout, " seconds (x4 for BISON).")
   prog_recs <- est_nrecs(timeout)
   if (prog_recs < q_recs)
     message("Your timeout setting may be too short. Watch for repeated HTTP ",
@@ -51,24 +52,30 @@ manage_gets <- function(prop, timeout) {
     idb_recs <- NULL
 
   ## VertNet
-  vn_recs <- get_VertNet(rowMeans(prop_bb), radius, timeout)
+  vn_recs <- get_VertNet(rowMeans(prop_bb), radius, timeout, prop = prop)
   if (!is.null(vn_recs))
     vn_recs <- clean_VertNet(vn_recs)
 
-  ## Berkeley 'Ecoinformatics' Eengine
+  ## Berkeley 'Ecoinformatics' Engine
   ee_recs <- get_EcoEngine(lat_range, lon_range, timeout)
   if (!is.null(ee_recs))
     ee_recs <- clean_EcoEngine(ee_recs)
 
-  ## AntWeb
-  aw_recs <- get_AntWeb(lat_range, lon_range, timeout)
-  if (!is.null(aw_recs))
-    aw_recs <- clean_AntWeb(aw_recs)
+  ## AntWeb  (not working for Alaska, so commented out)
+  # aw_recs <- get_AntWeb(lat_range, lon_range, timeout)
+  # if (!is.null(aw_recs))
+  #   aw_recs <- clean_AntWeb(aw_recs)
 
   #############################################################################
   ## Consolidate standardized occurrence records from biodiversity databases ##
   #############################################################################
-  bind_rows(gbif_recs, bison_recs, idb_recs, vn_recs, ee_recs, aw_recs) %>%
+  bind_rows(gbif_recs,
+            bison_recs,
+            idb_recs,
+            vn_recs,
+            ee_recs,
+            # aw_recs  # AntWeb is not working in Alaska
+            ) %>%
     # Drop records with no species ID or monomials (e.g., genus only)
     filter(!is.na(.data$sci_name),
            vapply(strsplit(.data$sci_name, "\\W+"), length, integer(1)) == 2)

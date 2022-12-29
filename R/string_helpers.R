@@ -60,12 +60,17 @@ clean_sci_name <- function(sn_string) {
     gsub(spec_epi_miss, "", .) %>%
     # Replace periods (e.g., abbreviated scientific names)
     gsub("\\.","", .) %>%
+    # Remove numeric values
+    gsub('[[:digit:]]+', '', .) %>%
+    # Remove authorities (assumed format: Name, Year)
+    gsub(" [A-Z][a-zA-Z]*, \\d{4}", "", .) %>%
     # Replace multiply sign for hybrids; assumes no other unicode slips in...
     iconv("UTF-8", "ascii", sub = "x")
 
   if (identical(sn_string, character(0))) return(sn_string)
 
   # Drop trinomials, if present, but preserve *properly* formatted hybrids
+  # This also drops most authorities...
   # e.g., Aronia X prunifolia, Aronia x prunifolia
   n_words <- sapply(gregexpr("\\S+", sn_string), function(x) sum(x > 0))
   if (n_words == 3 && grepl(" X | x ", sn_string))
