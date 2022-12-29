@@ -35,13 +35,13 @@ take the extra steps documented below.
     install.packages("devtools", dependencies = TRUE)
 
     # Now install fwspp
-    devtools::install_github("adamdsmith/fwspp")
+    devtools::install_github("USFWS/fwspp")
 
     # If you receive a SSL or CA Certificate error
     install.packages("httr")
     library("httr")
     set_config(config(ssl_verifypeer = 0L))
-    devtools::install_github("adamdsmith/fwspp")
+    devtools::install_github("USFWS/fwspp")
 
     # Now load the functionality
     library("fwspp")

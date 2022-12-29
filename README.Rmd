@@ -53,7 +53,7 @@ Prior to your first use of `fwspp`, you'll need to install the USFWS Cadastral G
 install_fws_cadastral()
 ```
 
-or later, when you'll be prompted by the `fws_occ` function.
+or later, when you'll be prompted by the `fws_occ` function. The process takes 10 minutes or so to complete.
 
 # The `fwspp` package
 
@@ -160,3 +160,9 @@ kw_occ <- fws_occ(kw, buffer = 10, taxonomy = FALSE)
 ## Step 4 - Wait...
 
 Querying many properties can take hours, particularly if they are relatively large or contain hundreds of thousands of records. Typically the best option is to set `fws_occ` off and running in the background (or overnight) and do something more productive with yourself...
+
+# Coming very soon...
+
+What to do with with shiny new `fwspp` object produced by `fws_occ`
+
+
