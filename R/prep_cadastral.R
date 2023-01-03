@@ -20,31 +20,33 @@ prep_cadastral <- function() {
           "This will take several additional minutes.")))
   for (l in c("FWSInterest", "FWSApproved")) {
     message("Processing USFWS ", sub("FWS", "", l), " boundaries.")
-    props <- sf::read_sf(gdb, layer = l, stringsAsFactors = FALSE, quiet = TRUE)
+
+    props <- suppressMessages(sf::read_sf(gdb, layer = l, stringsAsFactors = FALSE, quiet = TRUE))
     l_nm <- paste0("fws_", tolower(sub("FWS", "", l)))
 
-    # Accommondate inconsistency with D'Arbonne in Approved vs Interest
+    # Accommodate inconsistency with D'Arbonne in Approved vs Interest
     props <- mutate(props,
                     ORGNAME = gsub(" '", "'", .data$ORGNAME),
                     ORGNAME = gsub("([A-Z])(\\.)([A-Z])", "\\1\\2 \\3", .data$ORGNAME))
 
     # Cast to MULTIPOLYGON to avoide issues with MULTISURFACE geometries
-    props <- sf::st_cast(props, to = "MULTIPOLYGON")
+    props <- suppressMessages(sf::st_cast(props, to = "MULTIPOLYGON", warn = FALSE))
 
     # Impose zero width buffer to correct potentially invalid geometries
     # e.g., ring self-intersections...
-    props <- suppressMessages(suppressWarnings(sf::st_buffer(props, 0)))
+    props <- suppressMessages(sf::st_buffer(props, 0))
 
     # Dissolve into a single multi-part polygon by property, region, and type
     props <- props %>%
       group_by(.data$ORGNAME, .data$FWSREGION, .data$RSL_TYPE) %>%
-      summarize() %>% ungroup()
+      {suppressMessages(summarize(.))} %>%
+      ungroup()
 
     # Put in WGS84 even though GRS80 is practically identical
-    props <- sf::st_transform(props, 4326)
+    props <- suppressMessages(sf::st_transform(props, 4326, quiet = TRUE))
 
     # Again, impose zero width buffer to correct potentially invalid merged geometries
-    props <- suppressMessages(suppressWarnings(sf::st_buffer(props, 0)))
+    props <- suppressMessages(sf::st_buffer(props, 0))
 
     out_fn <- file.path(system.file("extdata", package = "fwspp"),
                         paste0(l_nm, ".rds"))

@@ -24,7 +24,7 @@ Imports:
     geosphere (>= 1.5.5),
     httr (>= 1.3.1),
     jsonlite (>= 1.5),
-    lwgeom (>= 0.1.2),
+    lwgeom,
     openxlsx (>= 4.0.17),
     pbapply (>= 1.3-3),
     purrr (>= 0.2.3),
@@ -35,7 +35,7 @@ Imports:
     rlang (>= 0.1.2),
     rvertnet (>= 0.6),
     R.utils (>= 2.5),
-    sf (>= 0.6),
+    sf,
     solrium (>= 1.0.0),
     stats,
     utils
@@ -51,4 +51,4 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/adamdsmith/fwspp
 BugReports: https://github.com/adamdsmith/fwspp/issues
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
