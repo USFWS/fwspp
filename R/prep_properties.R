@@ -1,7 +1,7 @@
 #' Filter USFWS properties for query
 #'
 #' Filters USFWS cadastral \code{\link[sf]{sf}} data to the relevant
-#'  properties. Exported by not typically called directly by user.
+#'  properties. Exported but not typically called directly by user.
 #'
 #' @param prop_df \code{data.frame} of organizational names (ORGNAME) and
 #'  type (RSL_TYPE) of USFWS properties and their associated USFWS region
@@ -14,7 +14,7 @@
 #' @export
 prep_properties <- function(prop_df, bnd = "admin", verbose = FALSE) {
 
-  l <- case_when(
+  l <- dplyr::case_when(
     bnd == "admin" ~ "fws_interest.rds",
     TRUE ~ "fws_approved.rds")
   has_sf <- file.exists(system.file("extdata", l, package = "fwspp"))
@@ -26,7 +26,7 @@ prep_properties <- function(prop_df, bnd = "admin", verbose = FALSE) {
   r <- readRDS(gdb_sf)
 
   # Filter
-  props <- semi_join(r, prop_df, by = c("ORGNAME", "FWSREGION", "RSL_TYPE"))
+  props <- dplyr::semi_join(r, prop_df, by = c("ORGNAME", "FWSREGION", "RSL_TYPE"))
 
   # Reduce to properties matching input query
   prop_labels <- props$ORGNAME %>% Cap() %>% shorten_orgnames()

@@ -8,7 +8,7 @@ check_cadastral <- function() {
     message(
       wrap_message(paste("\nPrior to using `fwspp` you must install the current USFWS",
                          "cadastral geodatabase. To do so, please run",
-                         "`install_fws_cadastral()`.  This will take several minutes.",
+                         "`install_fws_cadastral()`. This will take several minutes.",
                          "\n\nWould you like to install now?")))
     utils::menu(c("Yes", "No")) -> resp
 
