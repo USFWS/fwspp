@@ -13,7 +13,7 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   # Maximum of GBIF and BISON record count is used to determine whether
   # a property is divided into smaller pieces
   try_gbif_count <- try_verb_n(gbif_count)
-  try_bison_count <- try_verb_n(bison_count)
+  # try_bison_count <- try_verb_n(bison_count)
 
   # Split property if it spans International Date Line
   # Check is likely not foolproof, but seems safe for USFWS props
@@ -24,7 +24,7 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   # If substantial # of records, check if the area ratio of a property
   # to its bounding box is small enough to warrant further division
   # for efficiency
-  if (max(try_gbif_count(prop), try_bison_count(prop)) > 100000)
+  if (try_gbif_count(prop) > 100000)
     prop <- split_prop(prop)
 
   occ_recs <- vector(nrow(prop), mode = "list")

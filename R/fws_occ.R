@@ -84,7 +84,7 @@
 #'  consider setting this parameter to \code{timeout = 4} or so. If regular timeout
 #'  persist after adjusting this parameter, however, please contact the maintainer
 #'  with details or, better yet, file an issue at
-#'  \url{https://github.com/adamdsmith/fwspp/issues}.
+#'  \url{https://github.com/USFWS/fwspp/issues}.
 #'
 #' @param fws \code{data.frame} of organizational names (ORGNAME) and
 #'  type (RSL_TYPE) of USFWS properties and their associated USFWS region
@@ -132,12 +132,11 @@
 #'    \item{acc_sci_name}{Accepted/valid scientific name from ITIS, if available.}
 #'    \item{com_name}{Regularly used vernacular names, if available.}
 #'    \item{taxon_rank}{Taxonomic rank of observation.}
-#'    \item{category}{Generic taxonomic grouping for taxa used in NPSpecies database
-#'          (\url{https://irma.nps.gov/npspecies}).}
+#'    \item{category}{Generic taxonomic grouping for taxa used in FWSpecies database.}
 #'    \item{tsn}{Accepted/valid Taxonomic Serial Number from ITIS, if available.}
 #'    \item{note}{Additional notes on the observation, currently restricted to indicating
 #'          that a matching taxon was not found in ITIS or trouble singling out a taxon
-#'          from NPSpecies.}
+#'          from FWSpecies.}
 #'  }
 #' @examples
 #' \dontrun{

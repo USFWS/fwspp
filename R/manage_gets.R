@@ -5,24 +5,23 @@ manage_gets <- function(prop, timeout) {
               sf::st_geometry_type(prop) %in% c("POLYGON", "MULTIPOLYGON"))
 
   # HTTP requests by latitude/longitude range, or radius around central loc
-  prop_bb <- matrix(sf::st_bbox(prop), 2)
+  bb <- matrix(sf::st_bbox(prop), 2)
   # Ensure very small properties are queried
-  lat_range <- prop_bb[2, ] + c(-0.00006, 0.00006)
-  lon_range <- prop_bb[1, ] + c(-0.00006, 0.00006)
-  radius <- geosphere::distVincentyEllipsoid(rowMeans(prop_bb), t(prop_bb))
+  lat_range <- bb[2, ] + c(-0.00006, 0.00006)
+  lon_range <- bb[1, ] + c(-0.00006, 0.00006)
+  radius <- geosphere::distVincentyEllipsoid(rowMeans(bb), t(bb))
   radius <- ceiling(max(radius) /100) * 100
 
-  # BISON record count used to determine the HTTP request timeout
-  # BISON is slower but we page the request to avoid timeouts
-  try_bison_count <- try_verb_n(bison_count)
-  q_recs <- try_bison_count(prop)
+  # GBIF record count used to determine the HTTP request timeout
+  try_gbif_count <- try_verb_n(gbif_count)
+  q_recs <- try_gbif_count(prop)
 
   # Compare and set timeout programmatically, if not specified by user
   # Timeout is based on BSION queries as they are typically the largest
   tox <- timeout
   timeout <- est_timeout(q_recs)
   if (!is.null(tox)) timeout <- timeout * tox
-  message("Server request timeout set to ", timeout, " seconds (x4 for BISON).")
+  message("Server request timeout set to ", timeout, " seconds (x4 for GBIF).")
   prog_recs <- est_nrecs(timeout)
   if (prog_recs < q_recs)
     message("Your timeout setting may be too short. Watch for repeated HTTP ",
@@ -35,14 +34,14 @@ manage_gets <- function(prop, timeout) {
   # GBIF
   gbif_recs <- get_GBIF(prop, timeout)
   if (gbif_recs$meta$count > 0)
-    gbif_recs <- clean_GBIF(gbif_recs)
+    gbif_recs_clean <- clean_GBIF(gbif_recs)
   else
     gbif_recs <- NULL
 
   ## BISON
-  bison_recs <- get_BISON(prop, q_recs, timeout)
-  if (!is.null(bison_recs))
-    bison_recs <- clean_BISON(bison_recs)
+  # bison_recs <- get_BISON(prop, q_recs, timeout)
+  # if (!is.null(bison_recs))
+  #   bison_recs <- clean_BISON(bison_recs)
 
   ## iDigBio
   idb_recs <- get_iDigBio(lat_range, lon_range, timeout)
@@ -52,7 +51,7 @@ manage_gets <- function(prop, timeout) {
     idb_recs <- NULL
 
   ## VertNet
-  vn_recs <- get_VertNet(rowMeans(prop_bb), radius, timeout, prop = prop)
+  vn_recs <- get_VertNet(rowMeans(bb), radius, timeout, prop = prop)
   if (!is.null(vn_recs))
     vn_recs <- clean_VertNet(vn_recs)
 
@@ -70,11 +69,11 @@ manage_gets <- function(prop, timeout) {
   ## Consolidate standardized occurrence records from biodiversity databases ##
   #############################################################################
   bind_rows(gbif_recs,
-            bison_recs,
+            # bison_recs,
             idb_recs,
             vn_recs,
             ee_recs,
-            # aw_recs  # AntWeb is not working in Alaska
+            # aw_recs
             ) %>%
     # Drop records with no species ID or monomials (e.g., genus only)
     filter(!is.na(.data$sci_name),

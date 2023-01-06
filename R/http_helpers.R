@@ -36,15 +36,15 @@ gbif_count <- function(prop, ...) {
   n$meta$count
 }
 
-bison_count <- function(prop) {
-  prop_bb <- matrix(sf::st_bbox(prop), 2)
-  aoi_bb <- as.vector(prop_bb + matrix(rep(c(-0.00006, 0.00006), 2), nrow = 2, byrow = TRUE)) %>%
-    paste(collapse = ",")
-  url <- paste0("https://bison.usgs.gov/api/search.json?count=1&aoibbox=", aoi_bb)
-  try_JSON <- try_verb_n(jsonlite::fromJSON, 2)
-  prop_info <- try_JSON(url)
-  prop_info$total
-}
+# bison_count <- function(prop) {
+#   prop_bb <- matrix(sf::st_bbox(prop), 2)
+#   aoi_bb <- as.vector(prop_bb + matrix(rep(c(-0.00006, 0.00006), 2), nrow = 2, byrow = TRUE)) %>%
+#     paste(collapse = ",")
+#   url <- paste0("https://bison.usgs.gov/api/search.json?count=1&aoibbox=", aoi_bb)
+#   try_JSON <- try_verb_n(jsonlite::fromJSON, 2)
+#   prop_info <- try_JSON(url)
+#   prop_info$total
+# }
 
 vertnet_count <- function(center, radius) {
   args <- list(lat = center[2], long = center[1], radius = radius)

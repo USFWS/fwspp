@@ -29,11 +29,12 @@ clean_GBIF <- function(gbif_recs) {
   gbif_recs <- gbif_recs %>%
     mutate(
       evidence = case_when(
-        !is_missing(.data$bibliographicCitation) ~ .data$bibliographicCitation,
+        #!is_missing(.data$bibliographicCitation) ~ .data$bibliographicCitation,
         !is_missing(.data$references) ~ .data$references,
-        !is_missing(.data$occurrenceID) ~ .data$occurrenceID,
-        TRUE ~ paste0("www.gbif.org/dataset/", .data$datasetKey,
-                      "; catalog# ", .data$catalogNumber)),
+        #!is_missing(.data$occurrenceID) ~ .data$occurrenceID,
+        TRUE ~ paste0("https://www.gbif.org/occurrence/", .data$gbifID)),
+        # TRUE ~ paste0("www.gbif.org/dataset/", .data$datasetKey,
+                      # "; catalog# ", .data$catalogNumber)),
       media_url = ifelse(!is_missing(.data$media_url),
                          paste(.data$evidence, .data$media_url, sep = ", "),
                          .data$media_url))
@@ -48,40 +49,40 @@ clean_GBIF <- function(gbif_recs) {
 }
 
 #' @noRd
-clean_BISON <- function(bison_recs) {
-
-  stopifnot(inherits(bison_recs, "tbl_df"))
-
-  # Add *missing* columns if necessary
-  bison_recs <- bison_recs %>%
-    bind_rows(data.frame(catalogNumber = character(0),
-                         coordinateUncertaintyInMeters = character(0),
-                         collectionID = character(0),
-                         eventDate = character(0),
-                         stringsAsFactors = FALSE)) %>%
-    mutate(cat_no = ifelse(!is_missing(.data$catalogNumber),
-                           .data$catalogNumber, NA_character_),
-           month = strptime(.data$eventDate, format = "%Y-%m-%d")$mon + 1,
-           day = strptime(.data$eventDate, format = "%Y-%m-%d")$mday,
-           evidence = case_when(
-             !is_missing(.data$collectionID) ~ paste0(sub("/$", "", .data$collectionID),
-                                                      "; catalog# ", .data$cat_no),
-             !is_missing(.data$institutionID) ~ paste0(sub("/$", "", .data$institutionID),
-                                                       "; catalog# ", .data$cat_no),
-             !is_missing(.data$ownerInstitutionCollectionCode) ~
-               paste0(sub("/$", "", .data$ownerInstitutionCollectionCode),
-                      "; catalog# ", .data$cat_no),
-             TRUE ~ NA_character_))
-
-  # Rename relevant columns
-  rn <- c("scientificName", "decimalLatitude", "decimalLongitude",
-          "ownerInstitutionCollectionCode", "coordinateUncertaintyInMeters")
-  colnames(bison_recs)[match(rn, colnames(bison_recs))] <-
-    c("sci_name", "lat", "lon", "inst_coll", "loc_unc_m")
-
-  standardize_occ(bison_recs)
-
-}
+# clean_BISON <- function(bison_recs) {
+#
+#   stopifnot(inherits(bison_recs, "tbl_df"))
+#
+#   # Add *missing* columns if necessary
+#   bison_recs <- bison_recs %>%
+#     bind_rows(data.frame(catalogNumber = character(0),
+#                          coordinateUncertaintyInMeters = character(0),
+#                          collectionID = character(0),
+#                          eventDate = character(0),
+#                          stringsAsFactors = FALSE)) %>%
+#     mutate(cat_no = ifelse(!is_missing(.data$catalogNumber),
+#                            .data$catalogNumber, NA_character_),
+#            month = strptime(.data$eventDate, format = "%Y-%m-%d")$mon + 1,
+#            day = strptime(.data$eventDate, format = "%Y-%m-%d")$mday,
+#            evidence = case_when(
+#              !is_missing(.data$collectionID) ~ paste0(sub("/$", "", .data$collectionID),
+#                                                       "; catalog# ", .data$cat_no),
+#              !is_missing(.data$institutionID) ~ paste0(sub("/$", "", .data$institutionID),
+#                                                        "; catalog# ", .data$cat_no),
+#              !is_missing(.data$ownerInstitutionCollectionCode) ~
+#                paste0(sub("/$", "", .data$ownerInstitutionCollectionCode),
+#                       "; catalog# ", .data$cat_no),
+#              TRUE ~ NA_character_))
+#
+#   # Rename relevant columns
+#   rn <- c("scientificName", "decimalLatitude", "decimalLongitude",
+#           "ownerInstitutionCollectionCode", "coordinateUncertaintyInMeters")
+#   colnames(bison_recs)[match(rn, colnames(bison_recs))] <-
+#     c("sci_name", "lat", "lon", "inst_coll", "loc_unc_m")
+#
+#   standardize_occ(bison_recs)
+#
+# }
 
 #' @noRd
 clean_iDigBio <- function(idb_recs) {
@@ -154,8 +155,8 @@ clean_EcoEngine <- function(ee_recs) {
 
   stopifnot(inherits(ee_recs, "ecoengine"))
 
+  # Extract institution code
   ee_recs <- ee_recs$data %>%
-    # Extract institution code
     mutate(inst_code = sub(":.*$", "", .data$record),
            cat_no = gsub("[^:]+:", "", .data$record))
 
@@ -169,6 +170,7 @@ clean_EcoEngine <- function(ee_recs) {
   ee_meta <- filter(ee_recs, is_missing(.data$remote_resource)) %>%
     select(.data$source) %>% unique()
 
+  # Get metadata url, if present
   if (nrow(ee_meta) > 0)
     ee_meta <- ee_meta %>%
     rowwise() %>%
@@ -176,13 +178,15 @@ clean_EcoEngine <- function(ee_recs) {
     ungroup()
   else ee_meta <- tibble(source = character(0), meta_url = character(0))
 
+  # Add url and catalog number, if remote source is missing
   ee_recs <- ee_recs %>%
     left_join(ee_meta, by = "source") %>%
-    mutate(evidence = case_when(
-      !is_missing(.data$remote_resource) ~ .data$remote_resource,
-      !is_missing(.data$meta_url) ~ paste0(meta_url, "; catalog# ",
-                                           .data$cat_no),
-      TRUE ~ NA_character_),
+    mutate(
+      evidence = case_when(
+        !is_missing(.data$remote_resource) ~ .data$remote_resource,
+        !is_missing(.data$meta_url) ~ paste0(meta_url, "; catalog# ",
+                                             .data$cat_no),
+        TRUE ~ NA_character_),
       loc_unc_m = as.double(loc_unc_m),
       year = lubridate::year(begin_date),
       month = lubridate::month(begin_date),

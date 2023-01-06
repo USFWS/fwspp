@@ -4,16 +4,15 @@ Title: Querying Biodiversity Databases on USFWS Properties
 Version: 0.1.0
 Author: person("Adam", "Smith", email = "adam_d_smith@fws.gov", role = c("aut",
     "cre"))
-Maintainer: Adam D. Smith <adam_d_smith@fws.gov>
-Description: Functions to query multiple biodiversity databases (e.g., GBIF, BISON, 
-  iDigBio, VertNet, Berkeley Ecoengine, AntWeb) based on the current ownership or 
+Maintainer: person("McCrea", "Cobb", email = "mccrea_cobb@fws.gov", role = c("ctb"))
+Description: Functions to query multiple biodiversity databases (e.g., GBIF, 
+  iDigBio, VertNet, and Berkeley Ecoengine) based on the current ownership or 
   approved acquisition boundary of US Fish & Wildlife Service (USFWS) properties, including
   National Wildlife Refuges, Waterfowl Production Areas, National Fish Hatcheries, and 
   others. The output of these queries can then be exported to spreadsheets for expert review
   of species occurrence records. Review spreadsheets modified according to specific 
   guidelines can then be imported, updated, and exported to spreadsheets ready for 
-  incorporation into the FWSpecies database 
-  (https://sites.google.com/a/fws.gov/fwspecies/home-1). This package benefits immensely 
+  incorporation into the FWSpecies database. This package benefits immensely 
   from the outstanding work of the rOpenSci community (https://ropensci.org).
 License: CC0
 Depends:
@@ -49,6 +48,6 @@ Copyright: This software is in the public domain because it contains materials
     www.fws.gov/help/policies.html
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/adamdsmith/fwspp
-BugReports: https://github.com/adamdsmith/fwspp/issues
+URL: https://github.com/USFWS/fwspp
+BugReports: https://github.com/USFWS/fwspp/issues
 RoxygenNote: 7.2.3
