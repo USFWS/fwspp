@@ -34,27 +34,27 @@ import_review <- function(xlsx, verbose) {
 
 process_review <- function(df) {
   # Remove unaccepted observations
-  df <- filter(df, .data$accept_record != "No")
+  df <- filter(df, accept_record != "No")
 
   # Pull modified records
-  acc_recs <- filter(df, .data$accept_record == "Yes")
-  mods <- filter(df, grepl("Modif", .data$accept_record) & !is.na(.data$taxon_code))
+  acc_recs <- filter(df, accept_record == "Yes")
+  mods <- filter(df, grepl("Modif", accept_record) & !is.na(taxon_code))
 
   revised_codes <- unique(mods$taxon_code)
   message("Retrieving updated taxonomic information.")
   revised_codes <- pbapply::pblapply(revised_codes, nps_taxonomy_by_code) %>%
     bind_rows() %>%
-    mutate(acc_sci_name = .data$sci_name) %>%
-    select(.data$taxon_code, .data$category, .data$acc_sci_name,
-           upd_com_name = .data$com_name)
+    mutate(acc_sci_name = sci_name) %>%
+    select(taxon_code, category, acc_sci_name,
+           upd_com_name = com_name)
 
   # Join updated taxonomy to modified records
-  mods <- select(mods, -.data$category) %>%
+  mods <- select(mods, -category) %>%
     left_join(revised_codes, by = "taxon_code") %>%
     rowwise() %>%
-    mutate(sci_name = ifelse(is.na(.data$acc_sci_name),
-                             .data$sci_name, .data$acc_sci_name),
-           com_name = clean_com_name(c(.data$com_name, .data$upd_com_name))) %>%
+    mutate(sci_name = ifelse(is.na(acc_sci_name),
+                             sci_name, acc_sci_name),
+           com_name = clean_com_name(c(com_name, upd_com_name))) %>%
     ungroup()
   acc_recs <- bind_rows(acc_recs, mods)
 
@@ -64,14 +64,14 @@ process_review <- function(df) {
 
   # Rename relevant columns
   acc_recs <- acc_recs %>%
-    select(`Scientific Name` = .data$sci_name, TaxonCode = .data$taxon_code,
-           .data$UnitCode, CommonNames = .data$com_name,
-           ExternalLinks = .data$evidence, Occurrence = .data$occurrence,
-           Nativeness = .data$nativeness, ORGNAME = .data$org_name) %>%
+    select(`Scientific Name` = sci_name, TaxonCode = taxon_code,
+           UnitCode, CommonNames = com_name,
+           ExternalLinks = evidence, Occurrence = occurrence,
+           Nativeness = nativeness, ORGNAME = org_name) %>%
     mutate(RecordStatus = "Approved",
            RefugeAccepted = "Yes",
-           Nativeness = ifelse(is.na(.data$Nativeness), "Unknown",
-                               .data$Nativeness))
+           Nativeness = ifelse(is.na(Nativeness), "Unknown",
+                               Nativeness))
 
   ## Set column names/order of output data frame
   out_df <- utils::read.csv(

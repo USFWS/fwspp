@@ -126,7 +126,7 @@ dice_prop <- function(prop){
       raster::rasterToPolygons() %>% sf::st_as_sf()
   sf::st_crs(overlay) <- sf::st_crs(prop)
   diced_prop <- suppressMessages(suppressWarnings(sf::st_intersection(prop, overlay))) %>%
-    select(-.data$layer)
+    select(-layer)
   diced_prop
 }
 

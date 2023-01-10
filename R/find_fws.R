@@ -57,14 +57,14 @@ find_fws <- function(fws = NULL, ptype = "NWR", region = 1:8L) {
   if (!all(region %in% 1:8L)) stop("Valid USFWS regions range from 1 to 8.\n",
                                    "See https://www.fws.gov/where for assistance.")
   r <- r %>%
-    filter(.data$FWSREGION %in% region,
-           .data$RSL_TYPE %in% ptype)
+    filter(FWSREGION %in% region,
+           RSL_TYPE %in% ptype)
 
   if (is.null(fws))
-    refs <- arrange(r, .data$ORGNAME)
+    refs <- arrange(r, ORGNAME)
   else {
     fws <- paste(fws, collapse = "|")
-    refs <- filter(r, grepl(fws, .data$ORGNAME, ignore.case = TRUE))
+    refs <- filter(r, grepl(fws, ORGNAME, ignore.case = TRUE))
     if (nrow(refs) == 0)
       stop("No USFWS properties matched your search criteria.",
            call. = FALSE)

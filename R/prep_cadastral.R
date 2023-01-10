@@ -26,8 +26,8 @@ prep_cadastral <- function() {
 
     # Accommodate inconsistency with D'Arbonne in Approved vs Interest
     props <- mutate(props,
-                    ORGNAME = gsub(" '", "'", .data$ORGNAME),
-                    ORGNAME = gsub("([A-Z])(\\.)([A-Z])", "\\1\\2 \\3", .data$ORGNAME))
+                    ORGNAME = gsub(" '", "'", ORGNAME),
+                    ORGNAME = gsub("([A-Z])(\\.)([A-Z])", "\\1\\2 \\3", ORGNAME))
 
     # Cast to MULTIPOLYGON to avoide issues with MULTISURFACE geometries
     props <- suppressMessages(sf::st_cast(props, to = "MULTIPOLYGON", warn = FALSE))
@@ -38,7 +38,7 @@ prep_cadastral <- function() {
 
     # Dissolve into a single multi-part polygon by property, region, and type
     props <- props %>%
-      group_by(.data$ORGNAME, .data$FWSREGION, .data$RSL_TYPE) %>%
+      group_by(ORGNAME, FWSREGION, RSL_TYPE) %>%
       {suppressMessages(summarize(.))} %>%
       ungroup()
 

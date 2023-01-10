@@ -7,13 +7,13 @@ xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
   org_dat <- dat %>%
     mutate(occurrence = "Probably present",
            nativeness = NA_character_,
-           accept_record = ifelse(is.na(.data$note) | grepl("NPSpecies", .data$note),
+           accept_record = ifelse(is.na(note) | grepl("NPSpecies", note),
                                   "Yes", "No")) %>%
-    select(.data$org_name, .data$category, .data$taxon_code,
-           .data$sci_name, .data$com_name,
-           .data$occurrence:.data$accept_record,
-           .data$evidence, .data$note) %>%
-    arrange(.data$category, .data$sci_name)
+    select(org_name, category, taxon_code,
+           sci_name, com_name,
+           occurrence:accept_record,
+           evidence, note) %>%
+    arrange(category, sci_name)
 
   wb <- createWorkbook()
   addWorksheet(wb, "Species List for Review")
@@ -38,8 +38,8 @@ xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
 }
 
 xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
-  org_dat <- filter(occ_data, .data$ORGNAME == org) %>%
-    select(-.data$ORGNAME)
+  org_dat <- filter(occ_data, ORGNAME == org) %>%
+    select(-ORGNAME)
 
   wb <- createWorkbook()
   addWorksheet(wb, "Species List for Import")

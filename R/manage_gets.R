@@ -76,7 +76,7 @@ manage_gets <- function(prop, timeout) {
             # aw_recs
             ) %>%
     # Drop records with no species ID or monomials (e.g., genus only)
-    filter(!is.na(.data$sci_name),
-           vapply(strsplit(.data$sci_name, "\\W+"), length, integer(1)) == 2)
+    filter(!is.na(sci_name),
+           vapply(strsplit(sci_name, "\\W+"), length, integer(1)) == 2)
 
 }
