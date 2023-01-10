@@ -60,7 +60,7 @@ retrieve_occ <- function(props, prop, buffer, scrub,
 
   occ_recs %>%
     mutate(org_name = org_name) %>%
-    select(.data$org_name, everything(), -.data$media_url, -.data$cat_no) %>%
-    arrange(.data$sci_name, .data$year, .data$month, .data$day)
+    select(org_name, everything(), -media_url, -cat_no) %>%
+    arrange(sci_name, year, month, day)
 
 }

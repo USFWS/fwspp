@@ -4,12 +4,12 @@
 #'  including ITIS Taxonomic Serial Number (\code{tsn}), the \code{taxon_code}
 #'  assigned by the National Park Service (and used also by the US Fish &
 #'  Wildlife Service), \code{common_name}(s), a generic taxon group, and a
-#'  \code{note} if a match is not found
+#'  \code{note} if a match is not found.
 #'
 #' @param sci_name character vector (case-insensitive) of scientific names
 #'  for which to retrieve basic taxonomic information at the *species* level;
 #'  that is, subspecies (trinomials) are currently ignored
-#' @return a \code{data.frame} of basic taxonomic infomration
+#' @return a \code{data.frame} of basic taxonomic information
 #' @export
 #' @examples
 #' \dontrun{
@@ -58,11 +58,11 @@ retrieve_taxonomy <- function(sci_name) {
              acc_sci_name = acc_sci_name,
              com_name = ifelse(all(is.na(cnames)), NA_character_,
                                paste(cnames, collapse = ", ")),
-             tsn = ifelse(.data$tsn < 0, NA_integer_, .data$tsn),
-             note = ifelse(is.na(.data$tsn),
+             tsn = ifelse(tsn < 0, NA_integer_, tsn),
+             note = ifelse(is.na(tsn),
                            "Present in FWSpecies, but no ITIS match", NA_character_)) %>%
-      select(.data$sci_name, .data$acc_sci_name, .data$com_name, rank = .data$rank,
-             category = .data$category, taxon_code = .data$taxon_code, .data$tsn, .data$note)
+      select(sci_name, acc_sci_name, com_name, rank = rank,
+             category = category, taxon_code = taxon_code, tsn, note)
     tax
   })
   bind_rows(out)
@@ -168,7 +168,7 @@ filter_taxonomy <- function(tax, sci_name) {
         acc_tax <- unique(tax$acc_taxon_code)
         if (length(acc_tax) == 1) {
           # Single accepted taxon, return first match
-          tax <- filter(tax, .data$acc_taxon_code == acc_tax)
+          tax <- filter(tax, acc_taxon_code == acc_tax)
           return(tax[1, ])
         }
         # Multiple ambiguous taxa, provide them
@@ -200,7 +200,7 @@ empty_tax <- function(sci_name = NA_character_, note = NA_character_) {
 
 pull_sci_names <- function(fwspp) {
   valid_fwspp <- fwspp[sapply(fwspp, function(i) !is_error(i) && !is.null(i))]
-  sn_list <- lapply(valid_fwspp, pull, .data$sci_name)
+  sn_list <- lapply(valid_fwspp, pull, sci_name)
   sn <- sort(unique(utils::stack(sn_list)$values))
   sn
 }
@@ -209,9 +209,9 @@ join_taxonomy <- function(fwspp, taxonomy) {
   lapply(fwspp, function(i) {
     if (!is.null(i) && !is_error(i))
       left_join(i, taxonomy, by = "sci_name") %>%
-      mutate(sci_name = ifelse(is.na(.data$acc_sci_name),
-                               .data$sci_name, .data$acc_sci_name)) %>%
-      select(-.data$acc_sci_name)
+      mutate(sci_name = ifelse(is.na(acc_sci_name),
+                               sci_name, acc_sci_name)) %>%
+      select(-acc_sci_name)
     else i
   })
 }

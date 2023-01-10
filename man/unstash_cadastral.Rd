@@ -26,7 +26,7 @@ Regular updates of the \code{fwspp} package can be annoying because
 cad <- fwspp::stash_cadastral()
 
 # Re-install fwspp package
-devtools::install_github("adamdsmith/fwspp")
+devtools::install_github("USFWS/fwspp")
 
 # Unstash the cadastral data
 library(fwspp)

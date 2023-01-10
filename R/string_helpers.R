@@ -10,7 +10,7 @@ shorten_orgnames <- function(orgnames) {
 
 check_dup_orgnames <- function(org_df) {
   if (n_distinct(org_df$ORGNAME) < nrow(org_df)) {
-    orgs <- pull(org_df, .data$ORGNAME)
+    orgs <- pull(org_df, ORGNAME)
     dups <- orgs[duplicated(orgs)]
     dups <- paste(" * ", dups, "\n") %>% paste(., collapse = "")
     warning(paste0(
@@ -64,6 +64,8 @@ clean_sci_name <- function(sn_string) {
     gsub('[[:digit:]]+', '', .) %>%
     # Remove authorities (assumed format: Name, Year)
     gsub(" [A-Z][a-zA-Z]*, \\d{4}", "", .) %>%
+    # Remove parentheses
+    gsub("[()]", "", .) %>%
     # Replace multiply sign for hybrids; assumes no other unicode slips in...
     iconv("UTF-8", "ascii", sub = "x")
 
@@ -73,8 +75,8 @@ clean_sci_name <- function(sn_string) {
   # This also drops most authorities...
   # e.g., Aronia X prunifolia, Aronia x prunifolia
   n_words <- sapply(gregexpr("\\S+", sn_string), function(x) sum(x > 0))
-  if (n_words == 3 && grepl(" X | x ", sn_string))
-    return(Cap(sn_string, "first"))
+  suppressWarnings(if (n_words == 3 && grepl(" X | x ", sn_string))
+    return(Cap(sn_string, "first")))
   sn_string %>% sub("^(\\S*\\s+\\S+).*", "\\1", .) %>%
     Cap("first")
 }

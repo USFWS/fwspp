@@ -2,9 +2,9 @@ Package: fwspp
 Type: Package
 Title: Querying Biodiversity Databases on USFWS Properties
 Version: 0.1.0
-Author: person("Adam", "Smith", email = "adam_d_smith@fws.gov", role = c("aut",
-    "cre"))
-Maintainer: person("McCrea", "Cobb", email = "mccrea_cobb@fws.gov", role = c("ctb"))
+Authors@R: 
+  c(person("Adam", "Smith", email = "adam_d_smith@fws.gov", role = c("aut", "cre")),
+    person("McCrea", "Cobb", email = "mccrea_cobb@fws.gov", role = "ctb"))
 Description: Functions to query multiple biodiversity databases (e.g., GBIF, 
   iDigBio, VertNet, and Berkeley Ecoengine) based on the current ownership or 
   approved acquisition boundary of US Fish & Wildlife Service (USFWS) properties, including

@@ -20,5 +20,5 @@ during species occurrence queries}
 }
 \description{
 Filters USFWS cadastral \code{\link[sf]{sf}} data to the relevant
- properties. Exported by not typically called directly by user.
+ properties. Exported but not typically called directly by user.
 }

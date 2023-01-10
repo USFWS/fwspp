@@ -13,7 +13,7 @@ which to retrieve basic taxonomic information. Unlike
 species level; that is, subspecies may be returned.}
 }
 \value{
-a \code{data.frame} of basic taxonomic infomration or \code{NULL}
+a \code{data.frame} of basic taxonomic information or \code{NULL}
  if there are no matching records
 }
 \description{

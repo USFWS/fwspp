@@ -34,7 +34,7 @@ manage_gets <- function(prop, timeout) {
   # GBIF
   gbif_recs <- get_GBIF(prop, timeout)
   if (gbif_recs$meta$count > 0)
-    gbif_recs_clean <- clean_GBIF(gbif_recs)
+    gbif_recs <- clean_GBIF(gbif_recs)
   else
     gbif_recs <- NULL
 
