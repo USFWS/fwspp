@@ -8,7 +8,7 @@ clean_GBIF <- function(gbif_recs) {
   # If necessary, associate media information into data frame
   media <- Filter(length, gbif_recs$media)
   if (length(media)) {
-    keys <- vapply(media, function(i) i[[1]][["key"]], integer(1))
+    keys <- vapply(media, function(i) i[[1]][["key"]], character(1))
     urls <- sapply(media, function(i) {
       id <- i[[1]][[1]][["identifier"]]
       id <- ifelse(is.null(id), NA_character_, id)

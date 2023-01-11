@@ -31,17 +31,12 @@ manage_gets <- function(prop, timeout) {
   ## Retrieve and standardize occurrence records from biodiversity databases ##
   #############################################################################
 
-  # GBIF
+  ## GBIF
   gbif_recs <- get_GBIF(prop, timeout)
   if (gbif_recs$meta$count > 0)
     gbif_recs <- clean_GBIF(gbif_recs)
   else
     gbif_recs <- NULL
-
-  ## BISON
-  # bison_recs <- get_BISON(prop, q_recs, timeout)
-  # if (!is.null(bison_recs))
-  #   bison_recs <- clean_BISON(bison_recs)
 
   ## iDigBio
   idb_recs <- get_iDigBio(lat_range, lon_range, timeout)
@@ -69,7 +64,6 @@ manage_gets <- function(prop, timeout) {
   ## Consolidate standardized occurrence records from biodiversity databases ##
   #############################################################################
   bind_rows(gbif_recs,
-            # bison_recs,
             idb_recs,
             vn_recs,
             ee_recs,

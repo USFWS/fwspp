@@ -13,7 +13,6 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   # Maximum of GBIF and BISON record count is used to determine whether
   # a property is divided into smaller pieces
   try_gbif_count <- try_verb_n(gbif_count)
-  # try_bison_count <- try_verb_n(bison_count)
 
   # Split property if it spans International Date Line
   # Check is likely not foolproof, but seems safe for USFWS props
