@@ -59,7 +59,7 @@ clean_iDigBio <- function(idb_recs) {
            year = strptime(datecollected, format = "%Y-%m-%d")$year + 1900,
            month = strptime(datecollected, format = "%Y-%m-%d")$mon + 1,
            day = strptime(datecollected, format = "%Y-%m-%d")$mday,
-           evidence = paste0("portal.idigbio.org/portal/records/", uuid))
+           evidence = paste0("https://portal.idigbio.org/portal/records/", uuid))
 
   # Rename relevant columns
   rn <- c("geopoint.lat", "geopoint.lon", "catalognumber", "coordinateuncertainty")
