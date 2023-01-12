@@ -64,8 +64,8 @@ clean_sci_name <- function(sn_string) {
     gsub('[[:digit:]]+', '', .) %>%
     # Remove authorities (assumed format: Name, Year)
     gsub(" [A-Z][a-zA-Z]*, \\d{4}", "", .) %>%
-    # Remove parentheses
-    gsub("[()]", "", .) %>%
+    # Remove special characters
+    gsub("[^[:alnum:]]", "", .) %>%
     # Replace multiply sign for hybrids; assumes no other unicode slips in...
     iconv("UTF-8", "ascii", sub = "x")
 
