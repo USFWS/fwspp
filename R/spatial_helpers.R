@@ -98,8 +98,8 @@ split_at_idl <- function(prop) {
     sf::st_polygon() %>% sf::st_sfc() %>%
     sf::st_set_crs(4326)
   suppressWarnings({
-    west_prop <- st_intersection(prop, west)
-    east_prop <- st_intersection(prop, east)
+    west_prop <- sf::st_intersection(prop, west)
+    east_prop <- sf::st_intersection(prop, east)
     prop <- rbind(west_prop, east_prop)
   })
 }
