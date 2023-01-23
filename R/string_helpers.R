@@ -66,6 +66,8 @@ clean_sci_name <- function(sn_string) {
     gsub(" [A-Z][a-zA-Z]*, \\d{4}", "", .) %>%
     # Remove special characters
     gsub("[[:punct:]]", "", .) %>%
+    # Remove tabs
+    gsub("\t", "", .) %>%
     # Replace multiply sign for hybrids; assumes no other unicode slips in...
     iconv("UTF-8", "ascii", sub = "x")
 
