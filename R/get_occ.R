@@ -64,43 +64,6 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
 }
 
 #' @noRd
-get_BISON <- function(prop, q_recs = NULL, timeout) {
-
-  message("Querying Biodiversity Information Serving Our Nation (BISON)...")
-
-  ## `BISON search with geometry in `spocc` package omits desired metadata (i.e., media info)
-  ## Two queries, one to get # records and second to retrieve them, is faster...
-  if (is.null(q_recs)) {
-    try_bison_count <- try_verb_n(bison_count)
-    q_recs <- try_bison_count(prop)
-  }
-
-  if (q_recs == 0) return(NULL)
-
-  # Retrieve spatial paraameters for query
-  prop_bb <- matrix(sf::st_bbox(prop), 2)
-  lat_range <- prop_bb[2, ] + c(-0.00006, 0.00006)
-  lon_range <- prop_bb[1, ] + c(-0.00006, 0.00006)
-
-  # Splitting very large requests
-  starts <- seq(from = 0L, by = 125000L, length = ceiling(q_recs/125000))
-  con <- solrium::SolrClient$new(host = "bison.usgs.gov", scheme = "https",
-                                 path = "solr/occurrences/select", port = NULL)
-  try_solr <- try_verb_n(solrium::solr_search)
-  bison_recs <- lapply(starts, function(start) {
-    try_solr(
-      conn = con,
-      params = list(q = '*:*',
-                    fq = list(paste0("decimalLatitude:[",
-                                     paste(lat_range, collapse = " TO "), "]"),
-                              paste0("decimalLongitude:[",
-                                     paste(lon_range, collapse = " TO "), "]"))),
-      start = start, rows = 125000, callopts = list(timeout = timeout))
-  })
-  bind_rows(bison_recs)
-}
-
-#' @noRd
 get_iDigBio <- function(lat_range, lon_range, timeout) {
 
   message("Querying Integrated Digitized Biocollections (iDigBio)...")

@@ -94,7 +94,7 @@ fwspp_submission <- function(in_dir = "./fwspp_review",
 
   all_reviews <- process_review(all_reviews)
 
-  orgs <- sort(unique(pull(all_reviews, .data$ORGNAME)))
+  orgs <- sort(unique(pull(all_reviews, ORGNAME)))
 
   if (verbose)
     invisible(

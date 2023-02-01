@@ -18,7 +18,7 @@
 #' cad <- fwspp::stash_cadastral()
 #'
 #' # Re-install fwspp package
-#' devtools::install_github("adamdsmith/fwspp")
+#' devtools::install_github("USFWS/fwspp")
 #'
 #' # Unstash the cadastral data
 #' library(fwspp)
@@ -68,7 +68,7 @@ stash_cadastral <- function() {
 #' cad <- fwspp::stash_cadastral()
 #'
 #' # Re-install fwspp package
-#' devtools::install_github("adamdsmith/fwspp")
+#' devtools::install_github("USFWS/fwspp")
 #'
 #' # Unstash the cadastral data
 #' library(fwspp)

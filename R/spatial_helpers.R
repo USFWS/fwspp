@@ -8,7 +8,7 @@ check_cadastral <- function() {
     message(
       wrap_message(paste("\nPrior to using `fwspp` you must install the current USFWS",
                          "cadastral geodatabase. To do so, please run",
-                         "`install_fws_cadastral()`.  This will take several minutes.",
+                         "`install_fws_cadastral()`. This will take several minutes.",
                          "\n\nWould you like to install now?")))
     utils::menu(c("Yes", "No")) -> resp
 
@@ -98,8 +98,8 @@ split_at_idl <- function(prop) {
     sf::st_polygon() %>% sf::st_sfc() %>%
     sf::st_set_crs(4326)
   suppressWarnings({
-    west_prop <- st_intersection(prop, west)
-    east_prop <- st_intersection(prop, east)
+    west_prop <- sf::st_intersection(prop, west)
+    east_prop <- sf::st_intersection(prop, east)
     prop <- rbind(west_prop, east_prop)
   })
 }
@@ -126,7 +126,7 @@ dice_prop <- function(prop){
       raster::rasterToPolygons() %>% sf::st_as_sf()
   sf::st_crs(overlay) <- sf::st_crs(prop)
   diced_prop <- suppressMessages(suppressWarnings(sf::st_intersection(prop, overlay))) %>%
-    select(-.data$layer)
+    select(-layer)
   diced_prop
 }
 

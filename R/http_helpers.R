@@ -37,21 +37,16 @@ gbif_count <- function(prop, ...) {
   pull(n, count)
 }
 
-bison_count <- function(prop) {
-  prop_bb <- matrix(sf::st_bbox(prop), 2)
-  lat_range <- prop_bb[2, ] + c(-0.00006, 0.00006)
-  lon_range <- prop_bb[1, ] + c(-0.00006, 0.00006)
-  con <- solrium::SolrClient$new(host = "bison.usgs.gov", scheme = "https",
-                                 path = "solr/occurrences/select", port = NULL)
-  q_recs <- solrium::solr_search(
-    conn = con,
-    params = list(q = '*:*',
-                  fq = list(paste0("decimalLatitude:[",
-                                   paste(lat_range, collapse = " TO "), "]"),
-                            paste0("decimalLongitude:[",
-                                   paste(lon_range, collapse = " TO "), "]"))),
-    rows = 1, callopts = list(timeout = 10))
-  attr(q_recs, "numFound")
+vertnet_count <- function(center, radius) {
+  args <- list(lat = center[2], long = center[1], radius = radius)
+  cli <- crul::HttpClient$new(url = "http://api.vertnet-portal.appspot.com", opts = list())
+  tt <- cli$get("api/search",
+                query = list(q = rvertnet:::make_q("spatialsearch", args, limit = 0)))
+  tt$raise_for_status()
+  txt <- tt$parse("UTF-8")
+  out <- jsonlite::fromJSON(txt)
+  avail <- out$matching_records
+  as.numeric(regmatches(avail, regexpr("[0-9]+", avail)))
 }
 
 est_timeout <- function(n_recs) {

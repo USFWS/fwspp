@@ -29,13 +29,15 @@ clean_GBIF <- function(gbif_recs) {
   gbif_recs <- gbif_recs %>%
     mutate(
       evidence = case_when(
-        !is_missing(.data$bibliographicCitation) ~ .data$bibliographicCitation,
-        !is_missing(.data$references) ~ .data$references,
-        TRUE ~ paste0("www.gbif.org/dataset/", .data$datasetKey,
-                      "; catalog# ", .data$catalogNumber)),
-      media_url = ifelse(!is_missing(.data$media_url),
-                         paste(.data$evidence, .data$media_url, sep = ", "),
-                         .data$media_url))
+        #!is_missing(bibliographicCitation) ~ bibliographicCitation,
+        !is_missing(references) ~ references,
+        #!is_missing(occurrenceID) ~ occurrenceID,
+        TRUE ~ paste0("https://www.gbif.org/occurrence/", gbifID)),
+        # TRUE ~ paste0("www.gbif.org/dataset/", datasetKey,
+                      # "; catalog# ", catalogNumber)),
+      media_url = ifelse(!is_missing(media_url),
+                         paste(evidence, media_url, sep = ", "),
+                         media_url))
 
   # Rename relevant columns
   rn <- c("name", "decimalLatitude", "decimalLongitude", "catalogNumber", "coordinateUncertaintyInMeters")
@@ -47,52 +49,16 @@ clean_GBIF <- function(gbif_recs) {
 }
 
 #' @noRd
-clean_BISON <- function(bison_recs) {
-
-  stopifnot(inherits(bison_recs, "tbl_df"))
-
-  # Add *missing* columns if necessary
-  bison_recs <- bison_recs %>%
-    bind_rows(data.frame(catalogNumber = character(0),
-                         coordinateUncertaintyInMeters = integer(0),
-                         collectionID = character(0),
-                         eventDate = character(0),
-                         stringsAsFactors = FALSE)) %>%
-    mutate(cat_no = ifelse(!is_missing(.data$catalogNumber),
-                           .data$catalogNumber, NA_character_),
-           month = strptime(.data$eventDate, format = "%Y-%m-%d")$mon + 1,
-           day = strptime(.data$eventDate, format = "%Y-%m-%d")$mday,
-           evidence = case_when(
-             !is_missing(.data$collectionID) ~ paste0(sub("/$", "", .data$collectionID),
-                                                      "; catalog# ", .data$cat_no),
-             !is_missing(.data$institutionID) ~ paste0(sub("/$", "", .data$institutionID),
-                                                       "; catalog# ", .data$cat_no),
-             !is_missing(.data$ownerInstitutionCollectionCode) ~
-               paste0(sub("/$", "", .data$ownerInstitutionCollectionCode),
-                      "; catalog# ", .data$cat_no),
-             TRUE ~ NA_character_))
-
-  # Rename relevant columns
-  rn <- c("scientificName", "decimalLatitude", "decimalLongitude",
-          "ownerInstitutionCollectionCode", "coordinateUncertaintyInMeters")
-  colnames(bison_recs)[match(rn, colnames(bison_recs))] <-
-    c("sci_name", "lat", "lon", "inst_coll", "loc_unc_m")
-
-  standardize_occ(bison_recs)
-
-}
-
-#' @noRd
 clean_iDigBio <- function(idb_recs) {
 
   stopifnot(inherits(idb_recs, "data.frame"))
 
   idb_recs <- idb_recs %>%
-    mutate(sci_name = clean_sci_name(.data$scientificname),
-           year = strptime(.data$datecollected, format = "%Y-%m-%d")$year + 1900,
-           month = strptime(.data$datecollected, format = "%Y-%m-%d")$mon + 1,
-           day = strptime(.data$datecollected, format = "%Y-%m-%d")$mday,
-           evidence = paste0("portal.idigbio.org/portal/records/", .data$uuid))
+    mutate(sci_name = clean_sci_name(scientificname),
+           year = strptime(datecollected, format = "%Y-%m-%d")$year + 1900,
+           month = strptime(datecollected, format = "%Y-%m-%d")$mon + 1,
+           day = strptime(datecollected, format = "%Y-%m-%d")$mday,
+           evidence = paste0("https://portal.idigbio.org/portal/records/", uuid))
 
   # Rename relevant columns
   rn <- c("geopoint.lat", "geopoint.lon", "catalognumber", "coordinateuncertainty")
@@ -124,19 +90,21 @@ clean_VertNet <- function(vn_recs) {
   # Create genus or species if they do not exist
   if (!(any("genus" %in% colnames(vn_recs), "specificepithet" %in% colnames(vn_recs))))
     vn_recs <- vn_recs %>%
-      mutate(genus = sapply(strsplit(.data$scientificname, " "), function(i) i[1]),
-             specificepithet = sapply(strsplit(.data$scientificname, " "), function(i) i[2]))
+    mutate(genus = sapply(strsplit(scientificname, " "), function(i) i[1]),
+           specificepithet = sapply(strsplit(scientificname, " "), function(i) i[2]))
 
   # Note that some viable link to original records, with media, lie buried
   # in the `references` column, but there's no easy way to get them...
   vn_recs <- vn_recs %>%
-    mutate(sci_name = clean_sci_name(.data$scientificname),
+    mutate(sci_name = clean_sci_name(scientificname),
            evidence = case_when(
-             !is_missing(.data$references) ~ .data$references,
-             !is_missing(.data$source_url) ~ paste0(.data$source_url, "; catalog# ",
-                                                  .data$catalognumber),
-             !is_missing(.data$bibliographiccitation) ~ .data$bibliographiccitation,
-             TRUE ~ NA_character_))
+             !is_missing(references) ~ references,
+             !is_missing(source_url) ~ paste0(source_url, "; catalog# ",
+                                                    catalognumber),
+             !is_missing(bibliographiccitation) ~ bibliographiccitation,
+             TRUE ~ NA_character_),
+           month = suppressWarnings(as.integer(month)),
+           month = ifelse(between(month, 1, 12), month, NA_integer_))
 
   # Rename relevant columns
   rn <- c("decimallatitude", "decimallongitude", "catalognumber",
@@ -153,10 +121,10 @@ clean_EcoEngine <- function(ee_recs) {
 
   stopifnot(inherits(ee_recs, "ecoengine"))
 
+  # Extract institution code
   ee_recs <- ee_recs$data %>%
-    # Extract institution code
-    mutate(inst_code = sub(":.*$", "", .data$record),
-           cat_no = gsub("[^:]+:", "", .data$record))
+    mutate(inst_code = sub(":.*$", "", record),
+           cat_no = gsub("[^:]+:", "", record))
 
   # Rename relevant columns
   rn <- c("scientific_name", "latitude", "longitude",
@@ -165,23 +133,30 @@ clean_EcoEngine <- function(ee_recs) {
     c("sci_name", "lat", "lon", "loc_unc_m")
 
   # Try to add missing evidence
-  ee_meta <- filter(ee_recs, is_missing(.data$remote_resource)) %>%
-    select(.data$source) %>% unique()
+  ee_meta <- filter(ee_recs, is_missing(remote_resource)) %>%
+    select(source) %>% unique()
 
+  # Get metadata url, if present
   if (nrow(ee_meta) > 0)
     ee_meta <- ee_meta %>%
-      rowwise() %>%
-      mutate(meta_url = get_ee_metadata(.data$source)) %>%
-      ungroup()
+    rowwise() %>%
+    mutate(meta_url = get_ee_metadata(source)) %>%
+    ungroup()
   else ee_meta <- tibble(source = character(0), meta_url = character(0))
 
+  # Add url and catalog number, if remote source is missing
   ee_recs <- ee_recs %>%
     left_join(ee_meta, by = "source") %>%
-    mutate(evidence = case_when(
-      !is_missing(.data$remote_resource) ~ .data$remote_resource,
-      !is_missing(.data$meta_url) ~ paste0(meta_url, "; catalog# ",
-                                           .data$cat_no),
-      TRUE ~ NA_character_))
+    mutate(
+      evidence = case_when(
+        !is_missing(remote_resource) ~ remote_resource,
+        !is_missing(meta_url) ~ paste0(meta_url, "; catalog# ",
+                                             cat_no),
+        TRUE ~ NA_character_),
+      loc_unc_m = as.double(loc_unc_m),
+      year = lubridate::year(begin_date),
+      month = lubridate::month(begin_date),
+      day = lubridate::day(begin_date))
 
   standardize_occ(ee_recs)
 
@@ -194,10 +169,10 @@ clean_AntWeb <- function(aw_recs) {
     stop("Expected data.frame from AntWeb query.")
 
   aw_recs <- aw_recs %>%
-    mutate(sci_name = clean_sci_name(.data$scientific_name),
-           year = strptime(.data$dateIdentified, format = "%Y-%m-%d")$year + 1900,
-           month = strptime(.data$dateIdentified, format = "%Y-%m-%d")$mon + 1,
-           day = strptime(.data$dateIdentified, format = "%Y-%m-%d")$mday)
+    mutate(sci_name = clean_sci_name(scientificName),
+           year = strptime(dateCollectedStart, format = "%Y-%m-%d")$year + 1900,
+           month = strptime(dateCollectedStart, format = "%Y-%m-%d")$mon + 1,
+           day = strptime(dateCollectedStart, format = "%Y-%m-%d")$mday)
 
   # Rename relevant columns
   rn <- c("geojson.coord1", "geojson.coord2", "catalogNumber")
@@ -231,26 +206,27 @@ standardize_occ <- function(clean_recs, coord_tol = NULL) {
 
   # coord_tol not yet accessible to user
   if (!is.null(coord_tol))
-    out_df <- filter(out_df, .data$loc_unc_m <= coord_tol)
+    out_df <- filter(out_df, loc_unc_m <= coord_tol)
 
   # Final field standardizations / conversions
   out_df <- out_df %>%
-    mutate(sci_name = clean_sci_name(.data$sci_name),
-           lon = as.numeric(.data$lon),
-           lat = as.numeric(.data$lat),
-           loc_unc_m = clean_loc_unc(.data$loc_unc_m),
-           cat_no = tolower(.data$cat_no),
-           year = as.integer(.data$year),
+    mutate(sci_name = clean_sci_name(sci_name),
+           lon = as.numeric(lon),
+           lat = as.numeric(lat),
+           loc_unc_m = clean_loc_unc(loc_unc_m),
+           cat_no = tolower(cat_no),
+           year = as.integer(year),
            # Try and salvage multiple possible entries for month, from integers to
            # various character incarnations (e.g., "02", "Jun", "August")
            month = suppressWarnings(as.integer(
-             ifelse(nchar(.data$month) < 3, .data$month,
-                    match(substr(tolower(.data$month), 1, 3), tolower(month.abb))))),
-           day = as.integer(.data$day),
+             ifelse(nchar(month) < 3, month,
+                    match(substr(tolower(month), 1, 3), tolower(month.abb))))),
+           day = as.integer(day),
            evidence = gsub("; catalog# NA", "",
-                           ifelse(!is_missing(.data$media_url), .data$media_url,
-                                  .data$evidence)),
-           bio_repo = src)
+                           ifelse(!is_missing(media_url), media_url,
+                                  evidence)),
+           bio_repo = src,
+           media_url = as.character(media_url))
 
   # Thin fields
   out_df[, c("sci_name", "lon", "lat", "loc_unc_m", "cat_no", "year", "month",

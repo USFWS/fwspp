@@ -12,14 +12,14 @@ for which to retrieve basic taxonomic information at the *species* level;
 that is, subspecies (trinomials) are currently ignored}
 }
 \value{
-a \code{data.frame} of basic taxonomic infomration
+a \code{data.frame} of basic taxonomic information
 }
 \description{
 Retrieves very basic taxonomic information for a given taxa, if available,
  including ITIS Taxonomic Serial Number (\code{tsn}), the \code{taxon_code}
  assigned by the National Park Service (and used also by the US Fish &
  Wildlife Service), \code{common_name}(s), a generic taxon group, and a
- \code{note} if a match is not found
+ \code{note} if a match is not found.
 }
 \examples{
 \dontrun{

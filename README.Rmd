@@ -4,8 +4,6 @@ output:
     variant: markdown_github
 ---
 
-[![Build Status](https://travis-ci.org/adamdsmith/fwspp.png)](https://travis-ci.org/adamdsmith/fwspp)
-
 ```{r, echo = FALSE, eval = TRUE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -35,13 +33,7 @@ With R and Rtools installed, it's relatively painless to install and load the `f
 install.packages("devtools", dependencies = TRUE)
 
 # Now install fwspp
-devtools::install_github("adamdsmith/fwspp")
-
-# If you receive a SSL or CA Certificate error
-install.packages("httr")
-library("httr")
-set_config(config(ssl_verifypeer = 0L))
-devtools::install_github("adamdsmith/fwspp")
+devtools::install_github("git@github.com:USFWS/fwspp.git", ref = "master")
 
 # Now load the functionality
 library("fwspp")
@@ -160,9 +152,3 @@ kw_occ <- fws_occ(kw, buffer = 10, taxonomy = FALSE)
 ## Step 4 - Wait...
 
 Querying many properties can take hours, particularly if they are relatively large or contain hundreds of thousands of records. Typically the best option is to set `fws_occ` off and running in the background (or overnight) and do something more productive with yourself...
-
-# Coming very soon...
-
-What to do with with shiny new `fwspp` object produced by `fws_occ`
-
-

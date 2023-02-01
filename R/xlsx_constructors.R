@@ -7,19 +7,19 @@ xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
   org_dat <- dat %>%
     mutate(occurrence = "Probably present",
            nativeness = NA_character_,
-           accept_record = ifelse(is.na(.data$note) | grepl("NPSpecies", .data$note),
+           accept_record = ifelse(is.na(note) | grepl("NPSpecies", note),
                                   "Yes", "No")) %>%
-    select(.data$org_name, .data$category, .data$taxon_code,
-           .data$sci_name, .data$com_name,
-           .data$occurrence:.data$accept_record,
-           .data$evidence, .data$note) %>%
-    arrange(.data$category, .data$sci_name)
+    select(org_name, category, taxon_code,
+           sci_name, com_name,
+           occurrence:accept_record,
+           evidence, note) %>%
+    arrange(category, sci_name)
 
-  wb <- createWorkbook()
-  addWorksheet(wb, "Species List for Review")
+  wb <- openxlsx::createWorkbook()
+  openxlsx::addWorksheet(wb, "Species List for Review")
   col_widths <- c(10, 15, 13, 29, 29, 16, 12, 9, 70, 40)
-  setColWidths(wb, 1, cols = seq_along(org_dat), widths = col_widths)
-  freezePane(wb, 1, firstRow = TRUE)
+  openxlsx::setColWidths(wb, 1, cols = seq_along(org_dat), widths = col_widths)
+  openxlsx::freezePane(wb, 1, firstRow = TRUE)
 
   # Add tags and data validation
   xlsx_review_tags(wb)
@@ -38,13 +38,13 @@ xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
 }
 
 xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
-  org_dat <- filter(occ_data, .data$ORGNAME == org) %>%
-    select(-.data$ORGNAME)
+  org_dat <- filter(occ_data, ORGNAME == org) %>%
+    select(-ORGNAME)
 
-  wb <- createWorkbook()
-  addWorksheet(wb, "Species List for Import")
-  setColWidths(wb, 1, cols = seq_along(org_dat), widths = "auto")
-  freezePane(wb, 1, firstRow = TRUE)
+  wb <- openxlsx::createWorkbook()
+  openxlsx::addWorksheet(wb, "Species List for Import")
+  openxlsx::setColWidths(wb, 1, cols = seq_along(org_dat), widths = "auto")
+  openxlsx::freezePane(wb, 1, firstRow = TRUE)
 
   # Write and save it
   writeData(wb, 1, org_dat, withFilter = TRUE)
@@ -59,7 +59,7 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
 }
 
 xlsx_review_tags <- function(wb) {
-  addWorksheet(wb, "tags")
+  openxlsx::addWorksheet(wb, "tags")
   occurrence <- c("Present", "Present-Adjacent", "Probably Present",
                   "Probably Present-Adjacent",
                   "Probably Present-Historical")

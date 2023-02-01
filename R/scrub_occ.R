@@ -9,17 +9,17 @@ scrub_occ <- function(occ_recs, scrub) {
   if (identical(scrub, "strict")) {
 
     all_media <- occ_recs %>%
-      filter(!is.na(.data$media_url)) %>%
-      group_by(.data$sci_name) %>%
-      arrange(.data$sci_name, -.data$year, -.data$month, -.data$day) %>%
-      slice(match(repo_pref, .data$bio_repo)) %>%
+      filter(!is.na(media_url)) %>%
+      group_by(sci_name) %>%
+      arrange(sci_name, -year, -month, -day) %>%
+      slice(match(repo_pref, bio_repo)) %>%
       filter(row_number() == 1)
 
     spp_evid <- occ_recs %>%
-      filter(!(.data$sci_name %in% all_media$sci_name), !is.na(.data$evidence)) %>%
-      group_by(.data$sci_name) %>%
-      arrange(.data$sci_name, -.data$year, -.data$month, -.data$day) %>%
-      slice(match(repo_pref, .data$bio_repo)) %>%
+      filter(!(sci_name %in% all_media$sci_name), !is.na(evidence)) %>%
+      group_by(sci_name) %>%
+      arrange(sci_name, -year, -month, -day) %>%
+      slice(match(repo_pref, bio_repo)) %>%
       filter(row_number() == 1)
 
     occ_recs <- bind_rows(all_media, spp_evid)
@@ -35,15 +35,15 @@ scrub_occ <- function(occ_recs, scrub) {
 
     # Catalog number duplicates
     cat_no_dups <- occ_recs %>%
-      select(.data$sci_name, .data$cat_no) %>%
+      select(sci_name, cat_no) %>%
       df_dups_ignore_NA()
 
     # Location duplicates (to 4 decimals)
     loc_dups <- occ_recs %>%
-      mutate(lat = round(.data$lat, 4),
-             lon = round(.data$lon, 4)) %>%
-      select(.data$sci_name, .data$year, .data$month, .data$day,
-             .data$lat, .data$lon) %>%
+      mutate(lat = round(lat, 4),
+             lon = round(lon, 4)) %>%
+      select(sci_name, year, month, day,
+             lat, lon) %>%
       df_dups_ignore_NA()
 
     occ_recs <- filter(occ_recs, !cat_no_dups, !loc_dups) %>%
