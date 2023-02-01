@@ -32,19 +32,10 @@ fws_url <- function() "https://ecos.fws.gov/ServCat/DownloadFile/126665"
 
 gbif_count <- function(prop, ...) {
   n <- rgbif::occ_search(limit = 0, ...,
-                         geometry = get_wkt(prop))
-  n$meta$count
+                         geometry = get_wkt(prop),
+                         return = "meta")
+  pull(n, count)
 }
-
-# bison_count <- function(prop) {
-#   prop_bb <- matrix(sf::st_bbox(prop), 2)
-#   aoi_bb <- as.vector(prop_bb + matrix(rep(c(-0.00006, 0.00006), 2), nrow = 2, byrow = TRUE)) %>%
-#     paste(collapse = ",")
-#   url <- paste0("https://bison.usgs.gov/api/search.json?count=1&aoibbox=", aoi_bb)
-#   try_JSON <- try_verb_n(jsonlite::fromJSON, 2)
-#   prop_info <- try_JSON(url)
-#   prop_info$total
-# }
 
 vertnet_count <- function(center, radius) {
   args <- list(lat = center[2], long = center[1], radius = radius)
@@ -59,11 +50,11 @@ vertnet_count <- function(center, radius) {
 }
 
 est_timeout <- function(n_recs) {
-  ceiling(0.005 * n_recs)
+  ceiling(15 + 0.003 * n_recs)
 }
 
 est_nrecs <- function(timeout) {
-  recs <- round(timeout / 0.005)
+  recs <- round((timeout - 15) / 0.003)
   100 * (recs %/% 100 + as.logical(recs %% 100))
 }
 

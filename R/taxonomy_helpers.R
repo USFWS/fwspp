@@ -21,7 +21,7 @@ retrieve_taxonomy <- function(sci_name) {
   out <- pbapply::pblapply(sci_name, function(sn) {
     # message(sn)
     acc_sci_name <- sn <- clean_sci_name(sn)
-    tax <- fws_taxonomy(acc_sci_name)
+    tax <- nps_taxonomy(acc_sci_name)
 
     # No match
     if (is.null(tax)) return(empty_tax(sn, "No match found; check spelling?"))
@@ -41,7 +41,7 @@ retrieve_taxonomy <- function(sci_name) {
       if (is.na(acc_tc))
         acc_sci_name <- NA_character_
       else {
-        tax <- fws_taxonomy_by_code(acc_tc)
+        tax <- nps_taxonomy_by_code(acc_tc)
         acc_sci_name <- tax$sci_name
         if (!is.na(tax$com_name)) {
           # add new unique common names
@@ -68,18 +68,19 @@ retrieve_taxonomy <- function(sci_name) {
   bind_rows(out)
 }
 
-#' Retrieve raw USFWS taxonomic information matching scientific name query
+#' Retrieve raw NPS taxonomic information matching scientific name query
 #'
-#' Queries U.S. Fish & Wildlife Service taxonomy records by scientific name,
+#' Queries National Park Service taxonomy records by scientific name,
 #'  returning all records that match the input \code{sci_name} parameter
 #'  (including partial matches; see Details). Returns basic taxonomic
 #'  information, if available, including ITIS Taxonomic Serial Number
-#'  (\code{tsn}), the \code{taxon_code} assigned by the US Fish & Wildlife Service),
+#'  (\code{tsn}), the \code{taxon_code} assigned by the National Park
+#'  Service (and used also by the US Fish & Wildlife Service),
 #'  \code{common_name}(s), a generic taxon group, whether the taxon is
 #'  valid according to ITIS and, if not, the accepted \code{taxon_code}
 #'  if a match is found.
 #'
-#' It is somewhat unclear how the USFWS records are filtered. The best guess
+#' It is somewhat unclear how the NPS records are filtered. The best guess
 #'  is that it parses the unique words in the query string (\code{sci_name})
 #'  and returns all records that match that set of unique words. The order
 #'  of query words is not strictly enforced. See examples.
@@ -93,13 +94,13 @@ retrieve_taxonomy <- function(sci_name) {
 #' @export
 #' @examples
 #' \dontrun{
-#' fws_taxonomy("GULo gulo")
-#' fws_taxonomy("Lampropeltis holbrooki")
-#' fws_taxonomy("holBRooki lampropeltis")
+#' nps_taxonomy("GULo gulo")
+#' nps_taxonomy("Lampropeltis holbrooki")
+#' nps_taxonomy("holBRooki lampropeltis")
 #' }
 
-fws_taxonomy <- function(sci_name) {
-  base_url <- "https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/searchByScientificName/"
+nps_taxonomy <- function(sci_name) {
+  base_url <- "http://irmaservices.nps.gov/v2/rest/taxonomy/searchByScientificName/"
   q_sci_name <- utils::URLencode(sci_name)
   q_url <- paste0(base_url, q_sci_name, "?format=json")
   tmp <- try(jsonlite::fromJSON(q_url), silent = TRUE)
@@ -127,9 +128,9 @@ fws_taxonomy <- function(sci_name) {
   tax
 }
 
-# Get FWS taxonomy using FWS Taxon Code
-fws_taxonomy_by_code <- function(taxon_code) {
-  base_url <- "https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/"
+# Get NPS taxonomy using NPS Taxon Code
+nps_taxonomy_by_code <- function(taxon_code) {
+  base_url <- "http://irmaservices.nps.gov/v2/rest/taxonomy/"
   q_url <- paste0(base_url, taxon_code, "?codeType=taxoncode&format=json")
   tax <- try(jsonlite::fromJSON(q_url), silent = TRUE)
   if (is_error(tax)) {

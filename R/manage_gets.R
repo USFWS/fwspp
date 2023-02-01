@@ -17,9 +17,10 @@ manage_gets <- function(prop, timeout) {
   q_recs <- try_gbif_count(prop)
 
   # Compare and set timeout programmatically, if not specified by user
-  # Timeout is based on BSION queries as they are typically the largest
+  # Timeout is based on BISON queries as they are typically the largest
+  # contiguous downloads
   tox <- timeout
-  timeout <- est_timeout(q_recs)
+  timeout <- est_timeout(min(125000, q_recs))
   if (!is.null(tox)) timeout <- timeout * tox
   message("Server request timeout set to ", timeout, " seconds (x4 for GBIF).")
   prog_recs <- est_nrecs(timeout)
@@ -50,15 +51,15 @@ manage_gets <- function(prop, timeout) {
   if (!is.null(vn_recs))
     vn_recs <- clean_VertNet(vn_recs)
 
-  ## Berkeley 'Ecoinformatics' Engine
+  ## Berkeley 'Ecoinformatics' Eengine
   ee_recs <- get_EcoEngine(lat_range, lon_range, timeout)
   if (!is.null(ee_recs))
     ee_recs <- clean_EcoEngine(ee_recs)
 
-  ## AntWeb  (not working for Alaska, so commented out)
-  # aw_recs <- get_AntWeb(lat_range, lon_range, timeout)
-  # if (!is.null(aw_recs))
-  #   aw_recs <- clean_AntWeb(aw_recs)
+  ## AntWeb
+  aw_recs <- get_AntWeb(lat_range, lon_range, timeout)
+  if (!is.null(aw_recs))
+    aw_recs <- clean_AntWeb(aw_recs)
 
   #############################################################################
   ## Consolidate standardized occurrence records from biodiversity databases ##
@@ -69,6 +70,7 @@ manage_gets <- function(prop, timeout) {
             ee_recs,
             # aw_recs
             ) %>%
+
     # Drop records with no species ID or monomials (e.g., genus only)
     filter(!is.na(sci_name),
            vapply(strsplit(sci_name, "\\W+"), length, integer(1)) == 2)
