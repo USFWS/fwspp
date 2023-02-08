@@ -34,13 +34,15 @@ get_UTM_zone <- function(lon) {
 }
 
 clip_occ <- function(occ_recs, prop) {
+  sf::sf_use_s2(FALSE)
   occ_pts <- sf::st_multipoint(cbind(occ_recs$lon, occ_recs$lat)) %>%
     sf::st_sfc(crs = sf::st_crs(prop)$proj4string) %>%
     sf::st_cast("POINT")
   suppressMessages(
     keep <- sapply(sf::st_intersects(occ_pts, prop),
                    function(z) {as.logical(length(z))})
-  )
+    )
+  sf::sf_use_s2(TRUE)
   occ_recs[keep, ]
 }
 
@@ -71,6 +73,7 @@ prop_bb_area <- function(prop) {
 }
 
 split_prop <- function(prop) {
+  sf::sf_use_s2(FALSE)
   spl_prop <- lapply(seq_len(nrow(prop)), function(i) {
     tmp_prop <- prop[i, ]
     prop_area <- sf::st_area(tmp_prop) %>% as.numeric()
@@ -81,6 +84,8 @@ split_prop <- function(prop) {
     tmp_prop <- dice_prop(tmp_prop)
   })
   spl_prop <- do.call(rbind, spl_prop)
+  sf::sf_use_s2(TRUE)
+  spl_prop
 }
 
 split_at_idl <- function(prop) {
@@ -111,6 +116,7 @@ split_at_idl <- function(prop) {
 dice_prop <- function(prop){
   message("Splitting property for more efficient queries.")
   stopifnot(all(sf::st_geometry_type(prop) %in% c("POLYGON", "MULTIPOLYGON")))
+  sf::sf_use_s2(FALSE)
   bb <- matrix(sf::st_bbox(prop), 2)
   llr <- apply(bb, 1, diff)
   llr[2] <- llr[2] * ll_ratio(mean(bb[2, ]))
@@ -127,6 +133,7 @@ dice_prop <- function(prop){
   sf::st_crs(overlay) <- sf::st_crs(prop)
   diced_prop <- suppressMessages(suppressWarnings(sf::st_intersection(prop, overlay))) %>%
     select(-layer)
+  sf::sf_use_s2(TRUE)
   diced_prop
 }
 

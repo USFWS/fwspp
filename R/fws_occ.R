@@ -198,7 +198,7 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
               out_tax$error$message)
       message(
         wrap_message(paste("Skipping taxonomy. Please send the resulting `fwspp` object",
-                           "to the maintainer of the `fwspp` package.",
+                           "to the maintainer of the `fwspp` package.\n",
                            "You may also try again later using `fwspp::add_taxonomy`.")))
     }
     else out <- out_tax$result

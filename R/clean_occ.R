@@ -8,7 +8,7 @@ clean_GBIF <- function(gbif_recs) {
   # If necessary, associate media information into data frame
   media <- Filter(length, gbif_recs$media)
   if (length(media)) {
-    keys <- vapply(media, function(i) i[[1]][["key"]], integer(1))
+    keys <- vapply(media, function(i) i[[1]][["key"]], character(1))
     urls <- sapply(media, function(i) {
       id <- i[[1]][[1]][["identifier"]]
       id <- ifelse(is.null(id), NA_character_, id)
@@ -40,13 +40,14 @@ clean_GBIF <- function(gbif_recs) {
                          media_url))
 
   # Rename relevant columns
-  rn <- c("name", "decimalLatitude", "decimalLongitude", "catalogNumber", "coordinateUncertaintyInMeters")
+  rn <- c("species", "decimalLatitude", "decimalLongitude", "catalogNumber", "coordinateUncertaintyInMeters")
   colnames(gbif_recs)[match(rn, colnames(gbif_recs))] <-
     c("sci_name", "lat", "lon", "cat_no", "loc_unc_m")
 
   standardize_occ(gbif_recs)
 
 }
+
 
 #' @noRd
 clean_iDigBio <- function(idb_recs) {
@@ -72,9 +73,7 @@ clean_iDigBio <- function(idb_recs) {
 #' @noRd
 clean_VertNet <- function(vn_recs) {
 
-  stopifnot(inherits(vn_recs, "list"))
-
-  vn_recs <- vn_recs$data %>%
+  vn_recs <- vn_recs %>%
     # `rvertnet` seems to return everything as a character; guess data types
     mutate_if(is.character, utils::type.convert, as.is = TRUE)
 
@@ -175,7 +174,7 @@ clean_AntWeb <- function(aw_recs) {
            day = strptime(dateCollectedStart, format = "%Y-%m-%d")$mday)
 
   # Rename relevant columns
-  rn <- c("geojson.coord1", "geojson.coord2", "catalogNumber")
+  rn <- c("decimalLatitude", "decimalLongitude", "specimenCode")
   colnames(aw_recs)[match(rn, colnames(aw_recs))] <-
     c("lat", "lon", "cat_no")
 
@@ -198,11 +197,15 @@ standardize_occ <- function(clean_recs, coord_tol = NULL) {
     TRUE ~ "AntWeb"
   )
 
-  ## Set column names/order of output data frame
-  out_df <- utils::read.csv(text = paste(c("sci_name", "lon", "lat", "loc_unc_m", "year",
-                                           "month", "day", "cat_no", "media_url", "evidence"),
-                                         collapse = ", "))
-  out_df <- bind_rows(out_df, clean_recs)
+  ## Ensure necessary columns are present and, if not, add them
+  #Set column names/order of output data frame
+  needed_nms <- c("sci_name", "lon", "lat", "loc_unc_m", "year",
+                  "month", "day", "cat_no", "media_url", "evidence")
+  needed_nms <- needed_nms[!needed_nms %in% names(clean_recs)]
+  if (length(needed_nms)) {
+    out_df <- utils::read.csv(text = paste(needed_nms, collapse = ", "))
+    out_df <- bind_rows(clean_recs, out_df)
+  } else out_df <- clean_recs
 
   # coord_tol not yet accessible to user
   if (!is.null(coord_tol))
