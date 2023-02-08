@@ -3,7 +3,6 @@
 \docType{package}
 \name{fwspp}
 \alias{fwspp}
-\alias{fwspp-package}
 \title{\code{fwspp} package}
 \description{
 See the \href{https://github.com/adamdsmith/fwspp}{README} on GitHub
