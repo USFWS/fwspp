@@ -66,7 +66,7 @@ manage_gets <- function(prop, timeout) {
   bind_rows(gbif_recs,
             idb_recs,
             vn_recs,
-            ee_recs,
+            ee_recs
             # aw_recs
             ) %>%
     # Drop records with no species ID or monomials (e.g., genus only)
