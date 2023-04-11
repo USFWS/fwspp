@@ -5,3 +5,5 @@
 README_cache/
 misc/
 functions.RData
+data/
+inst/extdata/
