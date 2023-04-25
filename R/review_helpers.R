@@ -47,7 +47,11 @@ process_review <- function(df) {
     bind_rows() %>%
     mutate(acc_sci_name = sci_name) %>%
     select(taxon_code, category, acc_sci_name,
-           upd_com_name = com_name),revised_codes)
+           upd_com_name = com_name),pbapply::pblapply(revised_codes) %>%
+      bind_rows() %>%
+      mutate(acc_sci_name = sci_name) %>%
+      select(taxon_code, category, acc_sci_name,
+             upd_com_name = com_name))
 
   # Join updated taxonomy to modified records
   mods <- select(mods, -category) %>%
