@@ -42,7 +42,7 @@ process_review <- function(df) {
 
   revised_codes <- unique(mods$taxon_code)
   message("Retrieving updated taxonomic information.")
-  revised_codes <- pbapply::pblapply(revised_codes, nps_taxonomy_by_code) %>%
+  revised_codes <- pbapply::pblapply(revised_codes, fws_taxonomy_by_code) %>%
     bind_rows() %>%
     mutate(acc_sci_name = sci_name) %>%
     select(taxon_code, category, acc_sci_name,
