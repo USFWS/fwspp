@@ -33,30 +33,43 @@ import_review <- function(xlsx, verbose) {
 }
 
 process_review <- function(df) {
+
   # Remove unaccepted observations
   df <- filter(df, accept_record != "No")
 
   # Pull modified records
   acc_recs <- filter(df, accept_record == "Yes")
   mods <- filter(df, grepl("Modif", accept_record) & !is.na(taxon_code))
+  mods_fun<-function(x){
 
-  revised_codes <- unique(mods$taxon_code)
-  message("Retrieving updated taxonomic information.")
-  revised_codes <- pbapply::pblapply(revised_codes, nps_taxonomy_by_code) %>%
-    bind_rows() %>%
-    mutate(acc_sci_name = sci_name) %>%
-    select(taxon_code, category, acc_sci_name,
-           upd_com_name = com_name)
+    mods<-x
+    revised_codes <- unique(mods$taxon_code)
+    message("Retrieving updated taxonomic information.")
+    revised_codes <- pbapply::pblapply(revised_codes, fws_taxonomy_by_code) %>%
+      bind_rows() %>%
+      mutate(acc_sci_name = sci_name) %>%
+      select(taxon_code, category, acc_sci_name,
+             upd_com_name = com_name)
 
-  # Join updated taxonomy to modified records
-  mods <- select(mods, -category) %>%
-    left_join(revised_codes, by = "taxon_code") %>%
-    rowwise() %>%
-    mutate(sci_name = ifelse(is.na(acc_sci_name),
-                             sci_name, acc_sci_name),
-           com_name = clean_com_name(c(com_name, upd_com_name))) %>%
-    ungroup()
-  acc_recs <- bind_rows(acc_recs, mods)
+    # Join updated taxonomy to modified records
+
+    mods <- select(mods, -category) %>%
+      left_join(revised_codes, by = "taxon_code") %>%
+      rowwise() %>%
+      mutate(sci_name = ifelse(is.na(acc_sci_name),
+                               sci_name, acc_sci_name),
+             com_name = list(clean_com_name(c(com_name, upd_com_name)))) %>%  #modified based on recomendation
+      ungroup()
+    mods$com_name<-lapply(mods$com_name,unique)
+    mods$com_name<-sapply(mods$com_name, function(x){ifelse(length(unique(x))>1,paste(x,collapse = ", "),
+                                                            unique(x))})
+    return(mods)
+  }
+  nrow(mods)
+  if(nrow(mods)>0){
+    mods<-mods_fun(mods)
+    acc_recs <- bind_rows(acc_recs, mods)
+  }
 
   # Add cost center
   cost_centers <- get_unit_codes()
@@ -73,6 +86,7 @@ process_review <- function(df) {
            Nativeness = ifelse(is.na(Nativeness), "Unknown",
                                Nativeness))
 
+
   ## Set column names/order of output data frame
   out_df <- utils::read.csv(
     text = paste(c("Scientific Name", "TaxonCode", "ORGNAME", "UnitCode", "CommonNames",
@@ -81,6 +95,9 @@ process_review <- function(df) {
                    "SummerAbundance", "FallAbundance", "WinterAbundance", "RecordStatus",
                    "RefugeAccepted", "Sensitive", "SensitiveNotes", "HistoryNotes"),
                  collapse = ", "), check.names = FALSE)
+
+  out_df <- out_df %>% mutate(across(where(is.logical), as.character))
+  acc_recs$TaxonCode<-as.character(acc_recs$TaxonCode)
   out_df <- bind_rows(out_df, acc_recs)
   out_df
 }
