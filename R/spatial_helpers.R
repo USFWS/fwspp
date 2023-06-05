@@ -21,6 +21,15 @@ check_cadastral <- function() {
   }
 }
 
+ensure_multipolygons <- function(X) {
+  tmp1 <- tempfile(fileext = ".gpkg")
+  tmp2 <- tempfile(fileext = ".gpkg")
+  st_write(X, tmp1)
+  sf::gdal_utils("vectortranslate", tmp1, tmp2, c("-f", "GPKG", "-nlt", "MULTIPOLYGON"))
+  Y <- st_read(tmp2)
+  st_sf(st_drop_geometry(X), geom = st_geometry(Y))
+}
+
 # Generate buffer around USFWS property
 buffer_prop <- function(prop, buffer) {
   zone <- get_UTM_zone(mean(sf::st_bbox(prop)[c(1,3)]))

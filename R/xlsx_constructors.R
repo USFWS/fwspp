@@ -265,7 +265,6 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
   writeData(wb, sheet = "Drop-down values", x = Sensitive_values_df, startCol =
               12)
   #add dropdown values
-  #first_record_df$ExternalLinks
   writeData(wb, sheet = "ExternalLinks", x = ExternalLinks_df, startCol =
               1)
   dataValidation(wb, "SpeciesListForImport", col = 7, rows = 2:(nrow(org_dat)+1), type = "list", value =
