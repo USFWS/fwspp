@@ -38,7 +38,10 @@ retrieve_occ <- function(props, prop, buffer, scrub,
     if (nrow(i_recs) == 0) i_recs <- NULL
     occ_recs[[i]] <- i_recs
   }
-
+  #added ServCat Code start
+  ServCat_df<-occ_recs[occ_recs$bio_repo=="ServCat",]
+  occ_recs<-occ_recs[occ_recs$bio_repo!="ServCat",]
+  #added ServCat Code end
   errs <- sapply(occ_recs, is_error)
   if (any(errs))
     return(occ_recs[[min(which(errs))]])
@@ -63,3 +66,6 @@ retrieve_occ <- function(props, prop, buffer, scrub,
     arrange(sci_name, year, month, day)
 
 }
+#added ServCat Code start
+occ_recs<-bind_rows(occ_recs,ServCat_df)
+#added ServCat Code end
