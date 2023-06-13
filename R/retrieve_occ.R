@@ -64,8 +64,8 @@ retrieve_occ <- function(props, prop, buffer, scrub,
     mutate(org_name = org_name) %>%
     select(org_name, everything(), -media_url, -cat_no) %>%
     arrange(sci_name, year, month, day)
-
+  #added ServCat Code start
+  occ_recs<-bind_rows(occ_recs,ServCat_df)
+  #added ServCat Code end
 }
-#added ServCat Code start
-occ_recs<-bind_rows(occ_recs,ServCat_df)
-#added ServCat Code end
+
