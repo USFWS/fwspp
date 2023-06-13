@@ -38,15 +38,17 @@ retrieve_occ <- function(props, prop, buffer, scrub,
     if (nrow(i_recs) == 0) i_recs <- NULL
     occ_recs[[i]] <- i_recs
   }
-  #added ServCat Code start
-  ServCat_df<-occ_recs[[i]][occ_recs[[i]]$bio_repo=="ServCat",]
-  occ_recs[[i]]<-occ_recs[[i]][occ_recs[[i]]$bio_repo!="ServCat",]
-  #added ServCat Code end
+
   errs <- sapply(occ_recs, is_error)
   if (any(errs))
     return(occ_recs[[min(which(errs))]])
   occ_recs <- bind_rows(occ_recs)
   if (nrow(occ_recs) == 0) return(NULL)
+
+  #added ServCat Code start
+  ServCat_df<-occ_recs[occ_recs$bio_repo=="ServCat",]
+  occ_recs<-occ_recs[occ_recs$bio_repo!="ServCat",]
+  #added ServCat Code end
 
   # Filter to boundaries of interest
   occ_recs <- clip_occ(occ_recs, prop)
