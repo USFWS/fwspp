@@ -55,12 +55,6 @@ manage_gets <- function(prop, timeout) {
   if (!is.null(ee_recs))
     ee_recs <- clean_EcoEngine(ee_recs)
 
-  #ServCat edit start
-  ServCat_recs <- get_ServCat(prop)
-  if (!is.null(ServCat_recs))
-    ServCat_recs <- clean_ServCat(ServCat_recs)
-  #SerCat edit end
-
   ## AntWeb  (not working for Alaska, so commented out)
   # aw_recs <- get_AntWeb(lat_range, lon_range, timeout)
   # if (!is.null(aw_recs))
@@ -69,26 +63,15 @@ manage_gets <- function(prop, timeout) {
   #############################################################################
   ## Consolidate standardized occurrence records from biodiversity databases ##
   #############################################################################
-  #ServCat edit start
-  bind_rows(gbif_recs,
-            idb_recs,
-            vn_recs,
-            ee_recs,
-            ServCat_recs
-            # aw_recs
-  ) %>%
-    # Drop records with no species ID or monomials (e.g., genus only)
-    filter(!is.na(sci_name),
-           vapply(strsplit(sci_name, "\\W+"), length, integer(1)) == 2)
-  #    bind_rows(gbif_recs,
-  #            idb_recs,
-  #            vn_recs,
-  #            ee_recs
-  #            # aw_recs
-  #  ) %>%
-  #    # Drop records with no species ID or monomials (e.g., genus only)
-  #    filter(!is.na(sci_name),
-  #           vapply(strsplit(sci_name, "\\W+"), length, integer(1)) == 2)
-  #ServCat edit end
+
+      bind_rows(gbif_recs,
+              idb_recs,
+              vn_recs,
+              ee_recs
+              # aw_recs
+    ) %>%
+      # Drop records with no species ID or monomials (e.g., genus only)
+      filter(!is.na(sci_name),
+             vapply(strsplit(sci_name, "\\W+"), length, integer(1)) == 2)
 
 }

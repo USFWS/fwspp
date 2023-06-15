@@ -11,7 +11,7 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   message("\nProcessing ", short_org)
 
   # Maximum of GBIF and BISON record count is used to determine whether
-  # a property is divided into smaller pieces
+  # a property is divided into smaller pieces#
   try_gbif_count <- try_verb_n(gbif_count)
 
   # Split property if it spans International Date Line
