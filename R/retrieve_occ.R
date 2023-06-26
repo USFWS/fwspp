@@ -45,10 +45,10 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   occ_recs <- bind_rows(occ_recs)
   if (nrow(occ_recs) == 0) return(NULL)
 
-  #added ServCat Code start
+  #take out ServCat data because those data do not have coordinates
   ServCat_df<-occ_recs[occ_recs$bio_repo=="ServCat",]
   occ_recs<-occ_recs[occ_recs$bio_repo!="ServCat",]
-  #added ServCat Code end
+
 
   # Filter to boundaries of interest
   occ_recs <- clip_occ(occ_recs, prop)

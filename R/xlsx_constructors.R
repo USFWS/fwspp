@@ -46,7 +46,7 @@ xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
 #  openxlsx::setColWidths(wb, 1, cols = seq_along(org_dat), widths = "auto")
 #  openxlsx::freezePane(wb, 1, firstRow = TRUE)
 #
-  # Write and save it
+# Write and save it
 #  writeData(wb, 1, org_dat, withFilter = TRUE)
 #  fn <- file.path(out_dir, xlsx_fn(org))
 #  if (file.exists(fn) && !overwrite) {
@@ -63,6 +63,8 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
     select(-ORGNAME)
 
   test_df<-unique(org_dat[,c(1,2,3)])
+
+
 
   #aggregate by common name so each taxa includes all common names from the different data sources
   CommonNames_vec<-sapply(unique(org_dat[,c(1,2,3)])$TaxonCode,
@@ -148,8 +150,44 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
   #added test workbook####
   openxlsx::addWorksheet(wb, "ExternalLinks")
   openxlsx::addWorksheet(wb, "Drop-down values")
+  openxlsx::addWorksheet(wb, "FWSpecies")
   openxlsx::setColWidths(wb, 1, cols = seq_along(org_dat), widths = "auto")
   openxlsx::freezePane(wb, 1, firstRow = TRUE)
+
+  refuge_code<-unique(org_dat$UnitCode)[1]
+
+  FWSpecies_df <-as.data.frame(
+    fromJSON(
+      rawToChar(
+        GET(
+          paste0("https://ecos.fws.gov/IRISAPI/SpeciesAPI/API/SpeciesList/items?RefugeCode=",refuge_code,"&RowsPerPage=10000"),timeout(50000))$content)))
+
+  taxoncode_vec<-rep(NA,length(FWSpecies_df$scientificName))
+  for(i in 1:length(FWSpecies_df$scientificName)){
+
+    test<-as.data.frame(
+      fromJSON(
+        rawToChar(
+          GET(
+            paste0("https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/searchByScientificName/",
+                   FWSpecies_df$scientificName[i] %>% str_extract( "[^ ]+ [^ ]+") %>% str_replace( " ", "%20")),timeout(50000))$content)))
+    taxoncode_vec[i]<-ifelse(nrow(subset(test, toupper(test$ScientificName)==toupper(FWSpecies_df$scientificName[i])))==0,
+                             "<null>",max(subset(test, toupper(test$ScientificName)==toupper(FWSpecies_df$scientificName[i]))$TaxonCode))
+    rm(test)
+  }
+
+  taxoncode_vec<-taxoncode_vec[taxoncode_vec!="<null>"]
+
+  data_in_FWSpecies<-org_dat[as.character(org_dat$TaxonCode) %in% as.character(taxoncode_vec),]
+  links_in_FWSpecies<-ExternalLinks_df[as.character(ExternalLinks_df$TaxonCode) %in% as.character(taxoncode_vec),]
+  data_in_FWSpecies<-rbind(data_in_FWSpecies[,c(2,3,6)],links_in_FWSpecies[,c(1,2,3)])
+  data_in_FWSpecies<-data_in_FWSpecies[order(data_in_FWSpecies$TaxonCode),]
+
+
+  org_dat<-org_dat[!as.character(org_dat$TaxonCode) %in% as.character(taxoncode_vec),]
+  writeData(wb, sheet = "FWSpecies",
+            x = data_in_FWSpecies,
+            startCol = 1)
 
   # Write and save it
   #writeData(wb, 1, org_dat, withFilter = TRUE)
