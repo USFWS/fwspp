@@ -90,11 +90,11 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
 
   }
 
-  unique_taxa_in_org_dat_list_links<-lapply(unique_taxa_in_org_dat_list_links, function(x){gsub(" ","",unlist(strsplit(x,",")))})
+  unique_taxa_in_org_dat_list_links<-lapply(unique_taxa_in_org_dat_list_links, function(x){gsub(" ", "",unlist(strsplit(x,", ")))})
   names(unique_taxa_in_org_dat_list_links)<-unique(org_dat$TaxonCode)
 
   for(i in 1:length(evidence_1)){
-    org_dat$ExternalLinks[i]<-gsub(" ","",unlist(strsplit(org_dat$ExternalLinks[i],",")))[1]
+    org_dat$ExternalLinks[i]<-gsub(" ","",unlist(strsplit(org_dat$ExternalLinks[i],", ")))[1]
   }
 
   unique_taxa_in_org_dat_list<-list()
@@ -106,7 +106,7 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
   }
 
   test_df$ExternalLinks<-sapply(test_df$TaxonCode,function(x){unique_taxa_in_org_dat_list_links[x][1]}) %>%
-    sapply(function(x){gsub(" ","",unlist(strsplit(x,",")))[1]})
+    sapply(function(x){gsub(" ", "",unlist(strsplit(x,", ")))[1]})
 
   test_df$Occurrence<-"Unconfirmed"
   test_df$Seasonality<-NA
@@ -155,9 +155,10 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
   openxlsx::freezePane(wb, 1, firstRow = TRUE)
 
   refuge_code<-unique(org_dat$UnitCode)[1]
+  try_JSON <- try_verb_n(jsonlite::fromJSON, 4)
 
   FWSpecies_df <-as.data.frame(
-    fromJSON(
+    try_JSON(
       rawToChar(
         GET(
           paste0("https://ecos.fws.gov/IRISAPI/SpeciesAPI/API/SpeciesList/items?RefugeCode=",refuge_code,"&RowsPerPage=10000"),timeout(50000))$content)))
@@ -166,7 +167,7 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
   for(i in 1:length(FWSpecies_df$scientificName)){
 
     test<-as.data.frame(
-      fromJSON(
+      try_JSON(
         rawToChar(
           GET(
             paste0("https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/searchByScientificName/",
