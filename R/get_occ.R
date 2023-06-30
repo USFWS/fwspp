@@ -208,7 +208,7 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
 }
 
 get_ServCat<-function(prop){
-
+  try_JSON <- try_verb_n(jsonlite::fromJSON, 4)
   get_unit_codes <- function(orgnames = NULL) {
     base_url <- "https://ecos.fws.gov/primr/api/refuge/geo.json"
 
@@ -223,7 +223,7 @@ get_ServCat<-function(prop){
   }
   orgname_df<-get_unit_codes()
   unit_code<-orgname_df[orgname_df$org_name==prop$ORGNAME,]$UnitCode
-  ServCat_df<-as.data.frame(fromJSON(rawToChar(POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
+  ServCat_df<-as.data.frame(try_JSON(rawToChar(POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
                                                     body = toJSON(c(
                                                       list(
                                                         "units" = list(
