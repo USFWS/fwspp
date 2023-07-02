@@ -14,6 +14,7 @@ xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
            occurrence:accept_record,
            evidence, note) %>%
     arrange(category, sci_name)
+  org_dat$org_name<-org
 
   wb <- openxlsx::createWorkbook()
   openxlsx::addWorksheet(wb, "Species List for Review")
@@ -94,7 +95,7 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
   names(unique_taxa_in_org_dat_list_links)<-unique(org_dat$TaxonCode)
 
   for(i in 1:length(evidence_1)){
-    org_dat$ExternalLinks[i]<-gsub(" ","",unlist(strsplit(org_dat$ExternalLinks[i],", ")))[1]
+    org_dat$ExternalLinks[i]<-gsub(" ", "",unlist(strsplit(org_dat$ExternalLinks[i],", ")))[1]
   }
 
   unique_taxa_in_org_dat_list<-list()
