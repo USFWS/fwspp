@@ -99,10 +99,13 @@ retrieve_taxonomy <- function(sci_name) {
 #' }
 
 fws_taxonomy <- function(sci_name) {
+  try_JSON <- try_verb_n(jsonlite::fromJSON, 10)
   base_url <- "https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/searchByScientificName/"
   q_sci_name <- utils::URLencode(sci_name)
   q_url <- paste0(base_url, q_sci_name, "?format=json")
-  tmp <- try(jsonlite::fromJSON(q_url), silent = TRUE)
+  #changed try to try_verb_n
+  #tmp <- try(jsonlite::fromJSON(q_url),silent = TRUE)
+  tmp <- try_JSON(q_url)
   if (is_error(tmp)) {
     warning("Taxonomy retrieval failed for ", sci_name, call. = FALSE)
     return()
@@ -129,9 +132,11 @@ fws_taxonomy <- function(sci_name) {
 
 # Get FWS taxonomy using FWS Taxon Code
 fws_taxonomy_by_code <- function(taxon_code) {
+  try_JSON <- try_verb_n(jsonlite::fromJSON, 10)
   base_url <- "https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/"
   q_url <- paste0(base_url, taxon_code, "?codeType=taxoncode&format=json")
-  tax <- try(jsonlite::fromJSON(q_url), silent = TRUE)
+  #tmp <- try(jsonlite::fromJSON(q_url),silent = TRUE)
+  tax <- try_JSON(q_url)
   if (is_error(tax)) {
     warning("Taxonomy retrieval failed for taxon code ", taxon_code, call. = FALSE)
     return()
