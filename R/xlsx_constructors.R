@@ -161,7 +161,7 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
   FWSpecies_df <-as.data.frame(
     try_JSON(
       rawToChar(
-        GET(
+        httr::GET(
           paste0("https://ecos.fws.gov/IRISAPI/SpeciesAPI/API/SpeciesList/items?RefugeCode=",refuge_code,"&RowsPerPage=10000"),timeout(50000))$content)))
 
   taxoncode_vec<-rep(NA,length(FWSpecies_df$scientificName))
@@ -170,7 +170,7 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
     test<-as.data.frame(
       try_JSON(
         rawToChar(
-          GET(
+          httr::GET(
             paste0("https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/searchByScientificName/",
                    FWSpecies_df$scientificName[i] %>% str_extract( "[^ ]+ [^ ]+") %>% str_replace( " ", "%20")),timeout(50000))$content)))
     taxoncode_vec[i]<-ifelse(nrow(subset(test, toupper(test$ScientificName)==toupper(FWSpecies_df$scientificName[i])))==0,
