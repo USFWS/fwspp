@@ -237,7 +237,7 @@ get_ServCat<-function(prop){
                                                         )
                                                       )
                                                     ), auto_unbox = TRUE),
-                                                    add_headers("Content-Type" = "application/json"),httr::timeout(50000))$content))$items)
+                                                    httr::add_headers("Content-Type" = "application/json"),httr::timeout(50000))$content))$items)
   ServCat_df
 }
 
