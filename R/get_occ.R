@@ -224,7 +224,7 @@ get_ServCat<-function(prop){
   orgname_df<-get_unit_codes()
   unit_code<-orgname_df[orgname_df$org_name==prop$ORGNAME,]$UnitCode
   ServCat_df<-as.data.frame(try_JSON(rawToChar(httr::POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
-                                                    body = toJSON(c(
+                                                    body = jsonlite::toJSON(c(
                                                       list(
                                                         "units" = list(
                                                           list(
