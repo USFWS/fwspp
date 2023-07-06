@@ -234,7 +234,7 @@ clean_ServCat<-function(ServCat_rec, prop){
   for(i in 1:length(ServCat_rec$unit_code_only)){
 
     unitCode_df<-as.data.frame(try_JSON(rawToChar(GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
-                                                             as.character(ServCat_rec$referenceId[i]),"/Units"),timeout(50000))$content)))
+                                                             as.character(ServCat_rec$referenceId[i]),"/Units"),httr::timeout(50000))$content)))
 
     ServCat_rec$unit_code_only[i]<-ifelse(sum(c((unitCode_df %>% subset(substr(unitCode_df$unitCode,1,4)!="FF07") %>% nrow==0),(unitCode_df$unitCode %>% intersect(codes_to_remove) %>% length==0)))==2,T,F)
 
@@ -251,7 +251,7 @@ clean_ServCat<-function(ServCat_rec, prop){
 
   for(i in 1:length(ServCat_rec$DigitalFiles)){
     ServCat_rec$DigitalFiles[i]<-ifelse(nrow(as.data.frame(try_JSON(rawToChar(GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
-                                                                                         as.character(ServCat_rec$referenceId[i]),"/DigitalFiles"),timeout(50000))$content))))==0,F,T)
+                                                                                         as.character(ServCat_rec$referenceId[i]),"/DigitalFiles"),httr::timeout(50000))$content))))==0,F,T)
   }
 
   ServCat_rec<-subset(ServCat_rec,ServCat_rec$DigitalFiles==T)
@@ -261,7 +261,7 @@ clean_ServCat<-function(ServCat_rec, prop){
 
   for(i in 1:length(ServCat_rec$bounding_box)){
     bb_test_vec<-as.data.frame(try_JSON(rawToChar(GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
-                                                             as.character(ServCat_rec$referenceId[i]),"/BoundingBoxes"),timeout(50000))$content)))$tag
+                                                             as.character(ServCat_rec$referenceId[i]),"/BoundingBoxes"),httr::timeout(50000))$content)))$tag
     ServCat_rec$bounding_box[i]<-ifelse(length(bb_test_vec)==1 &  paste0("BoundingBox for ",unit_code) %in% bb_test_vec, T,F)
     rm(bb_test_vec)
   }
@@ -274,10 +274,10 @@ clean_ServCat<-function(ServCat_rec, prop){
   for(i in 1:length(ServCat_rec$referenceId)){
 
     taxa_list[[i]]<-ifelse(is.null(as.data.frame(try_JSON(rawToChar(GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
-                                                                               as.character(ServCat_rec$referenceId[i]),"/Taxa"),timeout(50000))$content)))$taxonCode),
+                                                                               as.character(ServCat_rec$referenceId[i]),"/Taxa"),httr::timeout(50000))$content)))$taxonCode),
                            NA,
                            list(try_JSON(rawToChar(GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
-                                                              as.character(ServCat_rec$referenceId[i]),"/Taxa"),timeout(50000))$content))))
+                                                              as.character(ServCat_rec$referenceId[i]),"/Taxa"),httr::timeout(50000))$content))))
   }
 
   #give names to list elements that match reference codes
@@ -312,7 +312,7 @@ clean_ServCat<-function(ServCat_rec, prop){
       try_JSON(
         rawToChar(
           GET(paste0("https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/searchByCodes/taxoncode?codes=",
-                     as.character(taxa_in_ServCat_rec$Taxon_Code[i])),timeout(50000))$content)))$ScientificName[1]
+                     as.character(taxa_in_ServCat_rec$Taxon_Code[i])),httr::timeout(50000))$content)))$ScientificName[1]
   }
   #
   for(i in 1:length(taxa_in_ServCat_rec$common_name)){
@@ -320,7 +320,7 @@ clean_ServCat<-function(ServCat_rec, prop){
       try_JSON(
         rawToChar(
           GET(paste0("https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/searchByCodes/taxoncode?codes=",
-                     as.character(taxa_in_ServCat_rec$Taxon_Code[i])),timeout(50000))$content)))$CommonName[1]
+                     as.character(taxa_in_ServCat_rec$Taxon_Code[i])),httr::timeout(50000))$content)))$CommonName[1]
   }
   taxa_in_ServCat_rec$evidence<-paste0("https://ecos.fws.gov/ServCat/Reference/Profile/",taxa_df_combined$refID)
   ServCat_clean<-as.data.frame(taxa_in_ServCat_rec$ScientificName)
