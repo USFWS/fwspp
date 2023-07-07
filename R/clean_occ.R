@@ -295,7 +295,7 @@ clean_ServCat<-function(ServCat_rec, prop){
     taxa_df_list[[names(taxa_df_list)[i]]]$refID<-names(taxa_df_list)[i]
   }
 
-  taxa_df_combined<-Reduce(full_join,taxa_df_list)
+  taxa_df_combined<-suppressMessages(Reduce(full_join,taxa_df_list))
 
   #now create the taxa_in_ServCat_rec with the taxon codes in ServCat
   taxa_in_ServCat_rec<-as.data.frame(taxa_df_combined$taxonCode)

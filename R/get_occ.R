@@ -208,6 +208,7 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
 }
 
 get_ServCat<-function(prop){
+  message("Querying ServCat...")
   try_JSON <- try_verb_n(jsonlite::fromJSON, 4)
   get_unit_codes <- function(orgnames = NULL) {
     base_url <- "https://ecos.fws.gov/primr/api/refuge/geo.json"
@@ -238,6 +239,7 @@ get_ServCat<-function(prop){
                                                       )
                                                     ), auto_unbox = TRUE),
                                                     httr::add_headers("Content-Type" = "application/json"),httr::timeout(50000))$content))$items)
+  message("Retrieving ", as.character(min(nrow(ServCat_df), 10000)), " records.")
   ServCat_df
 }
 

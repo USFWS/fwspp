@@ -307,6 +307,7 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
   #add dropdown values
   openxlsx::writeData(wb, sheet = "ExternalLinks", x = ExternalLinks_df, startCol =
               1)
+  suppressWarnings({
   openxlsx::dataValidation(wb, "SpeciesListForImport", col = 7, rows = 2:(nrow(org_dat)+1), type = "list", value =
                    paste0("'Drop-down values'!$A$2:$A$",as.character(nrow(Occurrence_values_df)+1)))
 
@@ -342,6 +343,7 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
 
   openxlsx::dataValidation(wb, "SpeciesListForImport", col = 19, rows = 2:(nrow(org_dat)+1), type = "list", value =
                    paste0("'Drop-down values'!$L$2:$L$",as.character(nrow(Sensitive_values_df)+1)))
+  })
 
 
 
