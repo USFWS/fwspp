@@ -23,9 +23,10 @@ xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
   openxlsx::freezePane(wb, 1, firstRow = TRUE)
 
   # Add tags and data validation
+  suppressWarnings({
   xlsx_review_tags(wb)
   add_review_validation(wb, end_row = nrow(org_dat) + 1)
-
+  })
   # Write and save it
   writeData(wb, 1, org_dat, withFilter = TRUE)
   fn <- file.path(out_dir, xlsx_fn(org))
