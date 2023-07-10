@@ -3,3 +3,8 @@
 .travis.yml
 README.Rmd
 misc/
+NEWS.md
+code.json
+LICENSE
+CODEOWNERS
+DISCLAIMER.md
