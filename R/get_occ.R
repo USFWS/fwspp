@@ -207,3 +207,40 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
   bind_rows(aw_recs)
 }
 
+get_ServCat<-function(prop){
+  message("Querying ServCat...")
+  try_JSON <- try_verb_n(jsonlite::fromJSON, 4)
+  get_unit_codes <- function(orgnames = NULL) {
+    base_url <- "https://ecos.fws.gov/primr/api/refuge/geo.json"
+
+    try_JSON <- try_verb_n(jsonlite::fromJSON, 2)
+    prop_info <- try_JSON(base_url)
+    prop_info <- prop_info$features$properties %>%
+      mutate(org_name = toupper(.data$orgnameabbr)) %>%
+      select(.data$org_name, UnitCode = .data$costCenterCode)
+    if (is.null(orgnames)) return(prop_info)
+    filter(prop_info,
+           grepl(paste(orgnames, collapse = "|"), .data$org_name, ignore.case = TRUE))
+  }
+  orgname_df<-get_unit_codes()
+  unit_code<-orgname_df[orgname_df$org_name==prop$ORGNAME,]$UnitCode
+  ServCat_df<-as.data.frame(try_JSON(rawToChar(httr::POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
+                                                    body = jsonlite::toJSON(c(
+                                                      list(
+                                                        "units" = list(
+                                                          list(
+                                                            order=0,
+                                                            logicOperator="string",
+                                                            unitCode=unit_code,
+                                                            linked=FALSE#,
+                                                            # approved=TRUE
+                                                          )
+                                                        )
+                                                      )
+                                                    ), auto_unbox = TRUE),
+                                                    httr::add_headers("Content-Type" = "application/json"),httr::timeout(50000))$content))$items)
+  message("Retrieving ", as.character(min(nrow(ServCat_df), 10000)), " records.")
+  ServCat_df
+}
+
+

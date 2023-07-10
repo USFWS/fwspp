@@ -30,7 +30,9 @@ prep_cadastral <- function() {
                     ORGNAME = gsub("([A-Z])(\\.)([A-Z])", "\\1\\2 \\3", ORGNAME))
 
     # Cast to MULTIPOLYGON to avoide issues with MULTISURFACE geometries
+
     # props <- suppressMessages(sf::st_cast(props, to = "MULTIPOLYGON", warn = FALSE))
+
     props <- ensure_multipolygons(props)
 
     # Impose zero width buffer to correct potentially invalid geometries
@@ -45,10 +47,12 @@ prep_cadastral <- function() {
       ungroup()
 
     message("Transforming to WGS84")
+
     # Put in WGS84 even though GRS80 is practically identical
     props <- suppressMessages(sf::st_transform(props, 4326, quiet = TRUE))
 
     message("Buffering to correct invalid merged geometries")
+
     # Again, impose zero width buffer to correct potentially invalid merged geometries
     props <- suppressMessages(sf::st_buffer(props, 0))
 

@@ -3,7 +3,7 @@ scrub_occ <- function(occ_recs, scrub) {
   stopifnot(scrub %in% c("strict", "moderate"))
 
   # Set biodiversity repo preference for retaining records
-  repo_pref <- c("AntWeb", "iDigBio", "VertNet", "BISON", "EcoEngine", "GBIF")
+  repo_pref <- c("AntWeb", "iDigBio", "VertNet", "BISON", "EcoEngine", "GBIF","ServCat")
 
   ## Strict scrubbing
   if (identical(scrub, "strict")) {
