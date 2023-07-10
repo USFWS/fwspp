@@ -30,7 +30,9 @@ prep_cadastral <- function() {
                     ORGNAME = gsub("([A-Z])(\\.)([A-Z])", "\\1\\2 \\3", ORGNAME))
 
     # Cast to MULTIPOLYGON to avoide issues with MULTISURFACE geometries
-    #props <- suppressMessages(sf::st_cast(props, to = "MULTIPOLYGON", warn = FALSE))
+
+    # props <- suppressMessages(sf::st_cast(props, to = "MULTIPOLYGON", warn = FALSE))
+
     props <- ensure_multipolygons(props)
 
     # Impose zero width buffer to correct potentially invalid geometries
