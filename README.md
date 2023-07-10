@@ -1,4 +1,12 @@
 
+<!-- badges: start -->
+<!-- For more info: https://usethis.r-lib.org/reference/badges.html -->
+
+[![Lifecycle:
+stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+
+<!-- badges: end -->
+
 # The `fwspp` package
 
 ## Overview
