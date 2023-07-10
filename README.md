@@ -1,24 +1,30 @@
-# USFWS Disclaimer
 
-This United States Fish & Wildlife Service (USFWS) code is provided on
-an “as is” basis and the user assumes responsibility for its use. USFWS
-has relinquished control of the information and no longer has
-responsibility to protect the integrity , confidentiality, or
-availability of the information. Any reference to specific commercial
-products, processes, or services by service mark, trademark,
-manufacturer, or otherwise, does not constitute or imply their
-endorsement, recommendation or favoring by USFWS. The USFWS seal and
-logo shall not be used in any manner to imply endorsement of any
-commercial product or activity by USFWS or the United States Government.
+# The `fwspp` package
 
-# Important usage limitations/notes
+## Overview
 
-The `fwspp` package exists strictly to extract occurrence data on USFWS
-properties, usually National Wildlife Refuges. Attempts to estimate or
-infer relative abundance are **most strongly discouraged** and **almost
-certainly meaningless**.
+This packages contains functions to perform geographic query of several
+biodiversity databases based on U.S. Fish and Wildlife Service (USFWS)
+administrative or acquisition property boundaries (plus optional
+buffers). At present, the package queries the [Global Biodiversity
+Information Facility (GBIF)](http://www.gbif.org/), [Biodiversity
+Information Serving Our Nation (BISON)](https://bison.usgs.gov/#home),
+[Integrated Digitized Biocollections
+(iDigBio)](https://www.idigbio.org/), [VertNet](http://vertnet.org/),
+the [Berkeley Ecoinformatics Engine](https://ecoengine.berkeley.edu/),
+and [AntWeb](http://www.antweb.org/). It draws heavily from the
+outstanding work by the [ROpenScience group](https://ropensci.org/) and
+their suite of species occurrence packages.
 
-# Installing `fwspp`
+We provide options to:
+
+- scrub records to reduce the number of returned records for each refuge
+  (see scrubbing details below);  
+- update scientific names to their current accepted or valid form based
+  on the [Integrated Taxonomic Information System
+  (ITIS)](http://www.itis.gov) (see taxonomic details below).
+
+## Installation
 
 The `fwspp` package requires [R](https://www.r-project.org/) (\>= 3.4)
 and [Rtools](https://cran.r-project.org/bin/windows/Rtools/). Both will
@@ -47,30 +53,16 @@ Cadastral Geodatabase. You can do this now, using the
 or later, when you’ll be prompted by the `fws_occ` function. The process
 takes 10 minutes or so to complete.
 
-# The `fwspp` package
+# Usage
 
-This packages contains functions to perform geographic query of several
-biodiversity databases based on U.S. Fish and Wildlife Service (USFWS)
-administrative or acquisition property boundaries (plus optional
-buffers). At present, the package queries the [Global Biodiversity
-Information Facility (GBIF)](http://www.gbif.org/), [Biodiversity
-Information Serving Our Nation (BISON)](https://bison.usgs.gov/#home),
-[Integrated Digitized Biocollections
-(iDigBio)](https://www.idigbio.org/), [VertNet](http://vertnet.org/),
-the [Berkeley Ecoinformatics Engine](https://ecoengine.berkeley.edu/),
-and [AntWeb](http://www.antweb.org/). It draws heavily from the
-outstanding work by the [ROpenScience group](https://ropensci.org/) and
-their suite of species occurrence packages.
+## Important usage limitations/notes
 
-We provide options to:
+The `fwspp` package exists strictly to extract occurrence data on USFWS
+properties, usually National Wildlife Refuges. Attempts to estimate or
+infer relative abundance are **most strongly discouraged** and **almost
+certainly meaningless**.
 
--   scrub records to reduce the number of returned records for each
-    refuge (see scrubbing details below);  
--   update scientific names to their current accepted or valid form
-    based on the [Integrated Taxonomic Information System
-    (ITIS)](http://www.itis.gov) (see taxonomic details below).
-
-# Using `fwspp`
+## Using `fwspp`
 
 Extracting species observation data is essentially a three-step process:
 
@@ -85,7 +77,7 @@ Extracting species observation data is essentially a three-step process:
 
 4.  Wait… probably a long while…
 
-## Step 1 - Find USFWS properties to query
+### Step 1 - Find USFWS properties to query
 
 The easiest way to generate a list (actually a `data.frame`) of USFWS
 properties to query is to use the `find_fws` function. With `find_fws`
@@ -108,18 +100,26 @@ all_refs <- find_fws()
 (ml <- find_fws("longleaf"))
 #>                                      ORGNAME FWSREGION RSL_TYPE
 #> 1 MOUNTAIN LONGLEAF NATIONAL WILDLIFE REFUGE         4      NWR
+#>                             geom
+#> 1 POLYGON ((-85.74307 33.6580...
 
 # Search across all refuges matching multiple strings
 (multi <- find_fws(c("longleaf", "romain")))
 #>                                      ORGNAME FWSREGION RSL_TYPE
 #> 1       CAPE ROMAIN NATIONAL WILDLIFE REFUGE         4      NWR
 #> 2 MOUNTAIN LONGLEAF NATIONAL WILDLIFE REFUGE         4      NWR
+#>                             geom
+#> 1 MULTIPOLYGON (((-79.64054 3...
+#> 2 POLYGON ((-85.74307 33.6580...
 
 # Could also have used regular expression
 (multi <- find_fws("longleaf|romain"))
 #>                                      ORGNAME FWSREGION RSL_TYPE
 #> 1       CAPE ROMAIN NATIONAL WILDLIFE REFUGE         4      NWR
 #> 2 MOUNTAIN LONGLEAF NATIONAL WILDLIFE REFUGE         4      NWR
+#>                             geom
+#> 1 MULTIPOLYGON (((-79.64054 3...
+#> 2 POLYGON ((-85.74307 33.6580...
 
 # Here's a tricky one - Hatchie NWR
 # Simple search returns three refuges with 'hatchie' in name
@@ -128,16 +128,24 @@ all_refs <- find_fws()
 #> 1       HATCHIE NATIONAL WILDLIFE REFUGE         4      NWR
 #> 2 LOWER HATCHIE NATIONAL WILDLIFE REFUGE         4      NWR
 #> 3  TALLAHATCHIE NATIONAL WILDLIFE REFUGE         4      NWR
+#>                             geom
+#> 1 MULTIPOLYGON (((-89.1319 35...
+#> 2 MULTIPOLYGON (((-89.59588 3...
+#> 3 MULTIPOLYGON (((-89.86355 3...
 
 # Option 1: select the one you need ad hoc
 (hatch <- hatch[1, ])
 #>                            ORGNAME FWSREGION RSL_TYPE
 #> 1 HATCHIE NATIONAL WILDLIFE REFUGE         4      NWR
+#>                             geom
+#> 1 MULTIPOLYGON (((-89.1319 35...
 
 # Option 2: regular expressions
 (hatch <- find_fws("^hatchie")) # Make name start with 'hatchie'
 #>                            ORGNAME FWSREGION RSL_TYPE
 #> 1 HATCHIE NATIONAL WILDLIFE REFUGE         4      NWR
+#>                             geom
+#> 1 MULTIPOLYGON (((-89.1319 35...
 
 # Return all southeast (region 4) refuges
 r4_refs <- find_fws(region = 4)
@@ -148,7 +156,7 @@ nrow(r4_refs)
 r6_all <- find_fws(ptype = c("NWR", "WPA"), region = 6)
 ```
 
-### USFWS property types
+#### USFWS property types
 
 The `find_fws` function gives you a `ptype` argument to search for
 several USFWS property types. The most common and default property type
@@ -158,9 +166,9 @@ National Fish Hatcheries (NFH), Wildlife Management Areas (WMA), and
 Farm Service Agency indices (FSA). You can specify multiple options as
 illustrated in the last example above.
 
-## Step 2 - Boundary, scrubbing, and taxonomic decisions
+### Step 2 - Boundary, scrubbing, and taxonomic decisions
 
-### Boundary options
+#### Boundary options
 
 We offer two options for querying the boundaries of refuges and other
 USFWS properties via the `bnd` argument to the `fws_occ` function. The
@@ -175,7 +183,7 @@ North America, U.S. Trust Territories and Possessions. See
 <https://ecos.fws.gov/ServCat/Reference/Profile/82893> for more
 information.
 
-### Scrubbing options
+#### Scrubbing options
 
 By default, we scrub **a lot** of records (`scrub = "strict"`).
 Specifically, we endeavor to retain, for a given geometry, a single
@@ -194,7 +202,7 @@ individuals of the same species recorded on the same date at a single
 location). Users can also disable scrubbing altogether
 (`scrub = "none"`).
 
-### Taxonomy
+#### Taxonomy
 
 By default (`taxonomy = TRUE`), we attempt to validate scientific names
 against the [Integrated Taxonomic Information System
@@ -210,7 +218,7 @@ Number, common names, NPS-specific taxon code, and a general taxa
 returned. Modifications to observation taxonomy can be suppressed with
 `taxonomy = FALSE`.
 
-### Other options
+#### Other options
 
 By default, the `fws_occ` function makes the query using the actual
 property boundary, either administrative or acquisition. However, the
@@ -224,7 +232,7 @@ processed; we like to see that things are moving along. If this annoys
 you, specify `verbose = FALSE` and enjoy a very slowly updating progress
 bar and limited messaging.
 
-## Step 3 - Run the query
+### Step 3 - Run the query
 
 With USFWS properties and query options identified, all that’s left is
 to run the `fws_occ` function, passing the object containing the
@@ -247,9 +255,20 @@ Some examples:
     kw <- find_fws("key west")
     kw_occ <- fws_occ(kw, buffer = 10, taxonomy = FALSE)
 
-## Step 4 - Wait…
+### Step 4 - Wait…
 
 Querying many properties can take hours, particularly if they are
 relatively large or contain hundreds of thousands of records. Typically
 the best option is to set `fws_occ` off and running in the background
 (or overnight) and do something more productive with yourself…
+
+## Getting help
+
+Contact the project maintainer for help with this repository template.
+
+## Contribute
+
+Contact the project maintainer for information about contributing to
+this repository template. Submit a [GitHub
+Issue](https://github.com/USFWS/fwspp/issues/new) to report a bug or
+request a feature or enhancement.
