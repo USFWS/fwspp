@@ -23,7 +23,12 @@ the [Berkeley Ecoinformatics Engine](https://ecoengine.berkeley.edu/),
 and [AntWeb](http://www.antweb.org/). It draws heavily from the
 outstanding work by the [ROpenScience group](https://ropensci.org/) and
 their suite of species occurrence packages.  The package also retrieves 
-sources from [ServCat](https://ecos.fws.gov/ServCat/) using the refuge bounding box of the records.  
+sources from [ServCat](https://ecos.fws.gov/ServCat/) using the refuge bounding box of the records.
+The ServCat query only pulls records associated with book chapters, conference proceedings, 
+conference proceeding papers, geospatial datasets, journal articles, published reports, 
+published report sections, published report series, resource briefs, tabular datasets, and 
+unpublished reports.  Only records that include at least one species in the taxonomy list and 
+one digital file are returned.  Records that are associated with more than one property are excluded.
 
 We provide options to:
 
