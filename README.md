@@ -22,7 +22,8 @@ Information Serving Our Nation (BISON)](https://bison.usgs.gov/#home),
 the [Berkeley Ecoinformatics Engine](https://ecoengine.berkeley.edu/),
 and [AntWeb](http://www.antweb.org/). It draws heavily from the
 outstanding work by the [ROpenScience group](https://ropensci.org/) and
-their suite of species occurrence packages.
+their suite of species occurrence packages.  The package also retrieves 
+sources from [ServCat](https://ecos.fws.gov/ServCat/) using the refuge bounding box of the records.  
 
 We provide options to:
 
