@@ -33,17 +33,18 @@ manage_gets <- function(prop, timeout) {
 
   ## GBIF
   gbif_recs <- get_GBIF(prop, timeout)
-  if (gbif_recs$meta$count > 0)
-    gbif_recs <- clean_GBIF(gbif_recs)
-  else
+  if (is.null(gbif_recs))
     gbif_recs <- NULL
-
-  ## iDigBio
-  idb_recs <- get_iDigBio(lat_range, lon_range, timeout)
-  if (nrow(idb_recs) > 0)
-    idb_recs <- clean_iDigBio(idb_recs)
   else
+    gbif_recs <- clean_GBIF(gbif_recs)
+
+  # iDigBio
+   idb_recs <- get_iDigBio(lat_range, lon_range, timeout)
+  #if (nrow(idb_recs) > 0)
+  if (is.null(idb_recs))
     idb_recs <- NULL
+   else
+     idb_recs <- clean_iDigBio(idb_recs)
 
   ## VertNet
   vn_recs <- get_VertNet(rowMeans(bb), radius, timeout, prop = prop)
@@ -51,6 +52,7 @@ manage_gets <- function(prop, timeout) {
     vn_recs <- clean_VertNet(vn_recs)
 
   ## Berkeley 'Ecoinformatics' Engine
+
   ee_recs <- get_EcoEngine(lat_range, lon_range, timeout)
   if (!is.null(ee_recs))
     ee_recs <- clean_EcoEngine(ee_recs)
@@ -69,15 +71,15 @@ manage_gets <- function(prop, timeout) {
   ## Consolidate standardized occurrence records from biodiversity databases ##
   #############################################################################
 
-      bind_rows(gbif_recs,
-              idb_recs,
-              vn_recs,
-              ee_recs,
-              ServCat_recs
-              # aw_recs
-    ) %>%
-      # Drop records with no species ID or monomials (e.g., genus only)
-      filter(!is.na(sci_name),
-             vapply(strsplit(sci_name, "\\W+"), length, integer(1)) == 2)
+  bind_rows(gbif_recs,
+    idb_recs,
+            vn_recs,
+            ee_recs,
+            ServCat_recs
+            # aw_recs
+  ) %>%
+    # Drop records with no species ID or monomials (e.g., genus only)
+    filter(!is.na(sci_name),
+           vapply(strsplit(sci_name, "\\W+"), length, integer(1)) == 2)
 
 }
