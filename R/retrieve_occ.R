@@ -23,8 +23,9 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   # If substantial # of records, check if the area ratio of a property
   # to its bounding box is small enough to warrant further division
   # for efficiency
-  if (try_gbif_count(prop) > 100000)
-    prop <- split_prop(prop)
+  #turning this off untill we can fix error
+    #if (try_gbif_count(prop) > 100000)
+    #  prop <- split_prop(prop)
 
   occ_recs <- vector(nrow(prop), mode = "list")
   safe_gets <- purrr::safely(manage_gets)
@@ -63,7 +64,7 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   }
 
   occ_recs %>%
-    mutate(org_name = org_name) %>%
+    dplyr::mutate(org_name = org_name) %>%
     select(org_name, everything(), -media_url, -cat_no) %>%
     arrange(sci_name, year, month, day) %>% bind_rows(ServCat_df)
 
