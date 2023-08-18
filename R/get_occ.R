@@ -102,12 +102,17 @@ get_VertNet <- function(center, radius, timeout, limit = 10000, prop) {
   # Try up to three times to be sure...
   i <- 1
   q_recs <- 0
-  while (i <= 3 | q_recs == 0) {
+  while (i <= 3) {
+    message("Querying VertNet three times ",i)
     q_recs <- try_vertnet_count(center, radius)
     i <- i + 1
+    if (q_recs > 0) {
+      break
+    }
   }
+
   if (q_recs == 0) {
-    message("No records found.")
+     message("No records found.")
     return(NULL)
   }
   message("Retrieving ", q_recs, " records.")
