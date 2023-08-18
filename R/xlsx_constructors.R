@@ -5,7 +5,7 @@ xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
     return()
   }
   org_dat <- dat %>%
-    mutate(occurrence = "Probably present",
+    dplyr::mutate(occurrence = "Probably present",
            nativeness = NA_character_,
            accept_record = ifelse(is.na(note) | grepl("FWSpecies", note), #changed NPS to FWS
                                   "Yes", "No")) %>%
@@ -24,8 +24,8 @@ xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
 
   # Add tags and data validation
   suppressWarnings({
-  xlsx_review_tags(wb)
-  add_review_validation(wb, end_row = nrow(org_dat) + 1)
+    xlsx_review_tags(wb)
+    add_review_validation(wb, end_row = nrow(org_dat) + 1)
   })
   # Write and save it
   writeData(wb, 1, org_dat, withFilter = TRUE)
@@ -66,86 +66,96 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
 
   test_df<-unique(org_dat[,c(1,2,3)])
 
+  if (nrow(test_df) == 0) {
+    return (NULL)
+  } else {
+    #aggregate by common name so each taxa includes all common names from the different data sources
+    CommonNames_vec<-sapply(unique(org_dat[,c(1,2,3)])$TaxonCode,
+                            function(x){paste(unique(subset(org_dat,
+                                                            org_dat$TaxonCode==x)$CommonNames),collapse=', ')})
 
+    CommonNames_list<-sapply(test_df$TaxonCode,
+                             function(x){CommonNames_vec[x]}) %>% as.vector %>% strsplit(",") %>% lapply(trimws) %>% lapply(unique)
 
-  #aggregate by common name so each taxa includes all common names from the different data sources
-  CommonNames_vec<-sapply(unique(org_dat[,c(1,2,3)])$TaxonCode,
-                          function(x){paste(unique(subset(org_dat,
-                                                          org_dat$TaxonCode==x)$CommonNames),collapse=', ')})
+    CommonNames_vec_update<-sapply(CommonNames_list,function(x){paste(x,collapse=", ")})
 
-  CommonNames_list<-sapply(test_df$TaxonCode,
-                           function(x){CommonNames_vec[x]}) %>% as.vector %>% strsplit(",") %>% lapply(trimws) %>% lapply(unique)
+    CommonNames_vec_update[CommonNames_vec_update=="NA"]<-NA
 
-  CommonNames_vec_update<-sapply(CommonNames_list,function(x){paste(x,collapse=", ")})
+    test_df$CommonNames<-CommonNames_vec_update
+    test_df$`Refuge Synonyms`<-NA
 
-  CommonNames_vec_update[CommonNames_vec_update=="NA"]<-NA
+    evidence_1<-rep(NA,nrow(org_dat))
+    unique_taxa_in_org_dat_list_links<-list()
 
-  test_df$CommonNames<-CommonNames_vec_update
-  test_df$`Refuge Synonyms`<-NA
+    for(i in 1:length(unique(org_dat$TaxonCode))){
+      unique_taxa_in_org_dat_list_links[[i]]<-subset(org_dat,
+                                                     org_dat$TaxonCode==unique(org_dat$TaxonCode)[i])$ExternalLinks
 
-  evidence_1<-rep(NA,nrow(org_dat))
-  unique_taxa_in_org_dat_list_links<-list()
+    }
 
-  for(i in 1:length(unique(org_dat$TaxonCode))){
-    unique_taxa_in_org_dat_list_links[[i]]<-subset(org_dat,
-                                                   org_dat$TaxonCode==unique(org_dat$TaxonCode)[i])$ExternalLinks
+    unique_taxa_in_org_dat_list_links<-lapply(unique_taxa_in_org_dat_list_links, function(x){gsub(" ", "",unlist(strsplit(x,", ")))})
+    names(unique_taxa_in_org_dat_list_links)<-unique(org_dat$TaxonCode)
 
+    for(i in 1:length(evidence_1)){
+      org_dat$ExternalLinks[i]<-gsub(" ", "",unlist(strsplit(org_dat$ExternalLinks[i],", ")))[1]
+    }
+
+    unique_taxa_in_org_dat_list<-list()
+
+    for(i in 1:length(unique(org_dat$TaxonCode))){
+      unique_taxa_in_org_dat_list[[i]]<-subset(org_dat,
+                                               org_dat$TaxonCode==unique(org_dat$TaxonCode)[i])
+
+    }
+
+    test_df$ExternalLinks<-sapply(test_df$TaxonCode,function(x){unique_taxa_in_org_dat_list_links[x][1]}) %>%
+      sapply(function(x){gsub(" ", "",unlist(strsplit(x,", ")))[1]})
+
+    test_df$Occurrence<-"Unconfirmed"
+    test_df$Seasonality<-NA
+    test_df$Origin<-NA
+    test_df$Management<-NA
+    test_df$Abundance<-NA
+    test_df$AbundanceNotes<-NA
+    test_df$SpringAbundance<-NA
+    test_df$SummerAbundance<-NA
+    test_df$FallAbundance<-NA
+    test_df$WinterAbundance<-NA
+    test_df$RecordStatus<-"Draft"
+    test_df$RefugeAccepted<-NA
+    test_df$Sensitive<-NA
+    test_df$SensitiveNotes<-NA
+    test_df$HistoryNotes<-NA
+    test_df$Email<-NA
+
+    org_dat<-test_df
   }
-
-  unique_taxa_in_org_dat_list_links<-lapply(unique_taxa_in_org_dat_list_links, function(x){gsub(" ", "",unlist(strsplit(x,", ")))})
-  names(unique_taxa_in_org_dat_list_links)<-unique(org_dat$TaxonCode)
-
-  for(i in 1:length(evidence_1)){
-    org_dat$ExternalLinks[i]<-gsub(" ", "",unlist(strsplit(org_dat$ExternalLinks[i],", ")))[1]
-  }
-
-  unique_taxa_in_org_dat_list<-list()
-
-  for(i in 1:length(unique(org_dat$TaxonCode))){
-    unique_taxa_in_org_dat_list[[i]]<-subset(org_dat,
-                                             org_dat$TaxonCode==unique(org_dat$TaxonCode)[i])
-
-  }
-
-  test_df$ExternalLinks<-sapply(test_df$TaxonCode,function(x){unique_taxa_in_org_dat_list_links[x][1]}) %>%
-    sapply(function(x){gsub(" ", "",unlist(strsplit(x,", ")))[1]})
-
-  test_df$Occurrence<-"Unconfirmed"
-  test_df$Seasonality<-NA
-  test_df$Origin<-NA
-  test_df$Management<-NA
-  test_df$Abundance<-NA
-  test_df$AbundanceNotes<-NA
-  test_df$SpringAbundance<-NA
-  test_df$SummerAbundance<-NA
-  test_df$FallAbundance<-NA
-  test_df$WinterAbundance<-NA
-  test_df$RecordStatus<-"Draft"
-  test_df$RefugeAccepted<-NA
-  test_df$Sensitive<-NA
-  test_df$SensitiveNotes<-NA
-  test_df$HistoryNotes<-NA
-  test_df$Email<-NA
-
-  org_dat<-test_df
 
   unique_taxa_in_org_dat_list_links_extra<-unique_taxa_in_org_dat_list_links[which(lapply(unique_taxa_in_org_dat_list_links, length)>1)]
-  unique_taxa_in_org_dat_list_links_extra<-lapply(names(unique_taxa_in_org_dat_list_links_extra),
-                                                  function(x){unlist(unique_taxa_in_org_dat_list_links_extra[x])[-1]})
-  extra_links_df_names<-names(unique_taxa_in_org_dat_list_links[which(lapply(unique_taxa_in_org_dat_list_links, length)>1)])
-  names(unique_taxa_in_org_dat_list_links_extra)<-extra_links_df_names
 
-  extra_links_df<-as.data.frame(stack(unique_taxa_in_org_dat_list_links_extra))
+  if (length(unique_taxa_in_org_dat_list_links_extra) == 0) {
+    unique_taxa_in_org_dat_list_links_extra<-NULL
+    ExternalLinks_df<-NULL
+  } else {
+    unique_taxa_in_org_dat_list_links_extra<-lapply(names(unique_taxa_in_org_dat_list_links_extra),
+                                                    function(x){unlist(unique_taxa_in_org_dat_list_links_extra[x])[-1]})
+    extra_links_df_names<-names(unique_taxa_in_org_dat_list_links[which(lapply(unique_taxa_in_org_dat_list_links, length)>1)])
+    names(unique_taxa_in_org_dat_list_links_extra)<-extra_links_df_names
 
-  colnames(extra_links_df)<-c("Link","TaxonCode")
+    extra_links_df<-as.data.frame(stack(unique_taxa_in_org_dat_list_links_extra))
 
-  ExternalLinks_df<-as.data.frame(rep(unique(org_dat$UnitCode)[1],nrow(extra_links_df)))
-  colnames(ExternalLinks_df)<-"UnitCode"
-  ExternalLinks_df$TaxonCode<-extra_links_df$TaxonCode
-  ExternalLinks_df$ExternalLinks<-extra_links_df$Link
-  ExternalLinks_df$dateURLVerified<-NA
-  ExternalLinks_df$evidenceType<-NA
-  ExternalLinks_df$comments<-NA
+    colnames(extra_links_df)<-c("Link","TaxonCode")
+
+    ExternalLinks_df<-as.data.frame(rep(unique(org_dat$UnitCode)[1],nrow(extra_links_df)))
+    colnames(ExternalLinks_df)<-"UnitCode"
+    ExternalLinks_df$TaxonCode<-extra_links_df$TaxonCode
+    ExternalLinks_df$ExternalLinks<-extra_links_df$Link
+    ExternalLinks_df$dateURLVerified<-NA
+    ExternalLinks_df$evidenceType<-NA
+    ExternalLinks_df$comments<-NA
+  }
+
+
 
   wb <- openxlsx::createWorkbook()
   openxlsx::addWorksheet(wb, "SpeciesListForImport")
@@ -181,22 +191,26 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
 
   taxoncode_vec<-taxoncode_vec[taxoncode_vec!="<null>"]
 
-  data_in_FWSpecies<-org_dat[as.character(org_dat$TaxonCode) %in% as.character(taxoncode_vec),]
-  links_in_FWSpecies<-ExternalLinks_df[as.character(ExternalLinks_df$TaxonCode) %in% as.character(taxoncode_vec),]
-  data_in_FWSpecies<-rbind(data_in_FWSpecies[,c(2,3,6)],links_in_FWSpecies[,c(1,2,3)])
-  data_in_FWSpecies<-data_in_FWSpecies[order(data_in_FWSpecies$TaxonCode),]
-
+  if (length(taxoncode_vec) == 0) {
+    data_in_FWSpecies<-NULL
+  } else {
+    data_in_FWSpecies<-org_dat[as.character(org_dat$TaxonCode) %in% as.character(taxoncode_vec),]
+    links_in_FWSpecies<-ExternalLinks_df[as.character(ExternalLinks_df$TaxonCode) %in% as.character(taxoncode_vec),]
+    data_in_FWSpecies<-rbind(data_in_FWSpecies[,c(2,3,6)],links_in_FWSpecies[,c(1,2,3)])
+    data_in_FWSpecies<-data_in_FWSpecies[order(data_in_FWSpecies$TaxonCode),]
+    openxlsx::writeData(wb, sheet = "FWSpecies",
+                        x = data_in_FWSpecies,
+                        startCol = 1)
+  }
 
   org_dat<-org_dat[!as.character(org_dat$TaxonCode) %in% as.character(taxoncode_vec),]
-  openxlsx::writeData(wb, sheet = "FWSpecies",
-            x = data_in_FWSpecies,
-            startCol = 1)
+
 
   # Write and save it
   #writeData(wb, 1, org_dat, withFilter = TRUE)
   openxlsx::writeData(wb, sheet = "SpeciesListForImport",
-            x = org_dat,
-            startCol = 1,withFilter = TRUE)
+                      x = org_dat,
+                      startCol = 1,withFilter = TRUE)
   #add the extra tabs here
   Occurrence_values_df <- data.frame("Occurrence" = c("Present",
                                                       "Present-Adjacent",
@@ -278,72 +292,72 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
   Sensitive_values_df <- data.frame("Sensitive" = c("Yes",
                                                     "No"))
   openxlsx::writeData(wb, sheet = "Drop-down values", x = Occurrence_values_df, startCol =
-              1)
+                        1)
   openxlsx::writeData(wb, sheet = "Drop-down values", x = Seasonality_values_df, startCol =
-              2)
+                        2)
   openxlsx::writeData(wb, sheet = "Drop-down values", x = Origin_values_df, startCol =
-              3)
+                        3)
 
   openxlsx::writeData(wb, sheet = "Drop-down values", x = Management_values_df, startCol =
-              4)
+                        4)
   openxlsx::writeData(wb, sheet = "Drop-down values", x = Abundance_values_df, startCol =
-              5)
+                        5)
 
   openxlsx::writeData(wb, sheet = "Drop-down values", x = SpringAbundance_values_df, startCol =
-              6)
+                        6)
   openxlsx::writeData(wb, sheet = "Drop-down values", x = SummerAbundance_values_df, startCol =
-              7)
+                        7)
 
   openxlsx::writeData(wb, sheet = "Drop-down values", x = FallAbundance_values_df, startCol =
-              8)
+                        8)
   openxlsx::writeData(wb, sheet = "Drop-down values", x = WinterAbundance_values_df, startCol =
-              9)
+                        9)
   openxlsx::writeData(wb, sheet = "Drop-down values", x = RecordStatus_values_df, startCol =
-              10)
+                        10)
 
   openxlsx::writeData(wb, sheet = "Drop-down values", x = RefugeAccepted_values_df, startCol =
-              11)
+                        11)
   openxlsx::writeData(wb, sheet = "Drop-down values", x = Sensitive_values_df, startCol =
-              12)
+                        12)
   #add dropdown values
   openxlsx::writeData(wb, sheet = "ExternalLinks", x = ExternalLinks_df, startCol =
-              1)
+                        1)
   suppressWarnings({
-  openxlsx::dataValidation(wb, "SpeciesListForImport", col = 7, rows = 2:(nrow(org_dat)+1), type = "list", value =
-                   paste0("'Drop-down values'!$A$2:$A$",as.character(nrow(Occurrence_values_df)+1)))
+    openxlsx::dataValidation(wb, "SpeciesListForImport", col = 7, rows = 2:(nrow(org_dat)+1), type = "list", value =
+                               paste0("'Drop-down values'!$A$2:$A$",as.character(nrow(Occurrence_values_df)+1)))
 
-  openxlsx::dataValidation(wb, "SpeciesListForImport", col = 8, rows = 2:(nrow(org_dat)+1), type = "list", value =
-                   paste0("'Drop-down values'!$B$2:$B$",as.character(nrow(Seasonality_values_df)+1)))
+    openxlsx::dataValidation(wb, "SpeciesListForImport", col = 8, rows = 2:(nrow(org_dat)+1), type = "list", value =
+                               paste0("'Drop-down values'!$B$2:$B$",as.character(nrow(Seasonality_values_df)+1)))
 
-  openxlsx::dataValidation(wb, "SpeciesListForImport", col = 9, rows = 2:(nrow(org_dat)+1), type = "list", value =
-                   paste0("'Drop-down values'!$C$2:$C$",as.character(nrow(Origin_values_df)+1)))
+    openxlsx::dataValidation(wb, "SpeciesListForImport", col = 9, rows = 2:(nrow(org_dat)+1), type = "list", value =
+                               paste0("'Drop-down values'!$C$2:$C$",as.character(nrow(Origin_values_df)+1)))
 
-  openxlsx::dataValidation(wb, "SpeciesListForImport", col = 10, rows = 2:(nrow(org_dat)+1), type = "list", value =
-                   paste0("'Drop-down values'!$D$2:$D$",as.character(nrow(Management_values_df)+1)))
+    openxlsx::dataValidation(wb, "SpeciesListForImport", col = 10, rows = 2:(nrow(org_dat)+1), type = "list", value =
+                               paste0("'Drop-down values'!$D$2:$D$",as.character(nrow(Management_values_df)+1)))
 
-  openxlsx::dataValidation(wb, "SpeciesListForImport", col = 11, rows = 2:(nrow(org_dat)+1), type = "list", value =
-                   paste0("'Drop-down values'!$E$2:$E$",as.character(nrow(Abundance_values_df)+1)))
+    openxlsx::dataValidation(wb, "SpeciesListForImport", col = 11, rows = 2:(nrow(org_dat)+1), type = "list", value =
+                               paste0("'Drop-down values'!$E$2:$E$",as.character(nrow(Abundance_values_df)+1)))
 
-  openxlsx::dataValidation(wb, "SpeciesListForImport", col = 13, rows = 2:(nrow(org_dat)+1), type = "list", value =
-                   paste0("'Drop-down values'!$F$2:$F$",as.character(nrow(SpringAbundance_values_df)+1)))
+    openxlsx::dataValidation(wb, "SpeciesListForImport", col = 13, rows = 2:(nrow(org_dat)+1), type = "list", value =
+                               paste0("'Drop-down values'!$F$2:$F$",as.character(nrow(SpringAbundance_values_df)+1)))
 
-  openxlsx::dataValidation(wb, "SpeciesListForImport", col = 14, rows = 2:(nrow(org_dat)+1), type = "list", value =
-                   paste0("'Drop-down values'!$G$2:$G$",as.character(nrow(SummerAbundance_values_df)+1)))
+    openxlsx::dataValidation(wb, "SpeciesListForImport", col = 14, rows = 2:(nrow(org_dat)+1), type = "list", value =
+                               paste0("'Drop-down values'!$G$2:$G$",as.character(nrow(SummerAbundance_values_df)+1)))
 
-  openxlsx::dataValidation(wb, "SpeciesListForImport", col = 15, rows = 2:(nrow(org_dat)+1), type = "list", value =
-                   paste0("'Drop-down values'!$H$2:$H$",as.character(nrow(FallAbundance_values_df)+1)))
+    openxlsx::dataValidation(wb, "SpeciesListForImport", col = 15, rows = 2:(nrow(org_dat)+1), type = "list", value =
+                               paste0("'Drop-down values'!$H$2:$H$",as.character(nrow(FallAbundance_values_df)+1)))
 
-  openxlsx::dataValidation(wb, "SpeciesListForImport", col = 16, rows = 2:(nrow(org_dat)+1), type = "list", value =
-                   paste0("'Drop-down values'!$I$2:$I$",as.character(nrow(WinterAbundance_values_df)+1)))
+    openxlsx::dataValidation(wb, "SpeciesListForImport", col = 16, rows = 2:(nrow(org_dat)+1), type = "list", value =
+                               paste0("'Drop-down values'!$I$2:$I$",as.character(nrow(WinterAbundance_values_df)+1)))
 
-  openxlsx::dataValidation(wb, "SpeciesListForImport", col = 17, rows = 2:(nrow(org_dat)+1), type = "list", value =
-                   paste0("'Drop-down values'!$J$2:$J$",as.character(nrow(RecordStatus_values_df)+1)))
+    openxlsx::dataValidation(wb, "SpeciesListForImport", col = 17, rows = 2:(nrow(org_dat)+1), type = "list", value =
+                               paste0("'Drop-down values'!$J$2:$J$",as.character(nrow(RecordStatus_values_df)+1)))
 
-  openxlsx::dataValidation(wb, "SpeciesListForImport", col = 18, rows = 2:(nrow(org_dat)+1), type = "list", value =
-                   paste0("'Drop-down values'!$K$2:$K$",as.character(nrow(RefugeAccepted_values_df)+1)))
+    openxlsx::dataValidation(wb, "SpeciesListForImport", col = 18, rows = 2:(nrow(org_dat)+1), type = "list", value =
+                               paste0("'Drop-down values'!$K$2:$K$",as.character(nrow(RefugeAccepted_values_df)+1)))
 
-  openxlsx::dataValidation(wb, "SpeciesListForImport", col = 19, rows = 2:(nrow(org_dat)+1), type = "list", value =
-                   paste0("'Drop-down values'!$L$2:$L$",as.character(nrow(Sensitive_values_df)+1)))
+    openxlsx::dataValidation(wb, "SpeciesListForImport", col = 19, rows = 2:(nrow(org_dat)+1), type = "list", value =
+                               paste0("'Drop-down values'!$L$2:$L$",as.character(nrow(Sensitive_values_df)+1)))
   })
 
 
