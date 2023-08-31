@@ -77,8 +77,15 @@ clean_sci_name <- function(sn_string) {
   # This also drops most authorities...
   # e.g., Aronia X prunifolia, Aronia x prunifolia
   n_words <- sapply(gregexpr("\\S+", sn_string), function(x) sum(x > 0))
-  suppressWarnings(if (n_words == 3 && grepl(" X | x ", sn_string))
-    return(Cap(sn_string, "first")))
+  clean_name_func<-function(a,b){
+    ifelse(sum(a == 3,grepl(" X | x ", b))==2,
+           return(Cap(b, "first")),b)
+  }
+  for(i in 1:length(sn_string)){
+    sn_string[i]<-clean_name_func(a=n_words[i],b=sn_string[i])
+  }                  
+  #suppressWarnings(if (n_words == 3 && grepl(" X | x ", sn_string))
+  #  return(Cap(sn_string, "first")))
   sn_string %>% sub("^(\\S*\\s+\\S+).*", "\\1", .) %>%
     Cap("first")
 }
