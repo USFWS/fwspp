@@ -22,13 +22,7 @@ Information Serving Our Nation (BISON)](https://bison.usgs.gov/#home),
 the [Berkeley Ecoinformatics Engine](https://ecoengine.berkeley.edu/),
 and [AntWeb](http://www.antweb.org/). It draws heavily from the
 outstanding work by the [ROpenScience group](https://ropensci.org/) and
-their suite of species occurrence packages.  The package also retrieves 
-sources from [ServCat](https://ecos.fws.gov/ServCat/) using the refuge bounding box of the records.
-The ServCat query only pulls records associated with book chapters, conference proceedings, 
-conference proceeding papers, geospatial datasets, journal articles, published reports, 
-published report sections, published report series, resource briefs, tabular datasets, and 
-unpublished reports.  Only records that include at least one species in the taxonomy list and 
-one digital file are returned.  Records that are associated with more than one property are excluded.
+their suite of species occurrence packages.
 
 We provide options to:
 
@@ -53,7 +47,7 @@ take the extra steps documented below.
     install.packages("devtools", dependencies = TRUE)
 
     # Now install fwspp
-    devtools::install_github("git@github.com:USFWS/fwspp.git", ref = "master")
+    devtools::install_github("git@github.com:USFWS/fwspp.git", ref = "main")
 
     # Now load the functionality
     library("fwspp")
@@ -143,7 +137,7 @@ all_refs <- find_fws()
 #> 2 LOWER HATCHIE NATIONAL WILDLIFE REFUGE         4      NWR
 #> 3  TALLAHATCHIE NATIONAL WILDLIFE REFUGE         4      NWR
 #>                             geom
-#> 1 MULTIPOLYGON (((-89.1319 35...
+#> 1 MULTIPOLYGON (((-89.25235 3...
 #> 2 MULTIPOLYGON (((-89.59588 3...
 #> 3 MULTIPOLYGON (((-89.86355 3...
 
@@ -152,14 +146,14 @@ all_refs <- find_fws()
 #>                            ORGNAME FWSREGION RSL_TYPE
 #> 1 HATCHIE NATIONAL WILDLIFE REFUGE         4      NWR
 #>                             geom
-#> 1 MULTIPOLYGON (((-89.1319 35...
+#> 1 MULTIPOLYGON (((-89.25235 3...
 
 # Option 2: regular expressions
 (hatch <- find_fws("^hatchie")) # Make name start with 'hatchie'
 #>                            ORGNAME FWSREGION RSL_TYPE
 #> 1 HATCHIE NATIONAL WILDLIFE REFUGE         4      NWR
 #>                             geom
-#> 1 MULTIPOLYGON (((-89.1319 35...
+#> 1 MULTIPOLYGON (((-89.25235 3...
 
 # Return all southeast (region 4) refuges
 r4_refs <- find_fws(region = 4)
