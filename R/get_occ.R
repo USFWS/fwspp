@@ -5,9 +5,9 @@
 # to proceed to additional properties
 
 #' @noRd
-get_GBIF <- function(prop, timeout, limit = 200000) {
+get_GBIF <- function(prop, timeout, limit = 200000, start_yr) {
 
-  message("Querying the Global Biodiversity Information Facility (GBIF)...")
+  message("Querying the Global Biodiversity Information Facility (GBIF) from ",start_yr, " to present...")
 
   # We want to capture media, if available, so can't use 'spocc' call to GBIF
   try_gbif_count <- try_verb_n(gbif_count)
@@ -16,7 +16,7 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
   curr_yr <- as.POSIXlt(Sys.time())$year + 1900
 
   # Hoop-jumping to retrieve more records, if necessary
-  q_recs <- try_gbif_count(prop)
+  q_recs <- try_gbif_count(prop,year=paste(start_yr,",",curr_yr))
   if (q_recs == 0) {
     message("No records found.")
     return(NULL)
@@ -28,7 +28,7 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
     n_grp <- ceiling(q_recs/50000)
     yr_bnd_l <- integer(0)
 
-    for (yr in curr_yr:1776) {
+    for (yr in curr_yr:start_yr) {
       cutoff <- 50000 * (length(yr_bnd_l) + 1)
       yr_rng <- paste(yr, curr_yr, sep = ",")
       n_recs <- try_gbif_count(prop,
@@ -61,7 +61,8 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
   } else {
     gbif_recs <- try_gbif(limit = min(limit, q_recs),
                           geometry = get_wkt(prop),
-                          curlopts = list(timeout = (timeout+10)))
+                          curlopts = list(timeout = (timeout+10)),
+                          year=paste(start_yr,",",curr_yr))
   }
   gbif_recs$meta$count <- q_recs
   class(gbif_recs) <- "gbif"
@@ -84,12 +85,13 @@ get_iDigBio <- function(lat_range, lon_range, timeout) {
   q_recs <- try_idb_count(rq = rq)
   if (q_recs == 0) {
     message("No records found.")
-    return(NULL)
+    idb_recs<-NULL
+  } else{
+    message("Retrieving ", q_recs, " records.")
+    idb_recs <- try_idb(type = "records", mq = FALSE, rq = rq, fields = "all",
+                        max_items = 100000, limit = 0, offset = 0, sort = FALSE,
+                        httr::config(timeout = timeout))
   }
-  message("Retrieving ", q_recs, " records.")
-  idb_recs <- try_idb(type = "records", mq = FALSE, rq = rq, fields = "all",
-                      max_items = 100000, limit = 0, offset = 0, sort = FALSE,
-                      httr::config(timeout = timeout))
   idb_recs
 }
 
@@ -102,8 +104,10 @@ get_VertNet <- function(center, radius, timeout, limit = 10000, prop) {
   # Try up to three times to be sure...
   i <- 1
   q_recs <- 0
+  message("Attempting to query VertNet three times")
+  VertNet_try<-c("first try","second try","third and final try")
   while (i <= 3) {
-    message("Querying VertNet three times ",i)
+    message(VertNet_try[i])
     q_recs <- try_vertnet_count(center, radius)
     i <- i + 1
     if (q_recs > 0) {
@@ -211,17 +215,16 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
   })
   bind_rows(aw_recs)
 }
-
 get_ServCat<-function(prop){
-  message("Querying ServCat...")
   try_JSON <- try_verb_n(jsonlite::fromJSON, 4)
+
   get_unit_codes <- function(orgnames = NULL) {
     base_url <- "https://ecos.fws.gov/primr/api/refuge/geo.json"
 
     try_JSON <- try_verb_n(jsonlite::fromJSON, 2)
     prop_info <- try_JSON(base_url)
     prop_info <- prop_info$features$properties %>%
-      mutate(org_name = toupper(.data$orgnameabbr)) %>%
+      dplyr::mutate(org_name = toupper(.data$orgnameabbr)) %>%
       select(.data$org_name, UnitCode = .data$costCenterCode)
     if (is.null(orgnames)) return(prop_info)
     filter(prop_info,
@@ -229,8 +232,8 @@ get_ServCat<-function(prop){
   }
   orgname_df<-get_unit_codes()
   unit_code<-orgname_df[orgname_df$org_name==prop$ORGNAME,]$UnitCode
-  ServCat_df<-as.data.frame(try_JSON(rawToChar(httr::POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
-                                                    body = jsonlite::toJSON(c(
+  ServCat_df<-as.data.frame(try_JSON(rawToChar(POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
+                                                    body = toJSON(c(
                                                       list(
                                                         "units" = list(
                                                           list(
@@ -243,9 +246,6 @@ get_ServCat<-function(prop){
                                                         )
                                                       )
                                                     ), auto_unbox = TRUE),
-                                                    httr::add_headers("Content-Type" = "application/json"),httr::timeout(50000))$content))$items)
-  message("Retrieving ", as.character(min(nrow(ServCat_df), 10000)), " records.")
+                                                    add_headers("Content-Type" = "application/json"),httr::timeout(100000))$content))$items)
   ServCat_df
 }
-
-
