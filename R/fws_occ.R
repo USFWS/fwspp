@@ -160,11 +160,18 @@
 fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
                     buffer = 0, scrub = c("strict", "moderate", "none"),
                     taxonomy = TRUE, verbose = TRUE,
-                    timeout = NULL) {
+                    timeout = NULL,gbif_start_yr = NULL) {
+  start_yr<-gbif_start_yr
+  if (is.null(start_yr))
+    start_yr<-1776
 
   if (is.null(fws) || !is.data.frame(fws))
     stop("You must provide valid property names to query.",
          "\nSee `?find_fws` for examples.")
+  curr_yr <- as.POSIXlt(Sys.time())$year + 1900
+  gbif_start_yr %in% c(1776:curr_yr)
+  if (!(gbif_start_yr %in% c(1776:curr_yr)))
+    stop("You must provide a four digit year between 1776 and the present year.")
   bnd <- match.arg(bnd)
   scrub <- match.arg(scrub)
 
@@ -177,11 +184,11 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
   # Cycle through properties
   if (verbose)
     out <- lapply(fws$ORGNAME, function(prop) {
-        retrieve_occ(props, prop, buffer, scrub, timeout)})
+      retrieve_occ(props, prop, buffer, scrub, timeout,start_yr)})
   else
     out <- pbapply::pblapply(fws$ORGNAME, function(prop) {
       suppressMessages(
-          retrieve_occ(props, prop, buffer, scrub, timeout))})
+        retrieve_occ(props, prop, buffer, scrub, timeout,start_yr))})
 
   attributes(out) <- list(names = fws$ORGNAME,
                           class = "fwspp",
