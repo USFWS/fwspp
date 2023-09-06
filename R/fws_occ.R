@@ -169,8 +169,8 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
     stop("You must provide valid property names to query.",
          "\nSee `?find_fws` for examples.")
   curr_yr <- as.POSIXlt(Sys.time())$year + 1900
-  gbif_start_yr %in% c(1776:curr_yr)
-  if (!(gbif_start_yr %in% c(1776:curr_yr)))
+
+  if (!(start_yr %in% c(1776:curr_yr)))
     stop("You must provide a four digit year between 1776 and the present year.")
   bnd <- match.arg(bnd)
   scrub <- match.arg(scrub)
