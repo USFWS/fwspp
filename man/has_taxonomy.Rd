@@ -12,3 +12,8 @@ has_taxonomy(fwspp)
 \description{
 Check if \code{fwspp} object has taxonomic information attached
 }
+\examples{
+\dontrun{
+has_taxonomy(fwspp)
+}
+}

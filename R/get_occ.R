@@ -258,7 +258,7 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
 #' @param prop a FWS property boundary returned by \code{\link{find_fws}}
 #'
 #' @noRd
-get_ServCat<-function(prop){
+get_ServCat <- function(prop) {
   message("Querying ServCat...")
   try_JSON <- try_verb_n(jsonlite::fromJSON, 4)
 
@@ -280,11 +280,10 @@ get_ServCat<-function(prop){
                                                     body = jsonlite::toJSON(c(
                                                       list(
                                                         "units" = list(
-                                                          list(
-                                                            order = 0,
+                                                          list(order = 0,
                                                             logicOperator = "string",
                                                             unitCode = unit_code,
-                                                            linked = FALSE,
+                                                            linked = FALSE
                                                             # approved=TRUE
                                                           )
                                                         )

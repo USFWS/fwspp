@@ -61,8 +61,7 @@ manage_gets <- function(prop, timeout) {
   if (!is.null(vn_recs))
     vn_recs <- clean_VertNet(vn_recs)
 
-  ## Berkeley 'Ecoinformatics' Engine
-
+  # Berkeley 'Ecoinformatics' Engine
   ee_recs <- get_EcoEngine(lat_range, lon_range, timeout)
   if (!is.null(ee_recs))
     ee_recs <- clean_EcoEngine(ee_recs)
@@ -88,5 +87,4 @@ manage_gets <- function(prop, timeout) {
     # Drop records with no species ID or monomials (e.g., genus only)
     filter(!is.na(sci_name),
            vapply(strsplit(sci_name, "\\W+"), length, integer(1)) == 2)
-
 }
