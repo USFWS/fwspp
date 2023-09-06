@@ -98,9 +98,12 @@ retrieve_taxonomy <- function(sci_name) {
 #'  which to retrieve basic taxonomic information. Unlike
 #'  \code{\link{retrieve_taxonomy}}, matches are not restricted to the
 #'  species level; that is, subspecies may be returned.
+#'
 #' @return a \code{data.frame} of basic taxonomic information or \code{NULL}
 #'  if there are no matching records
+#'
 #' @export
+#'
 #' @examples
 #' \dontrun{
 #' fws_taxonomy("GULo gulo")
@@ -261,6 +264,7 @@ join_taxonomy <- function(fwspp, taxonomy) {
 #'
 #' @export
 #'
+#' @examples
 #' \dontrun{
 #' has_taxonomy(fwspp)
 #' }

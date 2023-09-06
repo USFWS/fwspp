@@ -177,6 +177,8 @@ get_VertNet <- function(center, radius, timeout, limit = 10000, prop) {
 #' @param lon_range vector of two numeric values indicating the range of latitudes in decimal degrees
 #' @param timeout numeric value specifying the time to wait for records to return in seconds
 #'
+#' @importFrom purrr safely
+#'
 #' @noRd
 get_EcoEngine <- function(lat_range, lon_range, timeout) {
 

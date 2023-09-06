@@ -42,7 +42,7 @@ ensure_multipolygons <- function(prop) {
 }
 
 
-# Generate a spatial buffer around a USFWS property
+#' Generate a spatial buffer around a USFWS property
 #'
 #' @param prop a FWS property boundary returned by \code{\link{find_fws}}
 #' @param buffer a numeric scalar indicating the buffer radius in meters
@@ -168,7 +168,7 @@ prop_bb_area <- function(prop) {
 #' @importFrom magrittr %>%
 #' @import sf
 #'
-#' @return
+#' @return sf object of diced FWS properties
 split_prop <- function(prop) {
 
   sf::sf_use_s2(FALSE)
@@ -196,7 +196,7 @@ split_prop <- function(prop) {
 #'
 #' @param prop a FWS property boundary returned by \code{\link{find_fws}}
 #'
-#' #' @importFrom magrittr %>%
+#' @importFrom magrittr %>%
 #' @import sf
 #'
 #' @return A FWS property that is split along the international date line

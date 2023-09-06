@@ -5,9 +5,8 @@
 #'  \code{link{prep_properties}}. Exported but not typically called
 #'  directly by user unless \code{\link{install_fws_cadastral}} fails.
 #'
-#' @importFrom magrittr %>%
 #' @import sf
-#' @importFrom dplyr
+#' @import dplyr
 #'
 #' @export
 prep_cadastral <- function() {

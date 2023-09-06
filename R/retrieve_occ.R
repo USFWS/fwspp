@@ -13,7 +13,7 @@
 #'
 #' @importFrom magrittr %>%
 #' @import sf
-#' @importFrom purr safely
+#' @importFrom purrr safely
 #' @import dplyr
 #'
 #' @return a data frame of species occurrence records
