@@ -161,6 +161,7 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
                     buffer = 0, scrub = c("strict", "moderate", "none"),
                     taxonomy = TRUE, verbose = TRUE,
                     timeout = NULL,gbif_start_yr = NULL) {
+
   start_yr<-gbif_start_yr
   if (is.null(start_yr))
     start_yr<-1776
