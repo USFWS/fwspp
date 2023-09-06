@@ -8,8 +8,11 @@
 #'   assigned to the combined object.
 #'
 #' @param ... two or more \code{fwspp} objects returned by \code{\link{fws_occ}}
+#'
 #' @return a \code{\link{fwspp}} object
+#'
 #' @export
+#'
 #' @examples
 #' \dontrun{
 #' ml <- find_fws("longleaf")
@@ -20,6 +23,7 @@
 #' }
 
 fwspp_combine <- function(...) {
+
   fwspp_list <- list(...)
 
   # Validating that objects can be combined

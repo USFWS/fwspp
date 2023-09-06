@@ -1,9 +1,13 @@
+################################################################################
 # Helper to run function up a function a user-specified number of times with increasing
 # backoff times (modified from `VERB_n` in googlesheets package); errors (after n
 # attempts) are kept and passed along.  Currently retrying on all errors until timeouts,
 # brief server errors, and non-negotiable errors can be better differentiated. This
 # function is also used to capture errors for non-HTTP related functions (e.g., cleaning
 # and scrubbing)
+################################################################################
+
+#' @noRd
 try_verb_n <- function(verb, n = 3) {
   function(...) {
     for (i in seq_len(n)) {
@@ -21,6 +25,8 @@ try_verb_n <- function(verb, n = 3) {
   }
 }
 
+
+#' @noRd
 is_error <- function(obj) {
   if (inherits(obj, "list") &&
       identical(names(obj), c("result", "error")))
@@ -28,13 +34,18 @@ is_error <- function(obj) {
   else inherits(obj, "error") | inherits(obj, "try-error")
 }
 
+
+#' @noRd
 fws_url <- function() "https://ecos.fws.gov/ServCat/DownloadFile/126665"
 
+
+#' @noRd
 gbif_count <- function(prop, ...) {
   n <- rgbif::occ_search(limit = 0, ...,
                          geometry = get_wkt(prop))
   n$meta$count
 }
+
 
 # bison_count <- function(prop) {
 #   prop_bb <- matrix(sf::st_bbox(prop), 2)
@@ -46,6 +57,8 @@ gbif_count <- function(prop, ...) {
 #   prop_info$total
 # }
 
+
+#' @noRd
 vertnet_count <- function(center, radius) {
   args <- list(lat = center[2], long = center[1], radius = radius)
   cli <- crul::HttpClient$new(url = "http://api.vertnet-portal.appspot.com", opts = list())
@@ -58,20 +71,28 @@ vertnet_count <- function(center, radius) {
   as.numeric(regmatches(avail, regexpr("[0-9]+", avail)))
 }
 
+
+#' @noRd
 est_timeout <- function(n_recs) {
   ceiling(0.005 * n_recs)
 }
 
+
+#' @noRd
 est_nrecs <- function(timeout) {
   recs <- round(timeout / 0.005)
   100 * (recs %/% 100 + as.logical(recs %% 100))
 }
 
+
+#' @noRd
 get_ee_metadata <- function(url) {
   ee_meta <- jsonlite::fromJSON(url)
   ee_meta[["metadataurl"]]
 }
 
+
+#' @noRd
 get_unit_codes <- function(orgnames = NULL) {
   base_url <- "https://ecos.fws.gov/primr/api/refuge/geo.json"
   try_JSON <- try_verb_n(jsonlite::fromJSON, 2)
@@ -81,5 +102,7 @@ get_unit_codes <- function(orgnames = NULL) {
     select(.data$org_name, UnitCode = .data$costCenterCode)
   if (is.null(orgnames)) return(prop_info)
   filter(prop_info,
-         grepl(paste(orgnames, collapse = "|"), .data$org_name, ignore.case = TRUE))
+         grepl(paste(orgnames, collapse = "|"),
+               .data$org_name,
+               ignore.case = TRUE))
 }

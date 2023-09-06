@@ -5,12 +5,16 @@
 #'  \code{link{prep_properties}}. Exported but not typically called
 #'  directly by user unless \code{\link{install_fws_cadastral}} fails.
 #'
+#' @importFrom magrittr %>%
+#' @import sf
+#' @importFrom dplyr
+#'
 #' @export
 prep_cadastral <- function() {
 
   check_cadastral()
 
-  sf::sf_use_s2(FALSE)  # Turn off s2 processing to prevent the invalid geometry errors
+  sf::sf_use_s2(FALSE)  # Turn off s2 processing to prevent invalid geometry errors
 
   # Get requested features
   gdb <- system.file("extdata", "FWSCadastral.gdb", package = "fwspp")
@@ -25,13 +29,9 @@ prep_cadastral <- function() {
     l_nm <- paste0("fws_", tolower(sub("FWS", "", l)))
 
     # Accommodate inconsistency with D'Arbonne in Approved vs Interest
-    props <- mutate(props,
+    props <- dplyr::mutate(props,
                     ORGNAME = gsub(" '", "'", ORGNAME),
                     ORGNAME = gsub("([A-Z])(\\.)([A-Z])", "\\1\\2 \\3", ORGNAME))
-
-    # Cast to MULTIPOLYGON to avoide issues with MULTISURFACE geometries
-
-    # props <- suppressMessages(sf::st_cast(props, to = "MULTIPOLYGON", warn = FALSE))
 
     props <- ensure_multipolygons(props)
 

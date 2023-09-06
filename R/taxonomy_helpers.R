@@ -1,16 +1,18 @@
 #' Retrieve taxonomic information for one or more scientific names
 #'
 #' Retrieves very basic taxonomic information for a given taxa, if available,
-#'  including ITIS Taxonomic Serial Number (\code{tsn}), the \code{taxon_code}
-#'  assigned by the National Park Service (and used also by the US Fish &
-#'  Wildlife Service), \code{common_name}(s), a generic taxon group, and a
-#'  \code{note} if a match is not found.
+#'  including Taxonomic Serial Number (\code{tsn}), the \code{taxon_code}
+#'  used also by the US Fish & Wildlife Service), \code{common_name}(s),
+#'  a generic taxon group, and a \code{note} if a match is not found.
 #'
 #' @param sci_name character vector (case-insensitive) of scientific names
 #'  for which to retrieve basic taxonomic information at the *species* level;
 #'  that is, subspecies (trinomials) are currently ignored
+#'
 #' @return a \code{data.frame} of basic taxonomic information
+#'
 #' @export
+#'
 #' @examples
 #' \dontrun{
 #' retrieve_taxonomy(c("GULo gulo", "Lampropeltis getuLA HOLBrookI",
@@ -18,8 +20,8 @@
 #'                     "Fakus speciesus", "Salsola iberica"))
 #' }
 retrieve_taxonomy <- function(sci_name) {
+
   out <- pbapply::pblapply(sci_name, function(sn) {
-    # message(sn)
     acc_sci_name <- sn <- clean_sci_name(sn)
     tax <- fws_taxonomy(acc_sci_name)
 
@@ -61,12 +63,20 @@ retrieve_taxonomy <- function(sci_name) {
              tsn = ifelse(tsn < 0, NA_integer_, tsn),
              note = ifelse(is.na(tsn),
                            "Present in FWSpecies, but no ITIS match", NA_character_)) %>%
-      select(sci_name, acc_sci_name, com_name, rank = rank,
-             category = category, taxon_code = taxon_code, tsn, note)
+      select(sci_name,
+             acc_sci_name,
+             com_name,
+             rank = rank,
+             category = category,
+             taxon_code = taxon_code,
+             tsn,
+             note)
     tax
   })
+
   bind_rows(out)
 }
+
 
 #' Retrieve raw USFWS taxonomic information matching scientific name query
 #'
@@ -97,20 +107,20 @@ retrieve_taxonomy <- function(sci_name) {
 #' fws_taxonomy("Lampropeltis holbrooki")
 #' fws_taxonomy("holBRooki lampropeltis")
 #' }
-
 fws_taxonomy <- function(sci_name) {
+
   suppressWarnings({
   try_JSON <- try_verb_n(jsonlite::fromJSON, 10)
   base_url <- "https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/searchByScientificName/"
   q_sci_name <- utils::URLencode(sci_name)
   q_url <- paste0(base_url, q_sci_name, "?format=json")
-  #changed try to try_verb_n
-  #tmp <- try(jsonlite::fromJSON(q_url),silent = TRUE)
+
   tmp <- try_JSON(q_url)
   if (is_error(tmp)) {
     warning("Taxonomy retrieval failed for ", sci_name, call. = FALSE)
     return()
   }
+
   if (identical(tmp, list())) return()
 
   tax <- data.frame(
@@ -132,13 +142,20 @@ fws_taxonomy <- function(sci_name) {
   })
 }
 
-# Get FWS taxonomy using FWS Taxon Code
+
+#' Get FWS taxonomy using FWS Taxon Code
+#'
+#' @param taxon_code numeric value representing a FWS Taxon Code
+#'
+#' @return data frame
+#'
+#' @noRd
 fws_taxonomy_by_code <- function(taxon_code) {
+
   suppressWarnings({
   try_JSON <- try_verb_n(jsonlite::fromJSON, 10)
   base_url <- "https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/"
   q_url <- paste0(base_url, taxon_code, "?codeType=taxoncode&format=json")
-  #tmp <- try(jsonlite::fromJSON(q_url),silent = TRUE)
   tax <- try_JSON(q_url)
   if (is_error(tax)) {
     warning("Taxonomy retrieval failed for taxon code ", taxon_code, call. = FALSE)
@@ -156,16 +173,22 @@ fws_taxonomy_by_code <- function(taxon_code) {
     tsn = ifelse(is.null(tax$ClassificationSource$Detail$Code), NA_integer_,
                  as.integer(tax$ClassificationSource$Detail$Code)),
     stringsAsFactors = FALSE)
+
   tax
   })
 }
 
+
+#' @noRd
 filter_taxonomy <- function(tax, sci_name) {
+
   tax <- tax[tax$rank == "Species" &
                grepl(paste0("^", tolower(sci_name), "$"), tolower(tax$sci_name)), ]
-  # None remaining means all were subspecies (generally)
-  if (nrow(tax) == 0)
+
+
+  if (nrow(tax) == 0) # None remaining means all were subspecies (generally)
     return(empty_tax(sci_name, "No species rank match found"))
+
   if (nrow(tax) > 1) {
     # Multiple species in different taxa groups
     if (n_distinct(tax$category) > 1)
@@ -186,7 +209,7 @@ filter_taxonomy <- function(tax, sci_name) {
       }
       # Occasionally filtering by accepted name solves problem
       tax <- tax[tax$usage %in% c("valid", "accepted"), ]
-      # but if it doesn't
+      # But if it doesn't...
       if (nrow(tax) != 1)
         return(empty_tax(sci_name, "Multiple species match"))
     }
@@ -194,6 +217,8 @@ filter_taxonomy <- function(tax, sci_name) {
   tax
 }
 
+
+#' @noRd
 empty_tax <- function(sci_name = NA_character_, note = NA_character_) {
   tax <- data.frame(sci_name = clean_sci_name(sci_name),
                     acc_sci_name = NA_character_,
@@ -207,6 +232,8 @@ empty_tax <- function(sci_name = NA_character_, note = NA_character_) {
   tax
 }
 
+
+#' @noRd
 pull_sci_names <- function(fwspp) {
   valid_fwspp <- fwspp[sapply(fwspp, function(i) !is_error(i) && !is.null(i))]
   sn_list <- lapply(valid_fwspp, pull, sci_name)
@@ -214,6 +241,8 @@ pull_sci_names <- function(fwspp) {
   sn
 }
 
+
+#' @noRd
 join_taxonomy <- function(fwspp, taxonomy) {
   lapply(fwspp, function(i) {
     if (!is.null(i) && !is_error(i))
@@ -225,16 +254,23 @@ join_taxonomy <- function(fwspp, taxonomy) {
   })
 }
 
+
 #' Check if \code{fwspp} object has taxonomic information attached
 #'
 #' @param fwspp an \code{fwspp} object returned by \code{\link{fws_occ}}
+#'
 #' @export
-
+#'
+#' \dontrun{
+#' has_taxonomy(fwspp)
+#' }
 has_taxonomy <- function(fwspp) {
   tax_vec <- sapply(fwspp, function(i) "taxon_code" %in% names(i))
   as.logical(sum(tax_vec))
 }
 
+
+#' @noRd
 strip_taxonomy <- function(fwspp) {
   to_drop <- names(empty_tax())[-1]
   lapply(fwspp, function(i) {

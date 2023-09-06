@@ -13,7 +13,7 @@
 #'  buffer specifications.
 #'
 #' @section General overview:
-#' The basic process is to query GBIF, BISON, iDigBio, the Berkeley
+#' The basic process is to query GBIF, iDigBio, the Berkeley
 #'  'Ecoinformatics' Engine, and AntWeb based on the bounding box
 #'  associated with each \code{fws} and any requested buffer.  For VertNet,
 #'  the API requires spatial searches using a lat/lon coordinate and search
@@ -22,7 +22,7 @@
 #'
 #' Properties that occupy a relatively small area compared to the corresponding
 #'  bounding box will be split into smaller pieces to avoid unnecessarily large
-#'  queries. Likewise, queries (typically GBIF and BISON) that contain many
+#'  queries. Likewise, queries (typically GBIF) that contain many
 #'  records (> 125000) are split to improve efficiency (both) and recover all
 #'  records (GBIF).
 #'
@@ -50,11 +50,11 @@
 #' By default (\code{taxonomy = TRUE}), \code{fwspp} attempts to check the validity of
 #'  scientific names against the Integrated Taxonomic Information System (ITIS). It does
 #'  this not by connecting to ITIS directly, but by requesting information from a web
-#'  service maintained by the National Park Service as part of their NPSpecies database
-#'  (\url{https://irma.nps.gov/npspecies}). Note that this means if taxonomy information
+#'  service maintained by the U.S. Fish and Wildlife Service as part of their FWSpecies database
+#'  Note that this means if taxonomy information
 #'  is requested, and an ITIS match found, the scientific name will be converted to the
 #'  "accepted" ITIS scientific name, and the corresponding ITIS Taxonomic Serial Number,
-#'  an NPS-specific taxon code, a common name used by NPS, and a general organism
+#'  an NPS-specific taxon code, a common name used by USFWS, and a general organism
 #'  "category" (e.g., Mammals, Birds, Fungi) are returned.
 #'
 #' @section Additional boundary information:
@@ -107,7 +107,12 @@
 #'  value calculated internally (e.g., \code{timeout = 2} doubles the amount of
 #'  time to allow for HTTP requests to process. By default (\code{timeout = NULL}),
 #'  the query timeout is set programmatically and conservatively.  See details.
+#'
+#' @importFrom pbapply pbapply
+#' @importFrom purrr safely
+#'
 #' @export
+#'
 #' @return an \code{list} of class \code{fwspp} with observations for each property with
 #'  the following columns if taxonomic information is requested (\code{taxonomy = TRUE};
 #'   default). If \code{taxonomy = FALSE}, only a subset of these columns is returned.
@@ -138,6 +143,7 @@
 #'          that a matching taxon was not found in ITIS or trouble singling out a taxon
 #'          from FWSpecies.}
 #'  }
+#'
 #' @examples
 #' \dontrun{
 #' # Single refuge, administrative boundary, no buffer

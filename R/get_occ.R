@@ -1,9 +1,18 @@
-# Functions to extract occurrence records from each biodiversity database
+#############################################################################
+## Functions to extract occurrence records from each biodiversity database
 
-# All get_* functions will return errors and continue rather than break
-# the overall request.  This allows the request of occurrence records to
-# to proceed to additional properties
+## All get_* functions will return errors and continue rather than break
+## the overall request.  This allows the request of occurrence records to
+## to proceed to additional properties
+#############################################################################
 
+
+#' Get FWS species occurrence data from GBIF
+#'
+#' @param prop a FWS property boundary returned by \code{\link{find_fws}}
+#' @param timeout numeric value specifying the time to wait for records to return in seconds
+#' @param limit Numeric value indicating the maximum number of records to return on each query attempt
+#'
 #' @noRd
 get_GBIF <- function(prop, timeout, limit = 200000) {
 
@@ -68,6 +77,13 @@ get_GBIF <- function(prop, timeout, limit = 200000) {
   gbif_recs
 }
 
+
+#' Get FWS species occurrence data from Integrated Digitized Biocollections (iDigBio)
+#'
+#' @param lat_range vector of two numeric values indicating the range of latitudes in decimal degrees
+#' @param lon_range vector of two numeric values indicating the range of latitudes in decimal degrees
+#' @param timeout numeric value specifying the time to wait for records to return in seconds
+#'
 #' @noRd
 get_iDigBio <- function(lat_range, lon_range, timeout) {
 
@@ -93,6 +109,15 @@ get_iDigBio <- function(lat_range, lon_range, timeout) {
   idb_recs
 }
 
+
+#' Get FWS species occurrence data from VertNet
+#'
+#' @param center numeric value indicating the spatial centroid for the query
+#' @param radius numeric value indicating the radius surrounding the center of the query
+#' @param prop a FWS property boundary returned by \code{\link{find_fws}}
+#' @param timeout numeric value specifying the time to wait for records to return in seconds
+#' @param limit Numeric value indicating the maximum number of records to return on each query attempt
+#'
 #' @noRd
 get_VertNet <- function(center, radius, timeout, limit = 10000, prop) {
 
@@ -146,6 +171,12 @@ get_VertNet <- function(center, radius, timeout, limit = 10000, prop) {
 }
 
 
+#' Get FWS species occurrence data from EcoEngine
+#'
+#' @param lat_range vector of two numeric values indicating the range of latitudes in decimal degrees
+#' @param lon_range vector of two numeric values indicating the range of latitudes in decimal degrees
+#' @param timeout numeric value specifying the time to wait for records to return in seconds
+#'
 #' @noRd
 get_EcoEngine <- function(lat_range, lon_range, timeout) {
 
@@ -181,6 +212,13 @@ get_EcoEngine <- function(lat_range, lon_range, timeout) {
   ee_recs$result
 }
 
+
+#' Get FWS species occurrence data from AntWeb
+#'
+#' @param lat_range vector of two numeric values indicating the range of latitudes in decimal degrees
+#' @param lon_range vector of two numeric values indicating the range of latitudes in decimal degrees
+#' @param timeout numeric value specifying the time to wait for records to return, in seconds.
+#'
 #' @noRd
 get_AntWeb <- function(lat_range, lon_range, timeout) {
 
@@ -212,12 +250,18 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
   bind_rows(aw_recs)
 }
 
+
+#' Get FWS species occurrence data from ServCat
+#'
+#' @param prop a FWS property boundary returned by \code{\link{find_fws}}
+#'
+#' @noRd
 get_ServCat<-function(prop){
   message("Querying ServCat...")
   try_JSON <- try_verb_n(jsonlite::fromJSON, 4)
+
   get_unit_codes <- function(orgnames = NULL) {
     base_url <- "https://ecos.fws.gov/primr/api/refuge/geo.json"
-
     try_JSON <- try_verb_n(jsonlite::fromJSON, 2)
     prop_info <- try_JSON(base_url)
     prop_info <- prop_info$features$properties %>%
@@ -227,25 +271,24 @@ get_ServCat<-function(prop){
     filter(prop_info,
            grepl(paste(orgnames, collapse = "|"), .data$org_name, ignore.case = TRUE))
   }
-  orgname_df<-get_unit_codes()
-  unit_code<-orgname_df[orgname_df$org_name==prop$ORGNAME,]$UnitCode
-  ServCat_df<-as.data.frame(try_JSON(rawToChar(httr::POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
+
+  orgname_df <- get_unit_codes()
+  unit_code <- orgname_df[orgname_df$org_name==prop$ORGNAME,]$UnitCode
+  ServCat_df <- as.data.frame(try_JSON(rawToChar(httr::POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
                                                     body = jsonlite::toJSON(c(
                                                       list(
                                                         "units" = list(
                                                           list(
-                                                            order=0,
-                                                            logicOperator="string",
-                                                            unitCode=unit_code,
-                                                            linked=FALSE#,
+                                                            order = 0,
+                                                            logicOperator = "string",
+                                                            unitCode = unit_code,
+                                                            linked = FALSE,
                                                             # approved=TRUE
                                                           )
                                                         )
                                                       )
                                                     ), auto_unbox = TRUE),
-                                                    httr::add_headers("Content-Type" = "application/json"),httr::timeout(50000))$content))$items)
+                                                    httr::add_headers("Content-Type" = "application/json"), httr::timeout(50000))$content))$items)
   message("Retrieving ", as.character(min(nrow(ServCat_df), 10000)), " records.")
   ServCat_df
 }
-
-

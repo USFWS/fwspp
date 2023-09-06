@@ -1,5 +1,23 @@
-retrieve_occ <- function(props, prop, buffer, scrub,
-                         timeout = NULL) {
+#' Retrieve species occurrence records from databases
+#'
+#' @param props a list of FWS properties
+#' @param prop a character value indicating the FWS organizational name for a FWS property
+#' @param buffer a numeric value indicating the distance in meters to buffer each FWS property
+#' @param scrub character; one of "strict" (default), "moderate", or "none",
+#'  indicating the extent to which to reduce the number of records returned for
+#'  a given \code{fws}.
+#' @param timeout numeric; if specified, serves as a multiplier for the timeout
+#'  value calculated internally (e.g., \code{timeout = 2} doubles the amount of
+#'  time to allow for HTTP requests to process. By default (\code{timeout = NULL}),
+#'  the query timeout is set programmatically and conservatively.
+#'
+#' @importFrom magrittr %>%
+#' @import sf
+#' @importFrom purr safely
+#' @import dplyr
+#'
+#' @return a data frame of species occurrence records
+retrieve_occ <- function(props, prop, buffer, scrub, timeout = NULL) {
 
   org_name <- prop
   short_org <- Cap(org_name) %>% shorten_orgnames()
@@ -23,7 +41,7 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   # If substantial # of records, check if the area ratio of a property
   # to its bounding box is small enough to warrant further division
   # for efficiency
-  #turning this off untill we can fix error
+  # [Turning this off until we can fix error, 2023-09]
     #if (try_gbif_count(prop) > 100000)
     #  prop <- split_prop(prop)
 
@@ -46,10 +64,9 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   occ_recs <- bind_rows(occ_recs)
   if (nrow(occ_recs) == 0) return(NULL)
 
-  #take out ServCat data because those data do not have coordinates
-  ServCat_df<-occ_recs[occ_recs$bio_repo=="ServCat",]
-  occ_recs<-occ_recs[occ_recs$bio_repo!="ServCat",]
-
+  # Take out ServCat data because those data do not have coordinates
+  ServCat_df <- occ_recs[occ_recs$bio_repo == "ServCat", ]
+  occ_recs <- occ_recs[occ_recs$bio_repo != "ServCat", ]
 
   # Filter to boundaries of interest
   occ_recs <- clip_occ(occ_recs, prop)
@@ -66,7 +83,6 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   occ_recs %>%
     dplyr::mutate(org_name = org_name) %>%
     select(org_name, everything(), -media_url, -cat_no) %>%
-    arrange(sci_name, year, month, day) %>% bind_rows(ServCat_df)
-
+    arrange(sci_name, year, month, day) %>%
+    bind_rows(ServCat_df)
 }
-

@@ -1,3 +1,14 @@
+#' Runs get occurrence functions for all the biodiversity databases
+#'
+#' @param prop a FWS property boundary returned by \code{\link{find_fws}}
+#' @param timeout numeric; if specified, serves as a multiplier for the timeout
+#'  value calculated internally (e.g., \code{timeout = 2} doubles the amount of
+#'  time to allow for HTTP requests to process. By default (\code{timeout = NULL}),
+#'  the query timeout is set programmatically and conservatively.
+#'
+#' @return data frame of consolidated and standardized occurrence records from biodiversity databases
+#'
+#' @noRd
 manage_gets <- function(prop, timeout) {
 
   # TEST IF FLEXIBILITY IN THESE REQUIREMENTS
@@ -9,15 +20,14 @@ manage_gets <- function(prop, timeout) {
   # Ensure very small properties are queried
   lat_range <- bb[2, ] + c(-0.00006, 0.00006)
   lon_range <- bb[1, ] + c(-0.00006, 0.00006)
-  radius <- geosphere::distVincentyEllipsoid(rowMeans(bb), t(bb))
-  radius <- ceiling(max(radius) /100) * 100
+  radius <- geosphere::distVincentyEllipsoid(rowMeans(bb), t(bb))  # **Depends on sp package (2023-09-06)**
+  radius <- ceiling(max(radius) / 100) * 100
 
   # GBIF record count used to determine the HTTP request timeout
   try_gbif_count <- try_verb_n(gbif_count)
   q_recs <- try_gbif_count(prop)
 
   # Compare and set timeout programmatically, if not specified by user
-  # Timeout is based on BSION queries as they are typically the largest
   tox <- timeout
   timeout <- est_timeout(q_recs)
   if (!is.null(tox)) timeout <- timeout * tox
@@ -31,7 +41,7 @@ manage_gets <- function(prop, timeout) {
   ## Retrieve and standardize occurrence records from biodiversity databases ##
   #############################################################################
 
-  ## GBIF
+  # GBIF
   gbif_recs <- get_GBIF(prop, timeout)
   if (is.null(gbif_recs))
     gbif_recs <- NULL
@@ -46,7 +56,7 @@ manage_gets <- function(prop, timeout) {
    else
      idb_recs <- clean_iDigBio(idb_recs)
 
-  ## VertNet
+  # VertNet
   vn_recs <- get_VertNet(rowMeans(bb), radius, timeout, prop = prop)
   if (!is.null(vn_recs))
     vn_recs <- clean_VertNet(vn_recs)
@@ -57,7 +67,7 @@ manage_gets <- function(prop, timeout) {
   if (!is.null(ee_recs))
     ee_recs <- clean_EcoEngine(ee_recs)
 
-  ##ServCat
+  # ServCat
   ServCat_recs <- get_ServCat(prop)
   if (!is.null(ServCat_recs))
     ServCat_recs <- suppressMessages({clean_ServCat(ServCat_recs, prop = prop)})
@@ -67,16 +77,13 @@ manage_gets <- function(prop, timeout) {
   # if (!is.null(aw_recs))
   #   aw_recs <- clean_AntWeb(aw_recs)
 
-  #############################################################################
-  ## Consolidate standardized occurrence records from biodiversity databases ##
-  #############################################################################
-
+  # Consolidate standardized occurrence records from biodiversity databases
   bind_rows(gbif_recs,
-    idb_recs,
+            idb_recs,
             vn_recs,
             ee_recs,
             ServCat_recs
-            # aw_recs
+            # aw_recs  # Drop AntWeb, doesn't work for AK
   ) %>%
     # Drop records with no species ID or monomials (e.g., genus only)
     filter(!is.na(sci_name),
