@@ -1,9 +1,10 @@
-retrieve_occ <- function(props, prop, buffer, scrub,
-                         timeout = NULL) {
+  retrieve_occ <- function(props, prop, buffer, scrub,
+                         timeout = NULL,start_yr) {
 
   org_name <- prop
   short_org <- Cap(org_name) %>% shorten_orgnames()
   prop <- props[props$ORGNAME == prop, ]
+  start_yr<-start_yr
 
   # Consider buffer
   if (buffer) prop <- buffer_prop(prop, buffer)
@@ -30,7 +31,7 @@ retrieve_occ <- function(props, prop, buffer, scrub,
   occ_recs <- vector(nrow(prop), mode = "list")
   safe_gets <- purrr::safely(manage_gets)
   for (i in seq_along(occ_recs)) {
-    i_recs <- safe_gets(prop[i, ], timeout)
+    i_recs <- safe_gets(prop[i, ], timeout,start_yr)
     if (is_error(i_recs)) {
       occ_recs[[i]] <- i_recs$error
       break
