@@ -1,4 +1,5 @@
-manage_gets <- function(prop, timeout) {
+manage_gets <- function(prop, timeout,start_yr) {
+  start_yr<-start_yr
 
   # TEST IF FLEXIBILITY IN THESE REQUIREMENTS
   stopifnot(nrow(prop) == 1 &&
@@ -32,19 +33,19 @@ manage_gets <- function(prop, timeout) {
   #############################################################################
 
   ## GBIF
-  gbif_recs <- get_GBIF(prop, timeout)
+  gbif_recs <- get_GBIF(prop, timeout,start_yr=start_yr)
   if (is.null(gbif_recs))
     gbif_recs <- NULL
   else
     gbif_recs <- clean_GBIF(gbif_recs)
 
   # iDigBio
-   idb_recs <- get_iDigBio(lat_range, lon_range, timeout)
+  idb_recs <- get_iDigBio(lat_range, lon_range, timeout)
   #if (nrow(idb_recs) > 0)
   if (is.null(idb_recs))
     idb_recs <- NULL
-   else
-     idb_recs <- clean_iDigBio(idb_recs)
+  else
+    idb_recs <- clean_iDigBio(idb_recs)
 
   ## VertNet
   vn_recs <- get_VertNet(rowMeans(bb), radius, timeout, prop = prop)
@@ -72,7 +73,7 @@ manage_gets <- function(prop, timeout) {
   #############################################################################
 
   bind_rows(gbif_recs,
-    idb_recs,
+            idb_recs,
             vn_recs,
             ee_recs,
             ServCat_recs
