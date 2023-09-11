@@ -2,18 +2,18 @@
 % Please edit documentation in R/install_fws_cadastral.R
 \name{install_fws_cadastral}
 \alias{install_fws_cadastral}
-\title{Install the most current (2017-08-24) USFWS cadastral geodatabase.}
+\title{Install the most current USFWS cadastral geodatabase}
 \usage{
 install_fws_cadastral()
 }
 \description{
 This function must be run prior to first use of \code{fws_occ} (which will prompt you
- if necessary).  This function can also be used to update to the most recent
- cadastral geodatabase if the \code{fwspp} package hasn't yet incorporated it.  However,
- the cadastral geodatabase is updated rather infrequently, and updating will take
- several minutes (the file is ~ 100 MB), so it may be best to check if such an update is
- necessary prior to running this function.  Visit
- \url{https://catalog.data.gov/dataset?q="FWS+Cadastral+Database"} and check the date.
+if necessary).  This function can also be used to update to the most recent
+cadastral geodatabase if the \code{fwspp} package hasn't yet incorporated it.  However,
+the cadastral geodatabase is updated rather infrequently, and updating will take
+several minutes (the file is ~ 100 MB), so it may be best to check if such an update is
+necessary prior to running this function.  Visit
+\url{https://catalog.data.gov/dataset?q="FWS+Cadastral+Database"} and check the date.
 }
 \examples{
 \dontrun{

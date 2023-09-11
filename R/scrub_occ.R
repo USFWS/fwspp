@@ -3,7 +3,11 @@ scrub_occ <- function(occ_recs, scrub) {
   stopifnot(scrub %in% c("strict", "moderate"))
 
   # Set biodiversity repo preference for retaining records
-  repo_pref <- c("AntWeb", "iDigBio", "VertNet", "BISON", "EcoEngine", "GBIF","ServCat")
+  repo_pref <- c("iDigBio",
+                 "VertNet",
+                 "EcoEngine",
+                 "GBIF",
+                 "ServCat")
 
   ## Strict scrubbing
   if (identical(scrub, "strict")) {
@@ -24,8 +28,9 @@ scrub_occ <- function(occ_recs, scrub) {
 
     occ_recs <- bind_rows(all_media, spp_evid)
 
+  } else {
+
     ## Moderate scrubbing
-  } else  {
 
     # Prioritize order biodiversity repo
     col_order <- names(occ_recs)
@@ -48,17 +53,17 @@ scrub_occ <- function(occ_recs, scrub) {
 
     occ_recs <- filter(occ_recs, !cat_no_dups, !loc_dups) %>%
       select_at(col_order)
-
   }
 
   ungroup(occ_recs) %>% as_tibble()
-
 }
 
-#' Remove duplicates from data.frame using multiple types of NA as incomparables
+
+#' Remove duplicates from data frame using multiple types of NA as incomparables
+#'
 #' @noRd
-df_dups_ignore_NA <- function(df, incomparables = c(NA, NA_character_))
-{
+df_dups_ignore_NA <- function(df, incomparables = c(NA, NA_character_)) {
+
   ## Pared from https://gist.github.com/ReportMort/c3ce765fa21a03460cfd
   n <- ncol(df)
   nmx <- names(df)
@@ -77,7 +82,6 @@ df_dups_ignore_NA <- function(df, incomparables = c(NA, NA_character_))
     # any rows with an incomparable match means, TRUE, it can override the duplicated result
     overwrite <- apply(data.frame(incomp_check), 1, function(x) {any(!is.na(x))})
     res[overwrite] <- FALSE
- }
-
+  }
   res
 }

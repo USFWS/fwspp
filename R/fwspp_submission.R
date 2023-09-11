@@ -61,7 +61,9 @@
 #'  for submission to the NRPC FWSpecies database
 #'
 #' @import openxlsx
+#'
 #' @export
+#'
 #' @examples
 #' \dontrun{
 #' lowcountry <- find_fws(c("romain", "santee", "ace basin", "waccamaw"))
@@ -74,6 +76,7 @@
 fwspp_submission <- function(in_dir = "./fwspp_review",
                              out_dir = file.path(in_dir, "fwspp_submission"),
                              xlsx = NULL, overwrite = FALSE, verbose = TRUE) {
+
   if (!dir.exists(in_dir)) stop("Cannot find input directory. Check path.")
   if (!dir.exists(out_dir)) {
     dir.create(out_dir)
@@ -107,4 +110,3 @@ fwspp_submission <- function(in_dir = "./fwspp_review",
                         out_dir, overwrite, verbose))
   }
 }
-

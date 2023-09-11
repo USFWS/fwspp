@@ -1,4 +1,4 @@
-# Functions to wrangle returned occurrence records into a consistent structure
+## Functions to wrangle returned occurrence records into a consistent structure
 
 #' @noRd
 clean_GBIF <- function(gbif_recs) {
@@ -29,23 +29,19 @@ clean_GBIF <- function(gbif_recs) {
     gbif_recs <- gbif_recs %>%
     dplyr::mutate(
       evidence = case_when(
-        #!is_missing(bibliographicCitation) ~ bibliographicCitation,
         !is_missing(references) ~ references,
-       #!is_missing(occurrenceID) ~ occurrenceID,
        TRUE ~ paste0("https://www.gbif.org/occurrence/", gbifID)),
-      # TRUE ~ paste0("www.gbif.org/dataset/", datasetKey,
-      # "; catalog# ", catalogNumber)),
       media_url = ifelse(!is_missing(media_url),
                          paste(evidence, media_url, sep = ", "),
                          media_url))
 
   # Rename relevant columns
-  rn <- c("species", "decimalLatitude", "decimalLongitude", "catalogNumber", "coordinateUncertaintyInMeters")
+  rn <- c("species", "decimalLatitude", "decimalLongitude", "catalogNumber",
+          "coordinateUncertaintyInMeters")
   colnames(gbif_recs)[match(rn, colnames(gbif_recs))] <-
    c("sci_name", "lat", "lon", "cat_no", "loc_unc_m")
 
   standardize_occ(gbif_recs)
-
 }
 
 
@@ -67,8 +63,8 @@ clean_iDigBio <- function(idb_recs) {
     c("lat", "lon", "cat_no", "loc_unc_m")
 
   standardize_occ(idb_recs)
-
 }
+
 
 #' @noRd
 clean_VertNet <- function(vn_recs) {
@@ -76,7 +72,7 @@ clean_VertNet <- function(vn_recs) {
   vn_recs <- vn_recs %>%
     # `rvertnet` seems to return everything as a character; guess data types
     mutate_if(is.character, utils::type.convert, as.is = TRUE)
-  #edit to ensure column vn_recs$associatedmedia is character
+  # Edit to ensure column vn_recs$associatedmedia is character
   if("associatedmedia" %in% colnames(vn_recs))
     vn_recs$associatedmedia<-as.character(vn_recs$associatedmedia)
   # Add *missing* columns if necessary
@@ -114,8 +110,8 @@ clean_VertNet <- function(vn_recs) {
     c("lat", "lon", "cat_no", "loc_unc_m")
 
   standardize_occ(vn_recs)
-
 }
+
 
 #' @noRd
 clean_EcoEngine <- function(ee_recs) {
@@ -135,7 +131,8 @@ clean_EcoEngine <- function(ee_recs) {
 
   # Try to add missing evidence
   ee_meta <- filter(ee_recs, is_missing(remote_resource)) %>%
-    select(source) %>% unique()
+    select(source) %>%
+    unique()
 
   # Get metadata url, if present
   if (nrow(ee_meta) > 0)
@@ -160,8 +157,8 @@ clean_EcoEngine <- function(ee_recs) {
       day = lubridate::day(begin_date))
 
   standardize_occ(ee_recs)
-
 }
+
 
 #' @noRd
 clean_AntWeb <- function(aw_recs) {
@@ -181,16 +178,16 @@ clean_AntWeb <- function(aw_recs) {
     c("lat", "lon", "cat_no")
 
   standardize_occ(aw_recs)
-
 }
 
-#ServCat
-clean_ServCat<-function(ServCat_rec, prop){
+
+#' @noRd
+clean_ServCat <- function(ServCat_rec, prop) {
   try_JSON <- try_verb_n(jsonlite::fromJSON, 4)
   org_name <- prop
   short_org <- Cap(org_name) %>% shorten_orgnames()
 
-  #extract unit codes of USFWS properties
+  # Extract unit codes of USFWS properties
   get_unit_codes <- function(orgnames = NULL) {
     base_url <- "https://ecos.fws.gov/primr/api/refuge/geo.json"
 
@@ -203,17 +200,17 @@ clean_ServCat<-function(ServCat_rec, prop){
     filter(prop_info,
            grepl(paste(orgnames, collapse = "|"), .data$org_name, ignore.case = TRUE))
   }
-  #obtain unit code of refuge
-  orgname_df<-get_unit_codes()
+  # Obtain unit code of refuge
+  orgname_df <- get_unit_codes()
 
-  if (length(orgname_df[orgname_df$org_name==prop$ORGNAME,]$UnitCode)==0){
-    unit_code<- return (NULL)
+  if (length(orgname_df[orgname_df$org_name == prop$ORGNAME, ]$UnitCode) == 0) {
+    unit_code <- return (NULL)
   } else {
-    unit_code<- orgname_df[orgname_df$org_name==prop$ORGNAME,]$UnitCode
+    unit_code <- orgname_df[orgname_df$org_name == prop$ORGNAME, ]$UnitCode
   }
 
   #create vector of other refuges to filter out ServCat records
-  codes_to_remove<-orgname_df[orgname_df$org_name!=prop$ORGNAME,]$UnitCode
+  codes_to_remove <- orgname_df[orgname_df$org_name != prop$ORGNAME, ]$UnitCode
 
   #create column that will be used to identify
   #sources that are associated with organizations in
@@ -222,225 +219,221 @@ clean_ServCat<-function(ServCat_rec, prop){
   if (nrow(ServCat_rec) == 0) {
     return (NULL)
   } else {
-    ServCat_rec$unit_code_only<-NA
+    ServCat_rec$unit_code_only <- NA
   }
 
-  #need to take only specific reference type
-  reference_type_vec<-c("Book Chapter",
-                        "Conference Proceeding",
-                        "Conference Proceeding Paper",
-                        "Geospatial Dataset",
-                        "Journal Article",
-                        "Published Report",
-                        "Published Report Section",
-                        "Published Report Series",
-                        "Resource Brief",
-                        "Tabular Dataset",
-                        "Unpublished Report")
-
+  # Consider only specific reference type
+  reference_type_vec <- c("Book Chapter",
+                          "Conference Proceeding",
+                          "Conference Proceeding Paper",
+                          "Geospatial Dataset",
+                          "Journal Article",
+                          "Published Report",
+                          "Published Report Section",
+                          "Published Report Series",
+                          "Resource Brief",
+                          "Tabular Dataset",
+                          "Unpublished Report")
 
   if (nrow(ServCat_rec) == 0) {
-    ServCat_rec_not_used_ref<-NULL
+    ServCat_rec_not_used_ref <- NULL
   } else {
-    ServCat_rec_not_used_ref<-ServCat_rec[!ServCat_rec$referenceType %in% reference_type_vec, ]
+    ServCat_rec_not_used_ref <- ServCat_rec[!ServCat_rec$referenceType %in% reference_type_vec, ]
   }
 
-  #dataframe of sources not used because of reference type
+  # Data frame of sources not used because of reference type
+  if (nrow(ServCat_rec) == 0) {
+    return (NULL)
+  } else {
+    ServCat_rec <- ServCat_rec[ServCat_rec$referenceType %in% reference_type_vec, ]
+  }
 
   if (nrow(ServCat_rec) == 0) {
     return (NULL)
   } else {
-    ServCat_rec<-ServCat_rec[ServCat_rec$referenceType %in% reference_type_vec, ]
-  }
+    for(i in 1:length(ServCat_rec$unit_code_only)) {
 
-  if (nrow(ServCat_rec) == 0) {
-    return (NULL)
-  } else {
-    for(i in 1:length(ServCat_rec$unit_code_only)){
+      unitCode_df <- as.data.frame(try_JSON(rawToChar(httr::GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
+                                                                       as.character(ServCat_rec$referenceId[i]),"/Units"),
+                                                                httr::timeout(50000))$content)))
 
-      unitCode_df<-as.data.frame(try_JSON(rawToChar(httr::GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
-                                                                     as.character(ServCat_rec$referenceId[i]),"/Units"),httr::timeout(50000))$content)))
-
-      ServCat_rec$unit_code_only[i]<-ifelse(sum(c((unitCode_df %>% subset(substr(unitCode_df$unitCode,1,4)!="FF07") %>% nrow==0),(unitCode_df$unitCode %>% intersect(codes_to_remove) %>% length==0)))==2,T,F)
+      ServCat_rec$unit_code_only[i] <- ifelse(sum(c((unitCode_df %>%
+                                                       subset(substr(unitCode_df$unitCode, 1, 4) != "FF07") %>% nrow == 0),
+                                                    (unitCode_df$unitCode %>% intersect(codes_to_remove) %>% length == 0))) == 2, T, F)
 
       rm(unitCode_df)
     }
   }
 
-  #take only rows that are only associated with refuge of interest
-
-  if (nrow(subset(ServCat_rec,ServCat_rec$unit_code_only==T)) == 0) {
-    ServCat_rec<-NULL
+  # Only consider rows associated with refuge of interest
+  if (nrow(subset(ServCat_rec, ServCat_rec$unit_code_only == T)) == 0) {
+    ServCat_rec <- NULL
   } else {
-    ServCat_rec<-subset(ServCat_rec,ServCat_rec$unit_code_only==T)
+    ServCat_rec <- subset(ServCat_rec, ServCat_rec$unit_code_only == T)
   }
 
-  #accept only records that have digital files available
-
+  # Accept only records that have digital files available
   if (is.null(ServCat_rec)) {
-    ServCat_rec<-NULL
+    ServCat_rec <- NULL
   } else {
-    if (nrow(ServCat_rec)==0){
-      ServCat_rec<-NULL
+    if (nrow(ServCat_rec) == 0) {
+      ServCat_rec <- NULL
     }
     else{
-      ServCat_rec$DigitalFiles<-NA
+      ServCat_rec$DigitalFiles <- NA
     }}
 
 
   if (is.null(ServCat_rec)) {
-    ServCat_rec<-NULL
+    ServCat_rec <- NULL
   } else {
-    if (nrow(ServCat_rec)==0){
-      ServCat_rec<-NULL
+    if (nrow(ServCat_rec) == 0) {
+      ServCat_rec <- NULL
     }
     else{
-      for(i in 1:length(ServCat_rec$DigitalFiles)){
-        ServCat_rec$DigitalFiles[i]<-ifelse(nrow(as.data.frame(try_JSON(rawToChar(httr::GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
-                                                                                                   as.character(ServCat_rec$referenceId[i]),"/DigitalFiles"),httr::timeout(50000))$content))))==0,F,T)
+      for(i in 1:length(ServCat_rec$DigitalFiles)) {
+        ServCat_rec$DigitalFiles[i] <- ifelse(nrow(as.data.frame(try_JSON(rawToChar(httr::GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
+                                                                                                     as.character(ServCat_rec$referenceId[i]),"/DigitalFiles"),
+                                                                                              httr::timeout(50000))$content)))) == 0, F, T)
       }
     }}
 
   if (is.null(ServCat_rec)) {
-    ServCat_rec<-NULL
+    ServCat_rec <- NULL
   } else {
-    if (nrow(ServCat_rec)==0){
-      ServCat_rec<-NULL
+    if (nrow(ServCat_rec) == 0){
+      ServCat_rec <- NULL
     }
-    else{
-      ServCat_rec<-subset(ServCat_rec,ServCat_rec$DigitalFiles==T)
-    }}
-  #select only records that have bounding box of refuge
+    else {
+      ServCat_rec <- subset(ServCat_rec, ServCat_rec$DigitalFiles == T)
+    }
+  }
+
+  # Select only records that have bounding box of refuge
+  if (is.null(ServCat_rec)) {
+    ServCat_rec <- NULL
+  } else {
+    if (nrow(ServCat_rec) == 0){
+      ServCat_rec <- NULL
+    }
+    else {
+      ServCat_rec$bounding_box <- NA
+    }
+  }
 
   if (is.null(ServCat_rec)) {
-    ServCat_rec<-NULL
+    ServCat_rec <- NULL
   } else {
-    if (nrow(ServCat_rec)==0){
-      ServCat_rec<-NULL
+    if (nrow(ServCat_rec) == 0){
+      ServCat_rec <- NULL
     }
-    else{
-      ServCat_rec$bounding_box<-NA
-    }}
-
-
-  if (is.null(ServCat_rec)) {
-    ServCat_rec<-NULL
-  } else {
-    if (nrow(ServCat_rec)==0){
-      ServCat_rec<-NULL
-    }
-    else{
-      for(i in 1:length(ServCat_rec$bounding_box)){
-        bb_test_vec<-as.data.frame(try_JSON(rawToChar(httr::GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
-                                                                       as.character(ServCat_rec$referenceId[i]),"/BoundingBoxes"),httr::timeout(50000))$content)))$tag
-        ServCat_rec$bounding_box[i]<-ifelse(length(bb_test_vec)==1 &  paste0("BoundingBox for ",unit_code) %in% bb_test_vec, T,F)
+    else {
+      for (i in 1:length(ServCat_rec$bounding_box)) {
+        bb_test_vec <- as.data.frame(try_JSON(rawToChar(httr::GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
+                                                                       as.character(ServCat_rec$referenceId[i]),"/BoundingBoxes"),
+                                                                  httr::timeout(50000))$content)))$tag
+        ServCat_rec$bounding_box[i] <- ifelse(length(bb_test_vec) == 1 & paste0("BoundingBox for ", unit_code) %in% bb_test_vec, T, F)
         rm(bb_test_vec)
       }
     }}
 
   if (is.null(ServCat_rec)) {
-    ServCat_rec<-NULL
+    ServCat_rec <- NULL
   } else {
-    if (nrow(ServCat_rec)==0){
-      ServCat_rec<-NULL
+    if (nrow(ServCat_rec) == 0){
+      ServCat_rec <- NULL
     }
-    else{
-      ServCat_rec<-subset(ServCat_rec,ServCat_rec$bounding_box==T)
-    }}
+    else {
+      ServCat_rec <- subset(ServCat_rec, ServCat_rec$bounding_box == T)
+    }
+    }
 
-  #extract taxa lists from each source
-
-  taxa_list<-list()
-
+  # Extract taxa lists from each source
+  taxa_list <- list()
   if (is.null(ServCat_rec)) {
-    ServCat_rec<-NULL
+    ServCat_rec <- NULL
   } else {
-    if (nrow(ServCat_rec)==0){
-      ServCat_rec<-NULL
+    if (nrow(ServCat_rec) == 0){
+      ServCat_rec <- NULL
     }
-    else{
-      for(i in 1:length(ServCat_rec$referenceId)){
-
-        taxa_list[[i]]<-ifelse(is.null(as.data.frame(try_JSON(rawToChar(httr::GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
-                                                                                         as.character(ServCat_rec$referenceId[i]),"/Taxa"),httr::timeout(50000))$content)))$taxonCode),
+    else {
+      for (i in 1:length(ServCat_rec$referenceId)) {
+        taxa_list[[i]] <- ifelse(is.null(as.data.frame(try_JSON(rawToChar(httr::GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
+                                                                                         as.character(ServCat_rec$referenceId[i]),"/Taxa"),
+                                                                                    httr::timeout(50000))$content)))$taxonCode),
                                NA,
                                list(try_JSON(rawToChar(httr::GET(paste0("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/Reference/",
-                                                                        as.character(ServCat_rec$referenceId[i]),"/Taxa"),httr::timeout(50000))$content))))
+                                                                        as.character(ServCat_rec$referenceId[i]),"/Taxa"),
+                                                                 httr::timeout(50000))$content))))
       }
-    }}
+    }
+    }
 
-
-
-  #give names to list elements that match reference codes
-
+  # Give names to list elements that match reference codes
   if (is.null(ServCat_rec)) {
-    ServCat_rec<-NULL
+    ServCat_rec <- NULL
   } else {
-    if (nrow(ServCat_rec)==0){
-      ServCat_rec<-NULL
-    } else{
-      names(taxa_list)<-as.character(ServCat_rec$referenceId)
+    if (nrow(ServCat_rec) == 0){
+      ServCat_rec <- NULL
+    } else {
+      names(taxa_list) <- as.character(ServCat_rec$referenceId)
 
-      taxa_list<-taxa_list[!is.na(taxa_list)]
+      taxa_list <- taxa_list[!is.na(taxa_list)]
 
-      taxa_df_list<-lapply(taxa_list,as.data.frame)
+      taxa_df_list <- lapply(taxa_list, as.data.frame)
 
-      #this loop adds the reference ID to each dataframe in the loop
-      for(i in 1:length(taxa_df_list)){
-        taxa_df_list[[names(taxa_df_list)[i]]]$refID<-names(taxa_df_list)[i]
+      # Add the reference ID to each data frame in the loop
+      for (i in 1:length(taxa_df_list)) {
+        taxa_df_list[[names(taxa_df_list)[i]]]$refID <- names(taxa_df_list)[i]
       }
 
-      taxa_df_combined<-suppressMessages(Reduce(full_join,taxa_df_list))
+      taxa_df_combined <- suppressMessages(Reduce(full_join, taxa_df_list))
 
-      #now create the taxa_in_ServCat_rec with the taxon codes in ServCat
-      taxa_in_ServCat_rec<-as.data.frame(taxa_df_combined$taxonCode)
+      # Create the taxa_in_ServCat_rec with the taxon codes in ServCat
+      taxa_in_ServCat_rec <- as.data.frame(taxa_df_combined$taxonCode)
 
+      colnames(taxa_in_ServCat_rec) <- "Taxon_Code"
 
-      colnames(taxa_in_ServCat_rec)<-"Taxon_Code"
+      taxa_in_ServCat_rec$ScientificName <- NA
+      taxa_in_ServCat_rec$common_name <- NA
 
-      taxa_in_ServCat_rec$ScientificName<-NA
-      taxa_in_ServCat_rec$common_name<-NA
-
-
-      for(i in 1:length(taxa_in_ServCat_rec$ScientificName)){
-        taxa_in_ServCat_rec$ScientificName[i]<-as.data.frame(
-          try_JSON(
-            rawToChar(
-              httr::GET(paste0("https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/searchByCodes/taxoncode?codes=",
-                               as.character(taxa_in_ServCat_rec$Taxon_Code[i])),httr::timeout(50000))$content)))$ScientificName[1]
+      for (i in 1:length(taxa_in_ServCat_rec$ScientificName)) {
+        taxa_in_ServCat_rec$ScientificName[i] <- as.data.frame(try_JSON(rawToChar(httr::GET(paste0("https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/searchByCodes/taxoncode?codes=",
+                                                                                                   as.character(taxa_in_ServCat_rec$Taxon_Code[i])),
+                                                                                            httr::timeout(50000))$content)))$ScientificName[1]
       }
-      #
-      for(i in 1:length(taxa_in_ServCat_rec$common_name)){
-        taxa_in_ServCat_rec$common_name[i]<-as.data.frame(
-          try_JSON(
-            rawToChar(
-              httr::GET(paste0("https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/searchByCodes/taxoncode?codes=",
-                               as.character(taxa_in_ServCat_rec$Taxon_Code[i])),httr::timeout(50000))$content)))$CommonName[1]
+
+      for (i in 1:length(taxa_in_ServCat_rec$common_name)) {
+        taxa_in_ServCat_rec$common_name[i] <- as.data.frame(try_JSON(rawToChar(httr::GET(paste0("https://ecos.fws.gov/ServCatServices/v2/rest/taxonomy/searchByCodes/taxoncode?codes=",
+                                                                                                as.character(taxa_in_ServCat_rec$Taxon_Code[i])),
+                                                                                         httr::timeout(50000))$content)))$CommonName[1]
       }
-      taxa_in_ServCat_rec$evidence<-paste0("https://ecos.fws.gov/ServCat/Reference/Profile/",taxa_df_combined$refID)
-      ServCat_clean<-as.data.frame(taxa_in_ServCat_rec$ScientificName)
-      colnames(ServCat_clean)<-"sci_name"
-      ServCat_clean$lon<-NA
-      ServCat_clean$lat<-NA
-      ServCat_clean$loc_unc_m<-NA
-      ServCat_clean$cat_no<-NA
-      ServCat_clean$year<-NA
-      ServCat_clean$month<-NA
-      ServCat_clean$day<-NA
-      ServCat_clean$evidence<-taxa_in_ServCat_rec$evidence
-      ServCat_clean$media_url<-NA
-      ServCat_clean$bio_repo<-"ServCat"
-      ServCat_clean<-as_tibble(ServCat_clean)
 
-    }}
+      taxa_in_ServCat_rec$evidence <- paste0("https://ecos.fws.gov/ServCat/Reference/Profile/", taxa_df_combined$refID)
+      ServCat_clean <- as.data.frame(taxa_in_ServCat_rec$ScientificName)
+      colnames(ServCat_clean) <- "sci_name"
+      ServCat_clean$lon <- NA
+      ServCat_clean$lat <- NA
+      ServCat_clean$loc_unc_m <- NA
+      ServCat_clean$cat_no <- NA
+      ServCat_clean$year <- NA
+      ServCat_clean$month <- NA
+      ServCat_clean$day <- NA
+      ServCat_clean$evidence <- taxa_in_ServCat_rec$evidence
+      ServCat_clean$media_url <- NA
+      ServCat_clean$bio_repo <- "ServCat"
+      ServCat_clean <- as_tibble(ServCat_clean)
+    }
+  }
 
-  if (exists("ServCat_clean")){
-    output<-ServCat_clean
+  if (exists("ServCat_clean")) {
+    output <- ServCat_clean
   } else {
-    output<-ServCat_rec
+    output <- ServCat_rec
   }
   output
 }
+
 
 #' @noRd
 standardize_occ <- function(clean_recs, coord_tol = NULL) {
@@ -450,7 +443,6 @@ standardize_occ <- function(clean_recs, coord_tol = NULL) {
   nm <- deparse(substitute(clean_recs))
   src <- case_when(
     sub("_.+$", "", nm) == "gbif" ~ "GBIF",
-    sub("_.+$", "", nm) == "bison" ~ "BISON",
     sub("_.+$", "", nm) == "idb" ~ "iDigBio",
     sub("_.+$", "", nm) == "vn" ~ "VertNet",
     sub("_.+$", "", nm) == "ee" ~ "EcoEngine",
@@ -495,6 +487,4 @@ standardize_occ <- function(clean_recs, coord_tol = NULL) {
   # Thin fields
   out_df[, c("sci_name", "lon", "lat", "loc_unc_m", "cat_no", "year", "month",
              "day", "evidence", "media_url", "bio_repo")]
-
 }
-

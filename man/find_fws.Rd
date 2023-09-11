@@ -2,7 +2,7 @@
 % Please edit documentation in R/find_fws.R
 \name{find_fws}
 \alias{find_fws}
-\title{Find USFWS properties available for query.}
+\title{Find USFWS properties available for query}
 \usage{
 find_fws(fws = NULL, ptype = "NWR", region = 1:8L)
 }
@@ -28,7 +28,7 @@ options include "WPA" (Waterfowl Production Areas), "WMA" (Wildlife Management A
  passed directly to \code{\link{fws_occ}} as the \code{fws} argument.
 }
 \description{
-Find USFWS properties available for query.
+Find USFWS properties available for query
 }
 \examples{
 \dontrun{
