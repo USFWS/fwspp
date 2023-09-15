@@ -17,7 +17,7 @@
 #' @import dplyr
 #'
 #' @return a data frame of species occurrence records
-retrieve_occ <- function(props, prop, buffer, scrub, timeout = NULL) {
+retrieve_occ <- function(props, prop, buffer, scrub, timeout = NULL,start_date) {
 
   org_name <- prop
   short_org <- Cap(org_name) %>% shorten_orgnames()
@@ -42,19 +42,22 @@ retrieve_occ <- function(props, prop, buffer, scrub, timeout = NULL) {
   # to its bounding box is small enough to warrant further division
   # for efficiency
   # [Turning this off until we can fix error, 2023-09]
-    #if (try_gbif_count(prop) > 100000)
-    #  prop <- split_prop(prop)
+  if (try_gbif_count(prop) > 100000){
+    prop <- split_prop(prop)
+  }
 
   occ_recs <- vector(nrow(prop), mode = "list")
   safe_gets <- purrr::safely(manage_gets)
   for (i in seq_along(occ_recs)) {
-    i_recs <- safe_gets(prop[i, ], timeout)
+    i_recs <- safe_gets(prop[i, ], timeout,start_date)
     if (is_error(i_recs)) {
       occ_recs[[i]] <- i_recs$error
       break
     }
     i_recs <- i_recs$result
-    if (nrow(i_recs) == 0) i_recs <- NULL
+    if (!is.null(i_recs)){
+      if (nrow(i_recs) == 0) i_recs <- NULL
+      }
     occ_recs[[i]] <- i_recs
   }
 
