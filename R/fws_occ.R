@@ -166,11 +166,25 @@
 fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
                     buffer = 0, scrub = c("strict", "moderate", "none"),
                     taxonomy = TRUE, verbose = TRUE,
-                    timeout = NULL) {
+                    timeout = NULL,start_day = NULL,
+                    start_month= NULL, start_year = NULL) {
 
   if (is.null(fws) || !is.data.frame(fws))
     stop("You must provide valid property names to query.",
          "\nSee `?find_fws` for examples.")
+
+  if (is.null(start_day))
+    start_day<-1
+
+  if (is.null(start_month))
+    start_month<-1
+
+  if (is.null(start_year))
+    start_year<-1776
+
+  start_date<-as.POSIXlt(paste0(start_year,"-",start_month,"-",start_day))
+
+
   bnd <- match.arg(bnd)
   scrub <- match.arg(scrub)
 
@@ -183,11 +197,11 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
   # Cycle through properties
   if (verbose)
     out <- lapply(fws$ORGNAME, function(prop) {
-        retrieve_occ(props, prop, buffer, scrub, timeout)})
+      retrieve_occ(props, prop, buffer, scrub, timeout,start_date)})
   else
     out <- pbapply::pblapply(fws$ORGNAME, function(prop) {
       suppressMessages(
-          retrieve_occ(props, prop, buffer, scrub, timeout))})
+        retrieve_occ(props, prop, buffer, scrub, timeout,start_date))})
 
   attributes(out) <- list(names = fws$ORGNAME,
                           class = "fwspp",
