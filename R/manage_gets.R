@@ -74,9 +74,9 @@ manage_gets <- function(prop, timeout, start_date) {
     ee_recs <- clean_EcoEngine(ee_recs)
 
   # ServCat
-  ServCat_recs <- get_ServCat(prop,start_date=start_date)
-  if (!is.null(ServCat_recs))
-    ServCat_recs <- suppressMessages({clean_ServCat(ServCat_recs, prop = prop)})
+  #ServCat_recs <- get_ServCat(prop,start_date=start_date)
+  #if (!is.null(ServCat_recs))
+  #  ServCat_recs <- suppressMessages({clean_ServCat(ServCat_recs, prop = prop)})
 
   ## AntWeb  (not working for Alaska, so commented out)
   # aw_recs <- get_AntWeb(lat_range, lon_range, timeout)
