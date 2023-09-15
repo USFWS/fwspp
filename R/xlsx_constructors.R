@@ -11,9 +11,9 @@ xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
 
   org_dat <- dat %>%
     dplyr::mutate(occurrence = "Probably present",
-           nativeness = NA_character_,
-           accept_record = ifelse(is.na(note) | grepl("FWSpecies", note), #changed NPS to FWS
-                                  "Yes", "No")) %>%
+                  nativeness = NA_character_,
+                  accept_record = ifelse(is.na(note) | grepl("FWSpecies", note), #changed NPS to FWS
+                                         "Yes", "No")) %>%
     select(org_name,
            category,
            taxon_code,
@@ -23,6 +23,8 @@ xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
            evidence,
            note) %>%
     arrange(category, sci_name)
+
+
 
   org_dat$org_name <- org
 
@@ -39,12 +41,12 @@ xlsx_review <- function(org, fwspp, overwrite, verbose, out_dir) {
   })
 
   # Write and save it
-  writeData(wb, 1, org_dat, withFilter = TRUE)
+  openxlsx::writeData(wb, 1, org_dat, withFilter = TRUE)
   fn <- file.path(out_dir, xlsx_fn(org))
   if (file.exists(fn) && !overwrite) {
     warning("File exists and overwrite = FALSE. Skipping ", org, call. = FALSE)
   } else {
-    saveWorkbook(wb, fn, overwrite = overwrite)
+    openxlsx::saveWorkbook(wb, fn, overwrite = overwrite)
     if (verbose) cat("Exported", paste0(org, "\n"))
   }
   return()
@@ -57,6 +59,12 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
   org_dat <- filter(occ_data, ORGNAME == org) %>%
     select(-ORGNAME)
 
+  if(sum(is.na(org_dat$TaxonCode))>0){
+    message("some taxa in ",paste0(org, "\n"), " do not have a valid FWSpecies taxon code and will not be submitted")
+  }
+
+  org_dat<-org_dat[!is.na(org_dat$TaxonCode),]
+
   test_df<-unique(org_dat[,c(1,2,3)])
 
   if (nrow(test_df) == 0) {
@@ -64,9 +72,9 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
   } else {
     #aggregate by common name so each taxa includes all common names from the different data sources
     CommonNames_vec <- sapply(unique(org_dat[,c(1,2,3)])$TaxonCode,
-                            function(x){paste(unique(subset(org_dat,
-                                                            org_dat$TaxonCode==x)$CommonNames),
-                                              collapse=', ')})
+                              function(x){paste(unique(subset(org_dat,
+                                                              org_dat$TaxonCode==x)$CommonNames),
+                                                collapse=', ')})
 
     CommonNames_list <- sapply(test_df$TaxonCode, function(x) {CommonNames_vec[x]}) %>%
       as.vector %>%
@@ -86,11 +94,14 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
 
     for (i in 1:length(unique(org_dat$TaxonCode))) {
       unique_taxa_in_org_dat_list_links[[i]] <- subset(org_dat,
-                                                     org_dat$TaxonCode == unique(org_dat$TaxonCode)[i])$ExternalLinks
+                                                       org_dat$TaxonCode == unique(org_dat$TaxonCode)[i])$ExternalLinks
     }
+    #unique_taxa_in_org_dat_list_links<-unique_taxa_in_org_dat_list_links[sapply(unique_taxa_in_org_dat_list_links,length)>0] #remove empty slots
 
-    unique_taxa_in_org_dat_list_links <- lapply(unique_taxa_in_org_dat_list_links, function(x) {gsub(" ", "", unlist(strsplit(x, ", ")))})
-    names(unique_taxa_in_org_dat_list_links) <- unique(org_dat$TaxonCode)
+    unique_taxa_in_org_dat_list_links <- lapply(unique_taxa_in_org_dat_list_links, function(x) {gsub(" ", "", unlist(strsplit(as.character(x), ", ")))}) #edit
+
+    names(unique_taxa_in_org_dat_list_links) <- unique(org_dat$TaxonCode)[!is.na(unique(org_dat$TaxonCode))]
+
 
     for (i in 1:length(evidence_1)) {
       org_dat$ExternalLinks[i] <- gsub(" ", "", unlist(strsplit(org_dat$ExternalLinks[i], ", ")))[1]
@@ -100,7 +111,7 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
 
     for (i in 1:length(unique(org_dat$TaxonCode))) {
       unique_taxa_in_org_dat_list[[i]] <- subset(org_dat,
-                                               org_dat$TaxonCode == unique(org_dat$TaxonCode)[i])
+                                                 org_dat$TaxonCode == unique(org_dat$TaxonCode)[i])
     }
 
     test_df$ExternalLinks <- sapply(test_df$TaxonCode, function(x) {unique_taxa_in_org_dat_list_links[x][1]}) %>%
@@ -133,7 +144,7 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
     ExternalLinks_df <- NULL
   } else {
     unique_taxa_in_org_dat_list_links_extra <- lapply(names(unique_taxa_in_org_dat_list_links_extra),
-                                                    function(x) {unlist(unique_taxa_in_org_dat_list_links_extra[x])[-1]})
+                                                      function(x) {unlist(unique_taxa_in_org_dat_list_links_extra[x])[-1]})
     extra_links_df_names <- names(unique_taxa_in_org_dat_list_links[which(lapply(unique_taxa_in_org_dat_list_links, length) > 1)])
     names(unique_taxa_in_org_dat_list_links_extra) <- extra_links_df_names
 
@@ -183,8 +194,8 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
                      stringr::str_extract( "[^ ]+ [^ ]+") %>%
                      stringr::str_replace( " ", "%20")), httr::timeout(50000))$content)))
     taxoncode_vec[i] <- ifelse(nrow(subset(test, toupper(test$ScientificName) == toupper(FWSpecies_df$scientificName[i]))) == 0,
-                             "<null>",
-                             max(subset(test, toupper(test$ScientificName) == toupper(FWSpecies_df$scientificName[i]))$TaxonCode))
+                               "<null>",
+                               max(subset(test, toupper(test$ScientificName) == toupper(FWSpecies_df$scientificName[i]))$TaxonCode))
     rm(test)
   }
 
@@ -411,7 +422,7 @@ xlsx_submission <- function(org, occ_data, out_dir, overwrite, verbose) {
 
 
 xlsx_review_tags <- function(wb) {
-  openxlsx::addWorksheet(wb, "tags")
+  openxlsx::addWorksheet(wb, "tags") #edit
   occurrence <- c("Present", "Present-Adjacent", "Probably Present",
                   "Probably Present-Adjacent",
                   "Probably Present-Historical")
@@ -420,9 +431,9 @@ xlsx_review_tags <- function(wb) {
                   "NonNative-Invasive", "NonNative-Noxious",
                   "Unknown", "Unknown-Cultivated", "Unknown-Noxious")
   accept_record = c("Yes", "ModifiedTaxonCode", "No")
-  writeData(wb, 2, occurrence, startCol = 1)
-  writeData(wb, 2, nativeness, startCol = 2)
-  writeData(wb, 2, accept_record, startCol = 3)
+  openxlsx::writeData(wb, 2, occurrence, startCol = 1)
+  openxlsx::writeData(wb, 2, nativeness, startCol = 2)
+  openxlsx::writeData(wb, 2, accept_record, startCol = 3)
 }
 
 xlsx_fn <- function(x) {
