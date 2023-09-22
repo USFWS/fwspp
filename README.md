@@ -272,11 +272,11 @@ the best option is to set `fws_occ` off and running in the background
 
 ## Getting help
 
-Contact the project maintainer for help with this repository template.
+Contact the project maintainer for help with this repository.
 
 ## Contribute
 
 Contact the project maintainer for information about contributing to
-this repository template. Submit a [GitHub
+this repository. Submit a [GitHub
 Issue](https://github.com/USFWS/fwspp/issues/new) to report a bug or
 request a feature or enhancement.
