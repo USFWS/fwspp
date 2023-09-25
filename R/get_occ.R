@@ -276,8 +276,9 @@ get_VertNet <- function(center, radius, timeout, limit = 10000, prop, start_date
   vn_recs<-vn_recs[as.Date(vn_recs$lastindexed)>start_date,]
   if(nrow(vn_recs)==0){
     vn_recs<-NULL
-  }
+  } else{
   message(nrow(vn_recs) " records retrieved indexed after ",format(start_date, "%b %d %Y"))
+    }
   vn_recs
 }
 
