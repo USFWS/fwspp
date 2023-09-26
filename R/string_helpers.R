@@ -98,9 +98,10 @@ clean_sci_name <- function(sn_string) {
   # Drop trinomials, if present, but preserve *properly* formatted hybrids
   # This also drops most authorities...
   # e.g., Aronia X prunifolia, Aronia x prunifolia
-  n_words <- sapply(gregexpr("\\S+", sn_string), function(x) sum(x > 0))
-  if (any(n_words == 3) && any(grepl(" X | x ", sn_string)))
-    return(Cap(sn_string, "first"))
+   n_words <- sapply(gregexpr("\\S+", sn_string), function(x) sum(x > 0))
+  #removing this action due to bugs 9/14/2023
+  #if (any(n_words == 3) && any(grepl(" X | x ", sn_string)))
+  #  return(Cap(sn_string, "first"))
 
   sn_string %>% sub("^(\\S*\\s+\\S+).*", "\\1", .) %>%
     Cap("first")
