@@ -174,7 +174,7 @@ National Fish Hatcheries (NFH), Wildlife Management Areas (WMA), and
 Farm Service Agency indices (FSA). You can specify multiple options as
 illustrated in the last example above.
 
-### Step 2 - Boundary, scrubbing, and taxonomic decisions
+### Step 2 - Boundary, scrubbing, taxonomic decisions, and start date
 
 #### Boundary options
 
