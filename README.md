@@ -226,6 +226,17 @@ Number, common names, NPS-specific taxon code, and a general taxa
 returned. Modifications to observation taxonomy can be suppressed with
 `taxonomy = FALSE`.
 
+#### Start Date
+
+Some databases allow us to subset by a range of dates.  Specifically, 
+GBIF, iDigBio, VertNet, and ServCat and be queried by the 'last interpreted',
+'last modified', 'last indexed', and 'last issued' attributes respectively.  By
+default, the start date is January 1st, 1776.  If we would like to specify a more 
+recent start date to reduce the records already retrieved in a previous 
+query, we can specify the start date.  It must be noted that the start date does 
+not necessarily represent the date the record was added.  Often it represents 
+the date the record was most recently modified or updated.
+
 #### Other options
 
 By default, the `fws_occ` function makes the query using the actual
@@ -262,6 +273,9 @@ Some examples:
     # Query Key West NWR with 10 km buffer; suppressing taxonomy changes
     kw <- find_fws("key west")
     kw_occ <- fws_occ(kw, buffer = 10, taxonomy = FALSE)
+
+    # Query Key West NWR using a start date of September 5th, 2023
+    kw_occ <- fws_occ(kw,start_day = 05,start_month= 9, start_year = 2023)
 
 ### Step 4 - Wait…
 
