@@ -7,8 +7,11 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "README-",
-  message = FALSE)
+  message = FALSE,
+  warning = FALSE)
+```
 
+``` {r, echo = FALSE, eval = TRUE}
 library(fwspp)
 ```
 
@@ -24,7 +27,7 @@ library(fwspp)
 
 ## Overview
 
-This packages contains functions to perform geographic query of several biodiversity databases based on U.S. Fish and Wildlife Service (USFWS) administrative or acquisition property boundaries (plus optional buffers).  At present, the package queries the [Global Biodiversity Information Facility (GBIF)](http://www.gbif.org/), [Biodiversity Information Serving Our Nation (BISON)](https://bison.usgs.gov/#home), [Integrated Digitized Biocollections (iDigBio)](https://www.idigbio.org/), [VertNet](http://vertnet.org/), the [Berkeley Ecoinformatics Engine](https://ecoengine.berkeley.edu/), and [AntWeb](http://www.antweb.org/).  It draws heavily from the outstanding work by the [ROpenScience group](https://ropensci.org/) and their suite of species occurrence packages.  
+This packages contains functions to perform geographic query of several biodiversity databases based on U.S. Fish and Wildlife Service (USFWS) administrative or acquisition property boundaries (plus optional buffers). At present, the package queries the [Global Biodiversity Information Facility (GBIF)](http://www.gbif.org/), [Integrated Digitized Biocollections (iDigBio)](https://www.idigbio.org/), [VertNet](http://vertnet.org/), the [Berkeley Ecoinformatics Engine](https://ecoengine.berkeley.edu/), and [AntWeb](http://www.antweb.org/). It draws heavily from the outstanding work by the [ROpenScience group](https://ropensci.org/) and their suite of species occurrence packages.  
 
 We provide options to:  
 
@@ -33,7 +36,7 @@ We provide options to:
 
 ## Installation
 
-The `fwspp` package requires [R](https://www.r-project.org/) (>= 3.4) and [Rtools](https://cran.r-project.org/bin/windows/Rtools/).  Both will require administrative privileges but the subsequent installation of packages will not.
+The `fwspp` package requires [R](https://www.r-project.org/) (>= 3.4) and [Rtools](https://cran.r-project.org/bin/windows/Rtools/). Both will require administrative privileges but the subsequent installation of packages will not.
 
 With R and Rtools installed, it's relatively painless to install and load the `fwspp` package. If you receive an SSL or CA Certificate error, take the extra steps documented below.  
 
@@ -48,7 +51,7 @@ devtools::install_github("git@github.com:USFWS/fwspp.git", ref = "main")
 library("fwspp")
 ```
 
-Prior to your first use of `fwspp`, you'll need to install the USFWS Cadastral Geodatabase.  You can do this now, using the `install_fws_cadastral` function 
+Prior to your first use of `fwspp`, you'll need to install the USFWS Cadastral Geodatabase. You can do this now, using the `install_fws_cadastral` function:
 
 ```
 install_fws_cadastral()
@@ -114,13 +117,13 @@ r6_all <- find_fws(ptype = c("NWR", "WPA"), region = 6)
 
 #### USFWS property types
 
-The `find_fws` function gives you a `ptype` argument to search for several USFWS property types.  The most common and default property type is the National Wildlife Refuge (NWR), but other options include Waterfowl Production Areas (WPA), Wildlife Management Areas (WMA), National Fish Hatcheries (NFH), Wildlife Management Areas (WMA), and Farm Service Agency indices (FSA).  You can specify multiple options as illustrated in the last example above.
+The `find_fws` function gives you a `ptype` argument to search for several USFWS property types. The most common and default property type is the National Wildlife Refuge (NWR), but other options include Waterfowl Production Areas (WPA), Wildlife Management Areas (WMA), National Fish Hatcheries (NFH), Wildlife Management Areas (WMA), and Farm Service Agency indices (FSA). You can specify multiple options as illustrated in the last example above.
 
 ### Step 2 - Boundary, scrubbing, and taxonomic decisions
 
 #### Boundary options
 
-We offer two options for querying the boundaries of refuges and other USFWS properties via the `bnd` argument to the `fws_occ` function. The default `bnd = "admin"` queries those lands and waters **administered** by the USFWS in North America, U.S. Trust Territories and Possessions. It may also include inholdings that are not administered by the USFWS. The primary source for this information is the USFWS Realty program. See https://ecos.fws.gov/ServCat/Reference/Profile/82894 for more information.  Using `bnd = "acq"` queries the external boundaries of lands and waters that are **approved for acquisition** by the USFWS in North America, U.S. Trust Territories and Possessions. See https://ecos.fws.gov/ServCat/Reference/Profile/82893 for more information.
+We offer two options for querying the boundaries of refuges and other USFWS properties via the `bnd` argument to the `fws_occ` function. The default `bnd = "admin"` queries those lands and waters **administered** by the USFWS in North America, U.S. Trust Territories and Possessions. It may also include inholdings that are not administered by the USFWS. The primary source for this information is the USFWS Realty program. See https://ecos.fws.gov/ServCat/Reference/Profile/82894 for more information. Using `bnd = "acq"` queries the external boundaries of lands and waters that are **approved for acquisition** by the USFWS in North America, U.S. Trust Territories and Possessions. See https://ecos.fws.gov/ServCat/Reference/Profile/82893 for more information.
 
 #### Scrubbing options
 
@@ -161,8 +164,8 @@ Querying many properties can take hours, particularly if they are relatively lar
 
 ## Getting help
 
-Contact the project maintainer for help with this repository template.
+Contact the project maintainer for help with this repository.
 
 ## Contribute
 
-Contact the project maintainer for information about contributing to this repository template. Submit a [GitHub Issue](https://github.com/USFWS/fwspp/issues/new) to report a bug or request a feature or enhancement.
+Contact the project maintainer for information about contributing to this repository. Submit a [GitHub Issue](https://github.com/USFWS/fwspp/issues/new) to report a bug or request a feature or enhancement.

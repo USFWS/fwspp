@@ -16,7 +16,7 @@ Description: Functions to query multiple biodiversity databases (e.g., GBIF,
   from the outstanding work of the rOpenSci community (https://ropensci.org).
 License: CC0
 Depends:
-    R (>= 3.5.0)
+    R (>= 4.3.1)
 Imports:
     curl (>= 3.0),
     dplyr (>= 0.7.3),
