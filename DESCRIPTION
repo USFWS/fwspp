@@ -1,7 +1,7 @@
 Package: fwspp
 Type: Package
 Title: Querying Biodiversity Databases on USFWS Properties
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
   c(person("Adam", "Smith", email = "adam_d_smith@fws.gov", role = c("aut", "cre")),
     person("McCrea", "Cobb", email = "mccrea_cobb@fws.gov", role = "ctb"))
