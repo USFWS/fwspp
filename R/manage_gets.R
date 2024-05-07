@@ -52,11 +52,10 @@ manage_gets <- function(prop, timeout,start_yr) {
   if (!is.null(vn_recs))
     vn_recs <- clean_VertNet(vn_recs)
 
-  ## Berkeley 'Ecoinformatics' Engine
-
-  ee_recs <- get_EcoEngine(lat_range, lon_range, timeout)
-  if (!is.null(ee_recs))
-    ee_recs <- clean_EcoEngine(ee_recs)
+  ## Berkeley 'Ecoinformatics' Engine (Unsupported web services as of 2022)
+  # ee_recs <- get_EcoEngine(lat_range, lon_range, timeout)
+  # if (!is.null(ee_recs))
+  #   ee_recs <- clean_EcoEngine(ee_recs)
 
   ##ServCat
   ServCat_recs <- get_ServCat(prop)
@@ -75,7 +74,7 @@ manage_gets <- function(prop, timeout,start_yr) {
   bind_rows(gbif_recs,
             idb_recs,
             vn_recs,
-            ee_recs,
+            # ee_recs,  # Remove EcoEngine (unsupported web services)
             ServCat_recs
             # aw_recs
   ) %>%

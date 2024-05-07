@@ -215,6 +215,8 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
   })
   bind_rows(aw_recs)
 }
+
+#' @noRd
 get_ServCat<-function(prop){
   try_JSON <- try_verb_n(jsonlite::fromJSON, 4)
 
@@ -237,10 +239,10 @@ get_ServCat<-function(prop){
                                                       list(
                                                         "units" = list(
                                                           list(
-                                                            order=0,
-                                                            logicOperator="string",
-                                                            unitCode=unit_code,
-                                                            linked=FALSE#,
+                                                            order = 0,
+                                                            logicOperator = "string",
+                                                            unitCode = unit_code,
+                                                            linked = FALSE #,
                                                             # approved=TRUE
                                                           )
                                                         )

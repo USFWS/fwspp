@@ -162,9 +162,9 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
                     taxonomy = TRUE, verbose = TRUE,
                     timeout = NULL,gbif_start_yr = NULL) {
 
-  start_yr<-gbif_start_yr
+  start_yr <- gbif_start_yr
   if (is.null(start_yr))
-    start_yr<-1776
+    start_yr <- 1776
 
   if (is.null(fws) || !is.data.frame(fws))
     stop("You must provide valid property names to query.",

@@ -47,10 +47,9 @@
   occ_recs <- bind_rows(occ_recs)
   if (nrow(occ_recs) == 0) return(NULL)
 
-  #take out ServCat data because those data do not have coordinates
-  ServCat_df<-occ_recs[occ_recs$bio_repo=="ServCat",]
-  occ_recs<-occ_recs[occ_recs$bio_repo!="ServCat",]
-
+  # Filter ServCat data because these data do not have spatial coordinates
+  ServCat_df <- occ_recs[occ_recs$bio_repo == "ServCat", ]
+  occ_recs <- occ_recs[occ_recs$bio_repo != "ServCat", ]
 
   # Filter to boundaries of interest
   occ_recs <- clip_occ(occ_recs, prop)
@@ -67,7 +66,8 @@
   occ_recs %>%
     dplyr::mutate(org_name = org_name) %>%
     select(org_name, everything(), -media_url, -cat_no) %>%
-    arrange(sci_name, year, month, day) %>% bind_rows(ServCat_df)
+    arrange(sci_name, year, month, day) %>%
+    bind_rows(ServCat_df)
 
 }
 
