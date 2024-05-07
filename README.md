@@ -18,11 +18,10 @@ buffers). At present, the package queries the [Global Biodiversity
 Information Facility (GBIF)](http://www.gbif.org/), [Biodiversity
 Information Serving Our Nation (BISON)](https://bison.usgs.gov/#home),
 [Integrated Digitized Biocollections
-(iDigBio)](https://www.idigbio.org/), [VertNet](http://vertnet.org/),
-the [Berkeley Ecoinformatics Engine](https://ecoengine.berkeley.edu/),
-and [AntWeb](http://www.antweb.org/). It draws heavily from the
-outstanding work by the [ROpenScience group](https://ropensci.org/) and
-their suite of species occurrence packages.
+(iDigBio)](https://www.idigbio.org/), and
+[VertNet](http://vertnet.org/). It draws heavily from the outstanding
+work by the [ROpenScience group](https://ropensci.org/) and their suite
+of species occurrence packages.
 
 We provide options to:
 
