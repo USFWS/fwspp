@@ -1,5 +1,5 @@
 manage_gets <- function(prop, timeout,start_yr) {
-  start_yr<-start_yr
+  start_yr <- start_yr
 
   # TEST IF FLEXIBILITY IN THESE REQUIREMENTS
   stopifnot(nrow(prop) == 1 &&
@@ -33,7 +33,7 @@ manage_gets <- function(prop, timeout,start_yr) {
   #############################################################################
 
   ## GBIF
-  gbif_recs <- get_GBIF(prop, timeout,start_yr=start_yr)
+  gbif_recs <- get_GBIF(prop, timeout, start_yr = start_yr)
   if (is.null(gbif_recs))
     gbif_recs <- NULL
   else

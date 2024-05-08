@@ -16,7 +16,7 @@ get_GBIF <- function(prop, timeout, limit = 200000, start_yr) {
   curr_yr <- as.POSIXlt(Sys.time())$year + 1900
 
   # Hoop-jumping to retrieve more records, if necessary
-  q_recs <- try_gbif_count(prop,year=paste(start_yr,",",curr_yr))
+  q_recs <- try_gbif_count(prop, year = paste(start_yr, ",", curr_yr))
   if (q_recs == 0) {
     message("No records found.")
     return(NULL)
@@ -105,7 +105,7 @@ get_VertNet <- function(center, radius, timeout, limit = 10000, prop) {
   i <- 1
   q_recs <- 0
   message("Attempting to query VertNet three times")
-  VertNet_try<-c("first try","second try","third and final try")
+  VertNet_try <- c("first try","second try","third and final try")
   while (i <= 3) {
     message(VertNet_try[i])
     q_recs <- try_vertnet_count(center, radius)
