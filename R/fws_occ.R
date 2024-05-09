@@ -185,7 +185,7 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
   # Cycle through properties
   if (verbose)
     out <- lapply(fws$ORGNAME, function(prop) {
-      retrieve_occ(props, prop, buffer, scrub, timeout,start_yr)})
+      retrieve_occ(props, prop, buffer, scrub, timeout, start_yr)})
   else
     out <- pbapply::pblapply(fws$ORGNAME, function(prop) {
       suppressMessages(

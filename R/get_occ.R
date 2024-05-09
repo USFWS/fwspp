@@ -104,8 +104,8 @@ get_VertNet <- function(center, radius, timeout, limit = 10000, prop) {
   # Try up to three times to be sure...
   i <- 1
   q_recs <- 0
-  message("Attempting to query VertNet three times")
-  VertNet_try <- c("first try","second try","third and final try")
+  message("Attempting to query VertNet three times...")
+  VertNet_try <- c("First try...", "Second try...", "Third and final try...")
   while (i <= 3) {
     message(VertNet_try[i])
     q_recs <- try_vertnet_count(center, radius)
@@ -169,7 +169,7 @@ get_EcoEngine <- function(lat_range, lon_range, timeout) {
                          foptions = httr::timeout(timeout))
     )
     if (!is_error(ee_recs) || i == 3) break
-    if (grepl("count not greater than 0", ee_recs$error$message)) {
+    if (grepl("Count not greater than 0", ee_recs$error$message)) {
       message("No records found.")
       return(NULL)
     }
@@ -232,9 +232,9 @@ get_ServCat<-function(prop){
     filter(prop_info,
            grepl(paste(orgnames, collapse = "|"), .data$org_name, ignore.case = TRUE))
   }
-  orgname_df<-get_unit_codes()
-  unit_code<-orgname_df[orgname_df$org_name==prop$ORGNAME,]$UnitCode
-  ServCat_df<-as.data.frame(try_JSON(rawToChar(POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
+  orgname_df <- get_unit_codes()
+  unit_code <- orgname_df[orgname_df$org_name==prop$ORGNAME, ]$UnitCode
+  ServCat_df <- as.data.frame(try_JSON(rawToChar(POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
                                                     body = toJSON(c(
                                                       list(
                                                         "units" = list(

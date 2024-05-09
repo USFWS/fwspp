@@ -1,4 +1,4 @@
-manage_gets <- function(prop, timeout,start_yr) {
+manage_gets <- function(prop, timeout, start_yr) {
   start_yr <- start_yr
 
   # TEST IF FLEXIBILITY IN THESE REQUIREMENTS
@@ -57,10 +57,10 @@ manage_gets <- function(prop, timeout,start_yr) {
   # if (!is.null(ee_recs))
   #   ee_recs <- clean_EcoEngine(ee_recs)
 
-  ##ServCat
-  ServCat_recs <- get_ServCat(prop)
-  if (!is.null(ServCat_recs))
-    ServCat_recs <- suppressMessages({clean_ServCat(ServCat_recs, prop = prop)})
+  ##ServCat (No currently working)
+  # ServCat_recs <- get_ServCat(prop)
+  # if (!is.null(ServCat_recs))
+  #   ServCat_recs <- suppressMessages({clean_ServCat(ServCat_recs, prop = prop)})
 
   ## AntWeb  (not working for Alaska, so commented out)
   # aw_recs <- get_AntWeb(lat_range, lon_range, timeout)
@@ -73,9 +73,9 @@ manage_gets <- function(prop, timeout,start_yr) {
 
   bind_rows(gbif_recs,
             idb_recs,
-            vn_recs,
-            # ee_recs,  # Remove EcoEngine (unsupported web services)
-            ServCat_recs
+            vn_recs
+            # ee_recs  # Remove EcoEngine (unsupported web services)
+            # ServCat_recs
             # aw_recs
   ) %>%
     # Drop records with no species ID or monomials (e.g., genus only)
