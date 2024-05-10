@@ -26,7 +26,7 @@ manage_gets <- function(prop, timeout, start_date) {
   # GBIF record count used to determine the HTTP request timeout
   try_gbif_count <- try_verb_n(gbif_count)
   #q_recs <- try_gbif_count(prop)
-  today<-as.POSIXlt(Sys.time())
+  today <- as.POSIXlt(Sys.time())
 
   q_recs <- try_gbif_count(prop,lastInterpreted = paste0(format(start_date, format="%Y"),"-",
                                                          format(start_date, format="%m"),"-",
@@ -44,7 +44,7 @@ manage_gets <- function(prop, timeout, start_date) {
   if (prog_recs < q_recs)
     message("Your timeout setting may be too short. Watch for repeated HTTP ",
             "timeout\nerrors and adjust the timeout parameter accordingly.")
-  timeout<-timeout+1 #edit added one to ensure timeout is not zero
+  timeout <- timeout + 1 # Add one to ensure timeout is not zero
 
   #############################################################################
   ## Retrieve and standardize occurrence records from biodiversity databases ##
@@ -52,7 +52,6 @@ manage_gets <- function(prop, timeout, start_date) {
 
   # GBIF
   gbif_recs <- get_GBIF(prop, timeout, start_date = start_date)
-
   if (is.null(gbif_recs))
     gbif_recs <- NULL
   else
@@ -64,19 +63,19 @@ manage_gets <- function(prop, timeout, start_date) {
     idb_recs <- clean_iDigBio(idb_recs)
 
   # VertNet
-  vn_recs <- get_VertNet(rowMeans(bb), radius, timeout, prop = prop,start_date=start_date)
+  vn_recs <- get_VertNet(rowMeans(bb), radius, timeout, prop = prop, start_date = start_date)
   if (!is.null(vn_recs))
     vn_recs <- clean_VertNet(vn_recs)
 
-  # Berkeley 'Ecoinformatics' Engine
-  ee_recs <- get_EcoEngine(lat_range, lon_range, timeout)
-  if (!is.null(ee_recs))
-    ee_recs <- clean_EcoEngine(ee_recs)
+  # Berkeley 'Ecoinformatics' Engine (EcoEngine R package is depricated)
+  # ee_recs <- get_EcoEngine(lat_range, lon_range, timeout)
+  # if (!is.null(ee_recs))
+  #   ee_recs <- clean_EcoEngine(ee_recs)
 
   # ServCat
-  #ServCat_recs <- get_ServCat(prop,start_date=start_date)
-  #if (!is.null(ServCat_recs))
-  #  ServCat_recs <- suppressMessages({clean_ServCat(ServCat_recs, prop = prop)})
+  ServCat_recs <- get_ServCat(prop, start_date = start_date)
+  if (!is.null(ServCat_recs))
+   ServCat_recs <- suppressMessages({clean_ServCat(ServCat_recs, prop = prop)})
 
   ## AntWeb  (not working for Alaska, so commented out)
   # aw_recs <- get_AntWeb(lat_range, lon_range, timeout)
@@ -84,19 +83,18 @@ manage_gets <- function(prop, timeout, start_date) {
   #   aw_recs <- clean_AntWeb(aw_recs)
 
   # Consolidate standardized occurrence records from biodiversity databases
-  if(is.null(gbif_recs) & is.null(idb_recs) & is.null(vn_recs) & is.null(ee_recs)){
+  if(is.null(gbif_recs) & is.null(idb_recs) & is.null(vn_recs)){
     return(NULL)
+  } else {
+    bind_rows(gbif_recs,
+              idb_recs,
+              vn_recs,
+              # ee_recs,
+              ServCat_recs
+              # aw_recs  # Drop AntWeb, doesn't work for AK
+    ) %>%
+      # Drop records with no species ID or monomials (e.g., genus only)
+      filter(!is.na(sci_name),
+             vapply(strsplit(sci_name, "\\W+"), length, integer(1)) == 2)
   }
-    else{
-      bind_rows(gbif_recs,
-                idb_recs,
-                vn_recs,
-                ee_recs#,
-                #ServCat_recs
-                # aw_recs  # Drop AntWeb, doesn't work for AK
-      ) %>%
-        # Drop records with no species ID or monomials (e.g., genus only)
-        filter(!is.na(sci_name),
-               vapply(strsplit(sci_name, "\\W+"), length, integer(1)) == 2)
-    }
 }

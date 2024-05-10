@@ -34,7 +34,7 @@ get_GBIF <- function(prop, timeout, limit = 200000, start_date) {
                                                          format(today, format="%Y"),"-",
                                                          format(today, format="%m"),"-",
                                                          format(today, format="%d")))
-  
+
   if (q_recs == 0) {
     message("No records found.")
     return(NULL)
@@ -393,24 +393,24 @@ get_ServCat <- function(prop,start_date) {
     filter(prop_info,
            grepl(paste(orgnames, collapse = "|"), .data$org_name, ignore.case = TRUE))
   }
-  orgname_df<-get_unit_codes()
-  unit_code<-orgname_df[orgname_df$org_name==prop$ORGNAME,]$UnitCode
-  ServCat_df<-as.data.frame(try_JSON(rawToChar(httr::POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
+  orgname_df <- get_unit_codes()
+  unit_code <- orgname_df[orgname_df$org_name==prop$ORGNAME, ]$UnitCode
+  ServCat_df <- as.data.frame(try_JSON(rawToChar(httr::POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
                                                           body = jsonlite::toJSON(c(
                                                             list(
                                                               "units" = list(
                                                                 list(
-                                                                  order=0,
-                                                                  logicOperator="string",
-                                                                  unitCode=unit_code,
-                                                                  linked=FALSE#,
+                                                                  order = 0,
+                                                                  logicOperator = "string",
+                                                                  unitCode = unit_code,
+                                                                  linked = FALSE#,
                                                                   # approved=TRUE
                                                                 )
                                                               )
                                                             )
                                                           ), auto_unbox = TRUE),
-                                                          httr::add_headers("Content-Type" = "application/json"),httr::timeout(100000))$content))$items)
+                                                          httr::add_headers("Content-Type" = "application/json"), httr::timeout(100000))$content))$items)
 
-  ServCat_df<-ServCat_df[as.Date(ServCat_df$dateOfIssue)>start_date,]
+  ServCat_df <- ServCat_df[as.Date(ServCat_df$dateOfIssue)>start_date, ]
   ServCat_df
 }

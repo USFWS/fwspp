@@ -2,7 +2,7 @@
 .Rhistory
 .Rapp.history
 .Renviron
-.RData
+*.RData
 .Ruserdata
 *.Rproj
 .Rproj.user

@@ -4,7 +4,7 @@
 \alias{retrieve_occ}
 \title{Retrieve species occurrence records from databases}
 \usage{
-retrieve_occ(props, prop, buffer, scrub, timeout = NULL)
+retrieve_occ(props, prop, buffer, scrub, timeout = NULL, start_date)
 }
 \arguments{
 \item{props}{a list of FWS properties}
