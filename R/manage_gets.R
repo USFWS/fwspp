@@ -51,14 +51,15 @@ manage_gets <- function(prop, timeout, start_date) {
   #############################################################################
 
   # GBIF
-  gbif_recs <- get_GBIF(prop, timeout,start_date=start_date)
+  gbif_recs <- get_GBIF(prop, timeout, start_date = start_date)
+
   if (is.null(gbif_recs))
     gbif_recs <- NULL
   else
     gbif_recs <- clean_GBIF(gbif_recs)
 
   # iDigBio
-  idb_recs <- get_iDigBio(lat_range, lon_range, timeout,start_date=start_date)
+  idb_recs <- get_iDigBio(lat_range, lon_range, timeout, start_date = start_date)
   if (!is.null(idb_recs))
     idb_recs <- clean_iDigBio(idb_recs)
 
@@ -66,7 +67,6 @@ manage_gets <- function(prop, timeout, start_date) {
   vn_recs <- get_VertNet(rowMeans(bb), radius, timeout, prop = prop,start_date=start_date)
   if (!is.null(vn_recs))
     vn_recs <- clean_VertNet(vn_recs)
-
 
   # Berkeley 'Ecoinformatics' Engine
   ee_recs <- get_EcoEngine(lat_range, lon_range, timeout)
@@ -84,7 +84,6 @@ manage_gets <- function(prop, timeout, start_date) {
   #   aw_recs <- clean_AntWeb(aw_recs)
 
   # Consolidate standardized occurrence records from biodiversity databases
-
   if(is.null(gbif_recs) & is.null(idb_recs) & is.null(vn_recs) & is.null(ee_recs)){
     return(NULL)
   }

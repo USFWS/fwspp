@@ -22,6 +22,7 @@ retrieve_occ <- function(props, prop, buffer, scrub, timeout = NULL,start_date) 
   org_name <- prop
   short_org <- Cap(org_name) %>% shorten_orgnames()
   prop <- props[props$ORGNAME == prop, ]
+  start_yr <- start_yr
 
   # Consider buffer
   if (buffer) prop <- buffer_prop(prop, buffer)
@@ -67,11 +68,9 @@ retrieve_occ <- function(props, prop, buffer, scrub, timeout = NULL,start_date) 
   occ_recs <- bind_rows(occ_recs)
   if (nrow(occ_recs) == 0) return(NULL)
 
-
-
   # Take out ServCat data because those data do not have coordinates
-  #ServCat_df <- occ_recs[occ_recs$bio_repo == "ServCat", ]
-  #occ_recs <- occ_recs[occ_recs$bio_repo != "ServCat", ]
+  ServCat_df <- occ_recs[occ_recs$bio_repo == "ServCat", ]
+  occ_recs <- occ_recs[occ_recs$bio_repo != "ServCat", ]
 
   # Filter to boundaries of interest
   occ_recs <- clip_occ(occ_recs, prop)
@@ -85,7 +84,7 @@ retrieve_occ <- function(props, prop, buffer, scrub, timeout = NULL,start_date) 
     occ_recs <- occ_recs$result
   }
   #add ServCat records if any
-  ServCat_df <- get_ServCat(prop[1, ],start_date=start_date)
+  ServCat_df <- get_ServCat(prop[1, ], start_date = start_date)
   if (!is.null(ServCat_df))
     ServCat_df <- suppressMessages({clean_ServCat(ServCat_df, prop = prop[1, ])})
 

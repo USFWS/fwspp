@@ -180,9 +180,9 @@ clean_AntWeb <- function(aw_recs) {
   standardize_occ(aw_recs)
 }
 
-
 #' @noRd
 clean_ServCat <- function(ServCat_rec, prop) {
+
   try_JSON <- try_verb_n(jsonlite::fromJSON, 4)
   org_name <- prop
   short_org <- Cap(org_name) %>% shorten_orgnames()
@@ -205,6 +205,7 @@ clean_ServCat <- function(ServCat_rec, prop) {
 
   if (length(orgname_df[orgname_df$org_name == prop$ORGNAME, ]$UnitCode) == 0) {
     unit_code <- return (NULL)
+
   } else {
     unit_code <- orgname_df[orgname_df$org_name == prop$ORGNAME, ]$UnitCode
   }
@@ -261,6 +262,7 @@ clean_ServCat <- function(ServCat_rec, prop) {
                                                        subset(substr(unitCode_df$unitCode, 1, 4) != "FF07") %>% nrow == 0),
                                                     (unitCode_df$unitCode %>% intersect(codes_to_remove) %>% length == 0))) == 2, T, F)
 
+
       rm(unitCode_df)
     }
   }
@@ -268,6 +270,7 @@ clean_ServCat <- function(ServCat_rec, prop) {
   # Only consider rows associated with refuge of interest
   if (nrow(subset(ServCat_rec, ServCat_rec$unit_code_only == T)) == 0) {
     ServCat_rec <- NULL
+
   } else {
     ServCat_rec <- subset(ServCat_rec, ServCat_rec$unit_code_only == T)
   }
@@ -277,6 +280,7 @@ clean_ServCat <- function(ServCat_rec, prop) {
     ServCat_rec <- NULL
   } else {
     if (nrow(ServCat_rec) == 0) {
+
       ServCat_rec <- NULL
     }
     else{
@@ -309,6 +313,7 @@ clean_ServCat <- function(ServCat_rec, prop) {
     }
   }
 
+
   # Select only records that have bounding box of refuge
   if (is.null(ServCat_rec)) {
     ServCat_rec <- NULL
@@ -320,6 +325,7 @@ clean_ServCat <- function(ServCat_rec, prop) {
       ServCat_rec$bounding_box <- NA
     }
   }
+
 
   if (is.null(ServCat_rec)) {
     ServCat_rec <- NULL
@@ -333,6 +339,7 @@ clean_ServCat <- function(ServCat_rec, prop) {
                                                                        as.character(ServCat_rec$referenceId[i]),"/BoundingBoxes"),
                                                                   httr::timeout(50000))$content)))$tag
         ServCat_rec$bounding_box[i] <- ifelse(length(bb_test_vec) == 1 & paste0("BoundingBox for ", unit_code) %in% bb_test_vec, T, F)
+
         rm(bb_test_vec)
       }
     }}
@@ -376,6 +383,7 @@ clean_ServCat <- function(ServCat_rec, prop) {
     if (nrow(ServCat_rec) == 0){
       ServCat_rec <- NULL
     } else {
+
       names(taxa_list) <- as.character(ServCat_rec$referenceId)
 
       taxa_list <- taxa_list[!is.na(taxa_list)]
@@ -384,6 +392,7 @@ clean_ServCat <- function(ServCat_rec, prop) {
 
       # Add the reference ID to each data frame in the loop
       for (i in 1:length(taxa_df_list)) {
+
         taxa_df_list[[names(taxa_df_list)[i]]]$refID <- names(taxa_df_list)[i]
       }
 
@@ -408,7 +417,6 @@ clean_ServCat <- function(ServCat_rec, prop) {
                                                                                                 as.character(taxa_in_ServCat_rec$Taxon_Code[i])),
                                                                                          httr::timeout(50000))$content)))$CommonName[1]
       }
-
       taxa_in_ServCat_rec$evidence <- paste0("https://ecos.fws.gov/ServCat/Reference/Profile/", taxa_df_combined$refID)
       ServCat_clean <- as.data.frame(taxa_in_ServCat_rec$ScientificName)
       colnames(ServCat_clean) <- "sci_name"
@@ -427,6 +435,7 @@ clean_ServCat <- function(ServCat_rec, prop) {
   }
 
   if (exists("ServCat_clean")) {
+
     output <- ServCat_clean
   } else {
     output <- ServCat_rec

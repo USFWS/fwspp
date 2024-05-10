@@ -28,14 +28,13 @@ get_GBIF <- function(prop, timeout, limit = 200000, start_date) {
 
   # Hoop-jumping to retrieve more records, if necessary
   #q_recs <- try_gbif_count(prop)
-
   q_recs <- try_gbif_count(prop,lastInterpreted = paste0(format(start_date, format="%Y"),"-",
                                                          format(start_date, format="%m"),"-",
                                                          format(start_date, format="%d"),",",
                                                          format(today, format="%Y"),"-",
                                                          format(today, format="%m"),"-",
                                                          format(today, format="%d")))
-
+  
   if (q_recs == 0) {
     message("No records found.")
     return(NULL)
@@ -47,7 +46,7 @@ get_GBIF <- function(prop, timeout, limit = 200000, start_date) {
     n_grp <- ceiling(q_recs/50000)
     yr_bnd_l <- integer(0)
 
-    for (yr in curr_yr:1776) {
+    for (yr in curr_yr:start_yr) {
       cutoff <- 50000 * (length(yr_bnd_l) + 1)
       yr_rng <- paste(yr, curr_yr, sep = ",")
       n_recs <- try_gbif_count(prop,
@@ -171,8 +170,9 @@ get_VertNet <- function(center, radius, timeout, limit = 10000, prop, start_date
   # Try up to three times to be sure...
   i <- 1
   q_recs <- 0
-  message("Attempting to query VertNet three times")
-  VertNet_try<-c("first try","second try","third and final try")
+
+  message("Attempting to query VertNet three times...")
+  VertNet_try <- c("First try...", "Second try...", "Third and final try...")
   while (i <= 3) {
     message(VertNet_try[i])
     q_recs <- try_vertnet_count(center, radius)
@@ -311,7 +311,7 @@ get_EcoEngine <- function(lat_range, lon_range, timeout) {
                          foptions = httr::timeout(timeout))
     )
     if (!is_error(ee_recs) || i == 3) break
-    if (grepl("count not greater than 0", ee_recs$error$message)) {
+    if (grepl("Count not greater than 0", ee_recs$error$message)) {
       message("No records found.")
       return(NULL)
     }

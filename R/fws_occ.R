@@ -184,7 +184,6 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
 
   start_date<-as.POSIXlt(paste0(start_year,"-",start_month,"-",start_day))
 
-
   bnd <- match.arg(bnd)
   scrub <- match.arg(scrub)
 
@@ -202,6 +201,7 @@ fws_occ <- function(fws = NULL, bnd = c("admin", "acq"),
     out <- pbapply::pblapply(fws$ORGNAME, function(prop) {
       suppressMessages(
         retrieve_occ(props, prop, buffer, scrub, timeout,start_date))})
+
 
   attributes(out) <- list(names = fws$ORGNAME,
                           class = "fwspp",
