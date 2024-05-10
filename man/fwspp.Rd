@@ -2,8 +2,26 @@
 % Please edit documentation in R/fwspp.R
 \docType{package}
 \name{fwspp}
+\alias{fwspp-package}
 \alias{fwspp}
 \title{\code{fwspp} package}
 \description{
 See the \href{https://github.com/adamdsmith/fwspp}{README} on GitHub
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/USFWS/fwspp}
+  \item Report bugs at \url{https://github.com/USFWS/fwspp/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Adam Smith \email{adam_d_smith@fws.gov}
+
+Other contributors:
+\itemize{
+  \item McCrea Cobb \email{mccrea_cobb@fws.gov} [contributor]
+}
+
 }

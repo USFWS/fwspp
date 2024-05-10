@@ -17,12 +17,12 @@
 #' @import dplyr
 #'
 #' @return a data frame of species occurrence records
-retrieve_occ <- function(props, prop, buffer, scrub, timeout = NULL,start_date) {
+retrieve_occ <- function(props, prop, buffer, scrub, timeout = NULL, start_date) {
 
   org_name <- prop
   short_org <- Cap(org_name) %>% shorten_orgnames()
   prop <- props[props$ORGNAME == prop, ]
-  start_yr <- start_yr
+  # start_yr <- start_yr
 
   # Consider buffer
   if (buffer) prop <- buffer_prop(prop, buffer)
@@ -50,7 +50,7 @@ retrieve_occ <- function(props, prop, buffer, scrub, timeout = NULL,start_date) 
   occ_recs <- vector(nrow(prop), mode = "list")
   safe_gets <- purrr::safely(manage_gets)
   for (i in seq_along(occ_recs)) {
-    i_recs <- safe_gets(prop[i, ], timeout,start_date)
+    i_recs <- safe_gets(prop[i, ], timeout, start_date)
     if (is_error(i_recs)) {
       occ_recs[[i]] <- i_recs$error
       break
@@ -65,12 +65,10 @@ retrieve_occ <- function(props, prop, buffer, scrub, timeout = NULL,start_date) 
   errs <- sapply(occ_recs, is_error)
   if (any(errs))
     return(occ_recs[[min(which(errs))]])
-  occ_recs <- bind_rows(occ_recs)
-  if (nrow(occ_recs) == 0) return(NULL)
 
-  # Take out ServCat data because those data do not have coordinates
-  ServCat_df <- occ_recs[occ_recs$bio_repo == "ServCat", ]
-  occ_recs <- occ_recs[occ_recs$bio_repo != "ServCat", ]
+  occ_recs <- bind_rows(occ_recs)
+
+  if (nrow(occ_recs) == 0) return(NULL)
 
   # Filter to boundaries of interest
   occ_recs <- clip_occ(occ_recs, prop)
@@ -83,14 +81,4 @@ retrieve_occ <- function(props, prop, buffer, scrub, timeout = NULL,start_date) 
     if (is_error(occ_recs)) return(occ_recs$error)
     occ_recs <- occ_recs$result
   }
-  #add ServCat records if any
-  ServCat_df <- get_ServCat(prop[1, ], start_date = start_date)
-  if (!is.null(ServCat_df))
-    ServCat_df <- suppressMessages({clean_ServCat(ServCat_df, prop = prop[1, ])})
-
-  occ_recs %>%
-    dplyr::mutate(org_name = org_name) %>%
-    select(org_name, everything(), -media_url, -cat_no) %>%
-    arrange(sci_name, year, month, day) %>%
-    bind_rows(ServCat_df)
 }

@@ -180,6 +180,7 @@ clean_AntWeb <- function(aw_recs) {
   standardize_occ(aw_recs)
 }
 
+
 #' @noRd
 clean_ServCat <- function(ServCat_rec, prop) {
 
@@ -313,7 +314,6 @@ clean_ServCat <- function(ServCat_rec, prop) {
     }
   }
 
-
   # Select only records that have bounding box of refuge
   if (is.null(ServCat_rec)) {
     ServCat_rec <- NULL
@@ -325,7 +325,6 @@ clean_ServCat <- function(ServCat_rec, prop) {
       ServCat_rec$bounding_box <- NA
     }
   }
-
 
   if (is.null(ServCat_rec)) {
     ServCat_rec <- NULL
@@ -392,7 +391,6 @@ clean_ServCat <- function(ServCat_rec, prop) {
 
       # Add the reference ID to each data frame in the loop
       for (i in 1:length(taxa_df_list)) {
-
         taxa_df_list[[names(taxa_df_list)[i]]]$refID <- names(taxa_df_list)[i]
       }
 

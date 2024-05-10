@@ -11,7 +11,10 @@ fws_occ(
   scrub = c("strict", "moderate", "none"),
   taxonomy = TRUE,
   verbose = TRUE,
-  timeout = NULL
+  timeout = NULL,
+  start_day = NULL,
+  start_month = NULL,
+  start_year = NULL
 )
 }
 \arguments{
