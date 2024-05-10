@@ -60,6 +60,7 @@
 #'  the review of species occurrence observations
 #'
 #' @import openxlsx
+#'
 #' @export
 #' @examples
 #' \dontrun{
@@ -67,9 +68,9 @@
 #' lc <- fws_occ(fws = lowcountry)
 #' fwspp_review(lc)
 #' }
-
 fwspp_review <- function(fwspp, out_dir = "./fwspp_review",
                          overwrite = FALSE, verbose = TRUE) {
+
   if (!inherits(fwspp, "fwspp"))
     stop("Input must be an `fwspp` object. See `?fws_occ`.")
 

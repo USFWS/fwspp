@@ -1,7 +1,7 @@
 Package: fwspp
 Type: Package
 Title: Querying Biodiversity Databases on USFWS Properties
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
   c(person("Adam", "Smith", email = "adam_d_smith@fws.gov", role = c("aut", "cre")),
     person("McCrea", "Cobb", email = "mccrea_cobb@fws.gov", role = "ctb"))
@@ -16,7 +16,7 @@ Description: Functions to query multiple biodiversity databases (e.g., GBIF,
   from the outstanding work of the rOpenSci community (https://ropensci.org).
 License: CC0
 Depends:
-    R (>= 3.5.0)
+    R (>= 4.3.1)
 Imports:
     curl (>= 3.0),
     dplyr (>= 0.7.3),
@@ -37,9 +37,10 @@ Imports:
     sf,
     solrium (>= 1.0.0),
     stats,
-    utils
+    utils,
+    magrittr
 Remotes:
-    ropensci/ecoengine
+    ropensci-archive/ecoengine
 Copyright: This software is in the public domain because it contains materials
     that originally came from the United States Fish & Wildlife Service, an agency
     of the United States Department of Interior. For more information, see the

@@ -1,13 +1,15 @@
-#' Install the most current (2017-08-24) USFWS cadastral geodatabase.
+#' Install the most current USFWS cadastral geodatabase
 #'
 #' This function must be run prior to first use of \code{fws_occ} (which will prompt you
-#'  if necessary).  This function can also be used to update to the most recent
-#'  cadastral geodatabase if the \code{fwspp} package hasn't yet incorporated it.  However,
-#'  the cadastral geodatabase is updated rather infrequently, and updating will take
-#'  several minutes (the file is ~ 100 MB), so it may be best to check if such an update is
-#'  necessary prior to running this function.  Visit
-#'  \url{https://catalog.data.gov/dataset?q="FWS+Cadastral+Database"} and check the date.
+#' if necessary).  This function can also be used to update to the most recent
+#' cadastral geodatabase if the \code{fwspp} package hasn't yet incorporated it.  However,
+#' the cadastral geodatabase is updated rather infrequently, and updating will take
+#' several minutes (the file is ~ 100 MB), so it may be best to check if such an update is
+#' necessary prior to running this function.  Visit
+#' \url{https://catalog.data.gov/dataset?q="FWS+Cadastral+Database"} and check the date.
+#'
 #' @export
+#'
 #' @examples
 #' \dontrun{
 #' install_fws_cadastral()
@@ -18,10 +20,11 @@ install_fws_cadastral <- function() {
   if (!(curl::has_internet()))
     stop(wrap_message(
       paste("No internet connection detected.  Please try again later when a stable",
-            "connection is available.  Sorry for the inconvenience.")))
+            "connection is available. Sorry for the inconvenience.")))
 
   tmp <- tempfile(fileext = ".zip")
-  dl <- try(httr::GET(fws_url(), httr::write_disk(tmp),
+  dl <- try(httr::GET(fws_url(),
+                      httr::write_disk(tmp),
                       httr::progress()), silent = TRUE)
   if (is_error(dl)) {
     utils::browseURL(fws_url())

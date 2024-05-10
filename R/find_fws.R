@@ -1,4 +1,4 @@
-#' Find USFWS properties available for query.
+#' Find USFWS properties available for query
 #'
 #' @param fws character string scalar or vector (i.e., multiple entries allowed) with
 #'  which to search and return valid USFWS identifiers (i.e., ORGNAMEs) for species
@@ -12,10 +12,13 @@
 #'  "FSA" (Farm Service Agency properties), and "NFH" (National Fish Hatcheries).
 #' @param region integer indicating which USFWS Region(s) to search (
 #' \url{https://www.fws.gov/where}); valid values range from 1 to 8
-#' @export
+#'
 #' @return \code{data.frame} of organizational names (ORGNAME) of USFWS properties
 #'  meeting the search criteria and their associate USFWS region.  This output can be
 #'  passed directly to \code{\link{fws_occ}} as the \code{fws} argument.
+#'
+#' @export
+#'
 #' @examples
 #' \dontrun{
 #' # Get all National Wildlife Refuges

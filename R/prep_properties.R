@@ -11,13 +11,20 @@
 #'  \code{\link{fws_occ}}
 #' @param verbose logical; suppress messaging? See \code{\link{fws_occ}}
 #'  during species occurrence queries
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr semi_join
+#' @importFrom sf st_make_valid
+#'
 #' @export
 prep_properties <- function(prop_df, bnd = "admin", verbose = FALSE) {
 
   l <- dplyr::case_when(
     bnd == "admin" ~ "fws_interest.rds",
     TRUE ~ "fws_approved.rds")
+
   has_sf <- file.exists(system.file("extdata", l, package = "fwspp"))
+
   if (!has_sf) stop("The necessary USFWS Cadastral files were not located. ",
                     "Please run `install_fws_cadastral()`.", call. = FALSE)
 

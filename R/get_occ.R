@@ -1,22 +1,40 @@
-# Functions to extract occurrence records from each biodiversity database
+#############################################################################
+## Functions to extract occurrence records from each biodiversity database
 
-# All get_* functions will return errors and continue rather than break
-# the overall request.  This allows the request of occurrence records to
-# to proceed to additional properties
+## All get_* functions will return errors and continue rather than break
+## the overall request.  This allows the request of occurrence records to
+## to proceed to additional properties
+#############################################################################
 
+
+#' Get FWS species occurrence data from GBIF
+#'
+#' @param prop a FWS property boundary returned by \code{\link{find_fws}}
+#' @param timeout numeric value specifying the time to wait for records to return in seconds
+#' @param limit Numeric value indicating the maximum number of records to return on each query attempt
+#'
 #' @noRd
-get_GBIF <- function(prop, timeout, limit = 200000, start_yr) {
+get_GBIF <- function(prop, timeout, limit = 200000, start_date) {
 
-  message("Querying the Global Biodiversity Information Facility (GBIF) from ",start_yr, " to present...")
+  message("Querying the Global Biodiversity Information Facility (GBIF) last interpreted from ",format(start_date, "%b %d %Y"), " to present...")
 
   # We want to capture media, if available, so can't use 'spocc' call to GBIF
   try_gbif_count <- try_verb_n(gbif_count)
   try_gbif <- try_verb_n(rgbif::occ_search)
+  today<-as.POSIXlt(Sys.time())
 
   curr_yr <- as.POSIXlt(Sys.time())$year + 1900
 
+
   # Hoop-jumping to retrieve more records, if necessary
-  q_recs <- try_gbif_count(prop, year = paste(start_yr, ",", curr_yr))
+  #q_recs <- try_gbif_count(prop)
+  q_recs <- try_gbif_count(prop,lastInterpreted = paste0(format(start_date, format="%Y"),"-",
+                                                         format(start_date, format="%m"),"-",
+                                                         format(start_date, format="%d"),",",
+                                                         format(today, format="%Y"),"-",
+                                                         format(today, format="%m"),"-",
+                                                         format(today, format="%d")))
+  
   if (q_recs == 0) {
     message("No records found.")
     return(NULL)
@@ -32,7 +50,13 @@ get_GBIF <- function(prop, timeout, limit = 200000, start_yr) {
       cutoff <- 50000 * (length(yr_bnd_l) + 1)
       yr_rng <- paste(yr, curr_yr, sep = ",")
       n_recs <- try_gbif_count(prop,
-                               year = yr_rng)
+                               year = yr_rng,
+                               lastInterpreted = paste0(format(start_date, format="%Y"),"-",
+                                                        format(start_date, format="%m"),"-",
+                                                        format(start_date, format="%d"),",",
+                                                        format(today, format="%Y"),"-",
+                                                        format(today, format="%m"),"-",
+                                                        format(today, format="%d")))
 
       ## TO DO: ADD MESSAGE IF SINGLE YEAR RECORDS EXCEED 200K
 
@@ -54,7 +78,13 @@ get_GBIF <- function(prop, timeout, limit = 200000, start_yr) {
       message("  Processing occurrence records from ", sub(",", " - ", yr_rng))
       tmp <- try_gbif(limit = limit, year = yr_rng,
                       geometry = get_wkt(prop),
-                      curlopts = list(timeout = (timeout+10)))
+                      curlopts = list(timeout = (timeout+10)),
+                      lastInterpreted = paste0(format(start_date, format="%Y"),"-",
+                                               format(start_date, format="%m"),"-",
+                                               format(start_date, format="%d"),",",
+                                               format(today, format="%Y"),"-",
+                                               format(today, format="%m"),"-",
+                                               format(today, format="%d")))
       gbif_recs$media <- c(gbif_recs$media, tmp$media)
       gbif_recs$data <- bind_rows(gbif_recs$data, tmp$data)
     }
@@ -62,27 +92,49 @@ get_GBIF <- function(prop, timeout, limit = 200000, start_yr) {
     gbif_recs <- try_gbif(limit = min(limit, q_recs),
                           geometry = get_wkt(prop),
                           curlopts = list(timeout = (timeout+10)),
-                          year=paste(start_yr,",",curr_yr))
+                          lastInterpreted = paste0(format(start_date, format="%Y"),"-",
+                                                   format(start_date, format="%m"),"-",
+                                                   format(start_date, format="%d"),",",
+                                                   format(today, format="%Y"),"-",
+                                                   format(today, format="%m"),"-",
+                                                   format(today, format="%d")))
   }
   gbif_recs$meta$count <- q_recs
   class(gbif_recs) <- "gbif"
+  if(nrow(gbif_recs$data)==0){
+    gbif_recs<-NULL
+  }
   gbif_recs
 }
 
-#' @noRd
-get_iDigBio <- function(lat_range, lon_range, timeout) {
 
-  message("Querying Integrated Digitized Biocollections (iDigBio)...")
+#' Get FWS species occurrence data from Integrated Digitized Biocollections (iDigBio)
+#'
+#' @param lat_range vector of two numeric values indicating the range of latitudes in decimal degrees
+#' @param lon_range vector of two numeric values indicating the range of latitudes in decimal degrees
+#' @param timeout numeric value specifying the time to wait for records to return in seconds
+#'
+#' @noRd
+get_iDigBio <- function(lat_range, lon_range, timeout,start_date) {
+
+  message("Querying Integrated Digitized Biocollections (iDigBio) last modified from ",format(start_date, "%b %d %Y"), " to present...")
+
+  today<-as.POSIXlt(Sys.time())
 
   rq <- list(geopoint = list(type = "geo_bounding_box",
                              top_left = list(
                                lat = lat_range[2], lon = lon_range[1]),
                              bottom_right = list(
-                               lat = lat_range[1], lon = lon_range[2])))
+                               lat = lat_range[1], lon = lon_range[2])),
+             datemodified=list(type="range",
+                               gte=as.Date.character(start_date)[1],
+                               lte=as.Date.character(today)[1]
+             ))
 
   try_idb_count <- try_verb_n(ridigbio::idig_count_records)
   try_idb <- try_verb_n(ridigbio::idig_search)
   q_recs <- try_idb_count(rq = rq)
+
   if (q_recs == 0) {
     message("No records found.")
     idb_recs<-NULL
@@ -95,15 +147,30 @@ get_iDigBio <- function(lat_range, lon_range, timeout) {
   idb_recs
 }
 
-#' @noRd
-get_VertNet <- function(center, radius, timeout, limit = 10000, prop) {
 
-  message("Querying VertNet...")
+#' Get FWS species occurrence data from VertNet
+#'
+#' @param center numeric value indicating the spatial centroid for the query
+#' @param radius numeric value indicating the radius surrounding the center of the query
+#' @param prop a FWS property boundary returned by \code{\link{find_fws}}
+#' @param timeout numeric value specifying the time to wait for records to return in seconds
+#' @param limit Numeric value indicating the maximum number of records to return on each query attempt
+#'
+#' @noRd
+get_VertNet <- function(center, radius, timeout, limit = 10000, prop, start_date) {
+
+  try_JSON <- try_verb_n(jsonlite::fromJSON, 4)
+
+  today<-as.POSIXlt(Sys.time())
+
+  message("Querying VertNet last indexed from ",format(start_date, "%b %d %Y"), " to present...")
+
   try_vertnet_count <- try_verb_n(vertnet_count)
   # VertNet balks on large requests sometimes, returning no matches for a good query
   # Try up to three times to be sure...
   i <- 1
   q_recs <- 0
+
   message("Attempting to query VertNet three times...")
   VertNet_try <- c("First try...", "Second try...", "Third and final try...")
   while (i <= 3) {
@@ -116,44 +183,119 @@ get_VertNet <- function(center, radius, timeout, limit = 10000, prop) {
   }
 
   if (q_recs == 0) {
-     message("No records found.")
+    message("No records found.")
     return(NULL)
   }
-  message("Retrieving ", q_recs, " records.")
+  message("Retrieving > ", q_recs, " records.")
 
   # `spocc` doesn't currently allow geographic searches with VertNet while `rvertnet` does
   try_vn <- try_verb_n(rvertnet::spatialsearch)
 
+  #put function here, we are going to just do the API call, because the regular call seem to leave
+  #off data (when a section is greater than 1000)
+
   if (q_recs < 5000) {
-    vn_recs <- try_vn(center[2], center[1], radius, limit, messages = FALSE,
-                      callopts = list(timeout = timeout),
-                      only_dwc = FALSE)
-    if (!is.null(vn_recs)) vn_recs <- vn_recs$data
+    link<-paste0("http://api.vertnet-portal.appspot.com/api/search?q=%7B%22q%22:%22distance%28location,geopoint%28",
+                 center[2],",",center[1],"%29%29%3C",radius,"%22,%22l%22:100%7D")
+
+    combined_df<-as.data.frame(try_JSON(
+      rawToChar(
+        httr::GET(link)$content))$recs)
+
+    i<-length(unique(combined_df$references))
+    while (i==100){
+      cursor_temp<-try_JSON(
+        rawToChar(
+          httr::GET(link)$content))$cursor
+      link<-paste0("http://api.vertnet-portal.appspot.com/api/search?q=%7B%22q%22:%22distance%28location,geopoint%28",
+                   center[2],",",center[1],"%29%29%3C",radius,"%22,%22l%22:100,%22c%22:%22",cursor_temp,"%22}")
+      df_temp<-as.data.frame(try_JSON(
+        rawToChar(
+          httr::GET(link)$content))$recs)
+      i<-length(unique(df_temp$references))
+
+      combined_df<-bind_rows(combined_df,df_temp)
+      print(nrow(combined_df))
+      rm(df_temp)
+      rm(cursor_temp)
+    }
+    vn_recs<-combined_df
   } else {
-    # Chop it up
+
     diced <- dice_prop(prop)
-    vn_recs <- pbapply::pblapply(seq_len(nrow(diced)), function(d) {
+    vn_recs_1<-list()
+    for (d in 1:nrow(diced)) {
       tmp <- diced[d, ]
       tmp_bb <- matrix(sf::st_bbox(tmp), 2)
       tmp_cent <- rowMeans(tmp_bb)
       tmp_radius <- geosphere::distVincentyEllipsoid(tmp_cent, t(tmp_bb))
       tmp_radius <- ceiling(max(tmp_radius))
-      tmp_recs <- try_vn(tmp_cent[2], tmp_cent[1], tmp_radius, messages = FALSE,
-                         callopts = list(timeout = timeout),
-                         only_dwc = FALSE)
-      if (!is.null(tmp_recs)) tmp_recs <- tmp_recs$data
-      tmp_recs
-    })
-    vn_recs <- bind_rows(vn_recs) %>% distinct()
+      link<-paste0("http://api.vertnet-portal.appspot.com/api/search?q=%7B%22q%22:%22distance%28location,geopoint%28",
+                   tmp_cent[2],",",tmp_cent[1],"%29%29%3C",tmp_radius,"%22,%22l%22:100%7D")
+      combined_df<-as.data.frame(try_JSON(
+        rawToChar(
+          httr::GET(link)$content))$recs)
+
+      i<-length(unique(combined_df$references))
+      while (i==100){
+        cursor_temp<-try_JSON(
+          rawToChar(
+            httr::GET(link)$content))$cursor
+        link<-paste0("http://api.vertnet-portal.appspot.com/api/search?q=%7B%22q%22:%22distance%28location,geopoint%28",
+                     tmp_cent[2],",",tmp_cent[1],"%29%29%3C",tmp_radius,"%22,%22l%22:100,%22c%22:%22",cursor_temp,"%22}")
+        df_temp<-as.data.frame(try_JSON(
+          rawToChar(
+            httr::GET(link)$content))$recs)
+        i<-length(unique(df_temp$references))
+
+        combined_df<-bind_rows(combined_df,df_temp)
+        rm(df_temp)
+        rm(cursor_temp)
+      }
+      vn_recs_1[[d]]<-combined_df
+      vn_recs <- bind_rows(vn_recs_1) %>% distinct()
+    }
   }
+  # diced <- dice_prop(prop)
+  # vn_recs <- pbapply::pblapply(seq_len(nrow(diced)), function(d) {
+  #  tmp <- diced[d, ]
+  #  tmp_bb <- matrix(sf::st_bbox(tmp), 2)
+  #  tmp_cent <- rowMeans(tmp_bb)
+  #  tmp_radius <- geosphere::distVincentyEllipsoid(tmp_cent, t(tmp_bb))
+  #  tmp_radius <- ceiling(max(tmp_radius))
+  #  tmp_recs <- try_vn(tmp_cent[2], tmp_cent[1], tmp_radius, messages = FALSE,
+  #                     callopts = list(timeout = timeout),
+  #                     only_dwc = FALSE)
+  #  if (!is.null(tmp_recs)) tmp_recs <- tmp_recs$data
+  #  tmp_recs
+  # print(nrow(tmp_recs))
+  # })
+  #vn_recs <- bind_rows(vn_recs) %>% distinct()
+  #nrow(vn_recs)
+  #edit####
+  vn_recs<-vn_recs[as.Date(vn_recs$lastindexed)>start_date,]
+  if(nrow(vn_recs)==0){
+    vn_recs<-NULL
+    message("No records indexed after ",format(start_date, "%b %d %Y"))
+  } else{
+  message(nrow(vn_recs), " records retrieved indexed after ",format(start_date, "%b %d %Y"))
+    }
   vn_recs
 }
 
 
+#' Get FWS species occurrence data from EcoEngine
+#'
+#' @param lat_range vector of two numeric values indicating the range of latitudes in decimal degrees
+#' @param lon_range vector of two numeric values indicating the range of latitudes in decimal degrees
+#' @param timeout numeric value specifying the time to wait for records to return in seconds
+#'
+#' @importFrom purrr safely
+#'
 #' @noRd
 get_EcoEngine <- function(lat_range, lon_range, timeout) {
-
-  message("Querying the Berkeley Ecoinformatics Engine...")
+  timeout<-timeout+1
+  message("Querying the Berkeley Ecoinformatics Engine (all records)...")
 
   # Could use `spocc` but why start now...
   bbox <- paste(c(lon_range[1], lat_range[1],
@@ -178,13 +320,25 @@ get_EcoEngine <- function(lat_range, lon_range, timeout) {
                   "Retrying in %0.0f s.")
     message(sprintf(mess, i, wait))
     Sys.sleep(wait)
+
   }
-  if (is_error(ee_recs))
-    stop(ee_recs$error$message)
-  message("Retrieving ", ee_recs$result$results, " records.")
+  if(!is.null(ee_recs$result)){
+    if (is_error(ee_recs))
+      stop(ee_recs$error$message)
+  }
+  if(!is.null(ee_recs$result)){
+    message("Retrieving ", ee_recs$result$results, " records.")
+  }
   ee_recs$result
 }
 
+
+#' Get FWS species occurrence data from AntWeb
+#'
+#' @param lat_range vector of two numeric values indicating the range of latitudes in decimal degrees
+#' @param lon_range vector of two numeric values indicating the range of latitudes in decimal degrees
+#' @param timeout numeric value specifying the time to wait for records to return, in seconds.
+#'
 #' @noRd
 get_AntWeb <- function(lat_range, lon_range, timeout) {
 
@@ -216,8 +370,15 @@ get_AntWeb <- function(lat_range, lon_range, timeout) {
   bind_rows(aw_recs)
 }
 
+
+#' Get FWS species occurrence data from ServCat
+#'
+#' @param prop a FWS property boundary returned by \code{\link{find_fws}}
+#'
 #' @noRd
-get_ServCat<-function(prop){
+get_ServCat <- function(prop,start_date) {
+  message("Querying ServCat issued from ",format(start_date, "%b %d %Y"), " to present...")
+
   try_JSON <- try_verb_n(jsonlite::fromJSON, 4)
 
   get_unit_codes <- function(orgnames = NULL) {
@@ -232,22 +393,24 @@ get_ServCat<-function(prop){
     filter(prop_info,
            grepl(paste(orgnames, collapse = "|"), .data$org_name, ignore.case = TRUE))
   }
-  orgname_df <- get_unit_codes()
-  unit_code <- orgname_df[orgname_df$org_name==prop$ORGNAME, ]$UnitCode
-  ServCat_df <- as.data.frame(try_JSON(rawToChar(POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
-                                                    body = toJSON(c(
-                                                      list(
-                                                        "units" = list(
-                                                          list(
-                                                            order = 0,
-                                                            logicOperator = "string",
-                                                            unitCode = unit_code,
-                                                            linked = FALSE #,
-                                                            # approved=TRUE
-                                                          )
-                                                        )
-                                                      )
-                                                    ), auto_unbox = TRUE),
-                                                    add_headers("Content-Type" = "application/json"),httr::timeout(100000))$content))$items)
+  orgname_df<-get_unit_codes()
+  unit_code<-orgname_df[orgname_df$org_name==prop$ORGNAME,]$UnitCode
+  ServCat_df<-as.data.frame(try_JSON(rawToChar(httr::POST("https://ecos.fws.gov/ServCatServices/servcat/v4/rest/AdvancedSearch?top=999999",
+                                                          body = jsonlite::toJSON(c(
+                                                            list(
+                                                              "units" = list(
+                                                                list(
+                                                                  order=0,
+                                                                  logicOperator="string",
+                                                                  unitCode=unit_code,
+                                                                  linked=FALSE#,
+                                                                  # approved=TRUE
+                                                                )
+                                                              )
+                                                            )
+                                                          ), auto_unbox = TRUE),
+                                                          httr::add_headers("Content-Type" = "application/json"),httr::timeout(100000))$content))$items)
+
+  ServCat_df<-ServCat_df[as.Date(ServCat_df$dateOfIssue)>start_date,]
   ServCat_df
 }

@@ -1,3 +1,5 @@
+
+#' @noRd
 add_review_validation <- function(wb, end_row) {
   openxlsx::dataValidation(wb, 1, col = 6, rows = 2:end_row,
                  type = "list", value = "'tags'!$A$1:$A$5")
@@ -7,6 +9,8 @@ add_review_validation <- function(wb, end_row) {
                  type = "list", value = "'tags'!$C$1:$C$3")
 }
 
+
+#' @noRd
 is_review <- function(df) {
   rev_cols <- c("org_name", "category", "taxon_code", "sci_name",
                 "com_name", "occurrence", "nativeness", "accept_record",
@@ -14,6 +18,8 @@ is_review <- function(df) {
   identical(names(df), rev_cols)
 }
 
+
+#' @noRd
 import_review <- function(xlsx, verbose) {
   review <- try(
     readxl::read_excel(xlsx,
@@ -32,6 +38,8 @@ import_review <- function(xlsx, verbose) {
   review
 }
 
+
+#' @noRd
 process_review <- function(df) {
 
   # Remove unaccepted observations
@@ -40,9 +48,9 @@ process_review <- function(df) {
   # Pull modified records
   acc_recs <- filter(df, accept_record == "Yes")
   mods <- filter(df, grepl("Modif", accept_record) & !is.na(taxon_code))
-  mods_fun<-function(x){
+  mods_fun <- function(x){
 
-    mods<-x
+    mods <- x
     revised_codes <- unique(mods$taxon_code)
     message("Retrieving updated taxonomic information.")
     revised_codes <- pbapply::pblapply(revised_codes, fws_taxonomy_by_code) %>%
@@ -52,22 +60,23 @@ process_review <- function(df) {
              upd_com_name = com_name)
 
     # Join updated taxonomy to modified records
-
     mods <- select(mods, -category) %>%
       left_join(revised_codes, by = "taxon_code") %>%
       rowwise() %>%
       mutate(sci_name = ifelse(is.na(acc_sci_name),
                                sci_name, acc_sci_name),
-             com_name = list(clean_com_name(c(com_name, upd_com_name)))) %>%  #modified based on recomendation
+             com_name = list(clean_com_name(c(com_name, upd_com_name)))) %>%  # Modified based on recommendation
       ungroup()
-    mods$com_name<-lapply(mods$com_name,unique)
-    mods$com_name<-sapply(mods$com_name, function(x){ifelse(length(unique(x))>1,paste(x,collapse = ", "),
-                                                            unique(x))})
+    mods$com_name <- lapply(mods$com_name,unique)
+    mods$com_name <- sapply(mods$com_name, function(x) {
+      ifelse(length(unique(x))>1,paste(x,collapse = ", "), unique(x))
+    })
     return(mods)
   }
   nrow(mods)
-  if(nrow(mods)>0){
-    mods<-mods_fun(mods)
+
+  if(nrow(mods) > 0) {
+    mods <- mods_fun(mods)
     acc_recs <- bind_rows(acc_recs, mods)
   }
 
@@ -77,17 +86,20 @@ process_review <- function(df) {
 
   # Rename relevant columns
   acc_recs <- acc_recs %>%
-    select(`Scientific Name` = sci_name, TaxonCode = taxon_code,
-           UnitCode, CommonNames = com_name,
-           ExternalLinks = evidence, Occurrence = occurrence,
-           Nativeness = nativeness, ORGNAME = org_name) %>%
+    select(`Scientific Name` = sci_name,
+           TaxonCode = taxon_code,
+           UnitCode,
+           CommonNames = com_name,
+           ExternalLinks = evidence,
+           Occurrence = occurrence,
+           Nativeness = nativeness,
+           ORGNAME = org_name) %>%
     mutate(RecordStatus = "Approved",
            RefugeAccepted = "Yes",
            Nativeness = ifelse(is.na(Nativeness), "Unknown",
                                Nativeness))
 
-
-  ## Set column names/order of output data frame
+  # Set column names/order of output data frame
   out_df <- utils::read.csv(
     text = paste(c("Scientific Name", "TaxonCode", "ORGNAME", "UnitCode", "CommonNames",
                    "Refuge Synonyms", "ExternalLinks", "Occurrence", "OccurrenceClass",
@@ -97,7 +109,7 @@ process_review <- function(df) {
                  collapse = ", "), check.names = FALSE)
 
   out_df <- out_df %>% mutate(across(where(is.logical), as.character))
-  acc_recs$TaxonCode<-as.character(acc_recs$TaxonCode)
+  acc_recs$TaxonCode <- as.character(acc_recs$TaxonCode)
   out_df <- bind_rows(out_df, acc_recs)
   out_df
 }

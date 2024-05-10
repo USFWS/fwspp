@@ -91,7 +91,7 @@ Also note that the extraction of records occurs on a property-by-property
 }
 \section{General overview}{
 
-The basic process is to query GBIF, BISON, iDigBio, the Berkeley
+The basic process is to query GBIF, iDigBio, the Berkeley
  'Ecoinformatics' Engine, and AntWeb based on the bounding box
  associated with each \code{fws} and any requested buffer.  For VertNet,
  the API requires spatial searches using a lat/lon coordinate and search
@@ -100,7 +100,7 @@ The basic process is to query GBIF, BISON, iDigBio, the Berkeley
 
 Properties that occupy a relatively small area compared to the corresponding
  bounding box will be split into smaller pieces to avoid unnecessarily large
- queries. Likewise, queries (typically GBIF and BISON) that contain many
+ queries. Likewise, queries (typically GBIF) that contain many
  records (> 125000) are split to improve efficiency (both) and recover all
  records (GBIF).
 
@@ -132,11 +132,11 @@ By default (\code{scrub = "strict"}), \code{fws_occ} scrubs a lot of records.
 By default (\code{taxonomy = TRUE}), \code{fwspp} attempts to check the validity of
  scientific names against the Integrated Taxonomic Information System (ITIS). It does
  this not by connecting to ITIS directly, but by requesting information from a web
- service maintained by the National Park Service as part of their NPSpecies database
- (\url{https://irma.nps.gov/npspecies}). Note that this means if taxonomy information
+ service maintained by the U.S. Fish and Wildlife Service as part of their FWSpecies database
+ Note that this means if taxonomy information
  is requested, and an ITIS match found, the scientific name will be converted to the
  "accepted" ITIS scientific name, and the corresponding ITIS Taxonomic Serial Number,
- an NPS-specific taxon code, a common name used by NPS, and a general organism
+ an NPS-specific taxon code, a common name used by USFWS, and a general organism
  "category" (e.g., Mammals, Birds, Fungi) are returned.
 }
 

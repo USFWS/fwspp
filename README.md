@@ -53,7 +53,7 @@ take the extra steps documented below.
 
 Prior to your first use of `fwspp`, you’ll need to install the USFWS
 Cadastral Geodatabase. You can do this now, using the
-`install_fws_cadastral` function
+`install_fws_cadastral` function:
 
     install_fws_cadastral()
 
@@ -97,10 +97,6 @@ strict as necessary. Here are a few examples:
 # Get all National Wildlife Refuges (527 as of 2017-11-10) 
 # Issues a warning because of two identically-named, but distinct, refuges
 all_refs <- find_fws()
-#> Warning: Your search returned multiple USFWS properties with the same name.
-#>  *  BUFFALO LAKE NATIONAL WILDLIFE REFUGE 
-#> To avoid querying an unwanted property, check the output and perhaps
-#> specify the `region` argument to avoid unintended behavior.
 
 # Search across all refuges with a partial name match
 # Only 1 refuge contains 'longleaf'; Mountain Longleaf NWR
@@ -271,11 +267,11 @@ the best option is to set `fws_occ` off and running in the background
 
 ## Getting help
 
-Contact the project maintainer for help with this repository template.
+Contact the project maintainer for help with this repository.
 
 ## Contribute
 
 Contact the project maintainer for information about contributing to
-this repository template. Submit a [GitHub
+this repository. Submit a [GitHub
 Issue](https://github.com/USFWS/fwspp/issues/new) to report a bug or
 request a feature or enhancement.
